@@ -76,7 +76,7 @@ export function AdminPage() {
       <div className="pane-head">
         <div>
           <h1>Administration</h1>
-          <div className="pane-sub">Modération des comptes -- clique un utilisateur pour le détail</div>
+          <div className="pane-sub">Modération des comptes — clique un utilisateur pour le détail</div>
         </div>
       </div>
       <div className="stat-grid">
@@ -220,15 +220,15 @@ export function AdminUserPage() {
         <div className="review-box">
           <div>
             <span>GitHub</span>
-            <b>{user.serviceCredentials.githubUsername || '--'}</b>
+            <b>{user.serviceCredentials.githubUsername || '—'}</b>
           </div>
           <div>
             <span>Ville météo par défaut</span>
-            <b>{user.serviceCredentials.weatherDefaultCity || '--'}</b>
+            <b>{user.serviceCredentials.weatherDefaultCity || '—'}</b>
           </div>
           <div>
             <span>Flux RSS par défaut</span>
-            <b>{user.serviceCredentials.rssDefaultFeed || '--'}</b>
+            <b>{user.serviceCredentials.rssDefaultFeed || '—'}</b>
           </div>
         </div>
         {!user.confirmed && user.confirmToken && (

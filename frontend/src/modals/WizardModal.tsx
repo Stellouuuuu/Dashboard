@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from '../components/Modal';
 import {
+  ACCENT,
   CATALOG,
   REFRESH_RATES,
+  SERVICES,
   SERVICE_LABEL,
   catalogOf,
   type CatalogWidget,
 } from '../data/catalog';
+import { ServiceIcon } from '../components/Icons';
 import { useAppData } from '../context/AppDataContext';
 import { FormField } from '../components/FormField';
 
@@ -19,6 +22,7 @@ export function WizardModal() {
     instances,
     setInstances,
     wizardEditUid,
+    wizardPresetId,
     nextUid,
     toast,
     setFlashUid,
@@ -51,11 +55,14 @@ export function WizardModal() {
         return;
       }
     }
-    setWidget(null);
+    const preset = wizardPresetId ? catalogOf(wizardPresetId) ?? null : null;
+    setWidget(preset);
     setConfig({});
     setRate(30);
     setStep(1);
-  }, [open, wizardEditUid]);
+    if (preset && !isSubscribed(preset.service)) setNeedsSubscribe(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, wizardEditUid, wizardPresetId]);
 
   const title = isEditing
     ? 'Reconfigurer le widget'
@@ -189,32 +196,38 @@ export function WizardModal() {
       ) : (
         <>
           {step === 1 && (
-            <div>
-              <p className="wiz-hint">Choisis un widget dans le catalogue.</p>
-              <div className="wiz-cat-grid">
-                {CATALOG.map((w) => {
-                  const soon = Boolean(w.comingSoon);
-                  const locked = soon || !isSubscribed(w.service);
-                  return (
-                    <button
-                      key={w.id}
-                      type="button"
-                      className={`wiz-cat accent-${w.service}${widget?.id === w.id ? ' selected' : ''}${locked ? ' locked' : ''}`}
-                      disabled={soon}
-                      onClick={() => {
-                        if (soon) return;
-                        selectWidget(w);
-                      }}
-                    >
-                      <b>
-                        {w.name}
-                        {soon ? ' · bientôt' : locked ? ' · abonnement requis' : ''}
-                      </b>
-                      <span>{w.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="wiz-catalog">
+              {SERVICES.map((svc) => {
+                const subscribed = isSubscribed(svc);
+                const widgets = CATALOG.filter((w) => w.service === svc);
+                return (
+                  <div key={svc} className="wiz-group" role="group" aria-label={SERVICE_LABEL[svc]}>
+                    <div className="wiz-group-head">
+                      <span className={`wcard-svc svc-${ACCENT[svc]}`} aria-hidden="true">
+                        <ServiceIcon service={svc} />
+                      </span>
+                      <b>{SERVICE_LABEL[svc]}</b>
+                      <span className={`wiz-group-status${subscribed ? ' on' : ''}`}>
+                        {subscribed ? 'Disponible' : 'Connexion requise'}
+                      </span>
+                    </div>
+                    <div className="wiz-cat-grid">
+                      {widgets.map((w) => (
+                        <button
+                          key={w.id}
+                          type="button"
+                          className={`wiz-cat${widget?.id === w.id ? ' selected' : ''}${subscribed ? '' : ' locked'}`}
+                          aria-pressed={widget?.id === w.id}
+                          onClick={() => selectWidget(w)}
+                        >
+                          <b>{w.name}</b>
+                          <span>{w.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -224,7 +237,7 @@ export function WizardModal() {
               {widget.params.map((p) => (
                 <FormField
                   key={p.name}
-                  label={`${p.label} (${p.type})`}
+                  label={p.label}
                   error={configErrors[p.name]}
                   htmlFor={`wiz-${p.name}`}
                 >
@@ -280,13 +293,13 @@ export function WizardModal() {
                 </div>
                 {Object.entries(config).map(([k, v]) => (
                   <div key={k}>
-                    <span>{k}</span>
+                    <span>{widget.params.find((p) => p.name === k)?.label ?? k}</span>
                     <b>{String(v)}</b>
                   </div>
                 ))}
                 <div>
                   <span>Rafraîchissement</span>
-                  <b>{rate} s</b>
+                  <b>{rate < 60 ? `${rate} s` : `${rate / 60} min`}</b>
                 </div>
               </div>
             </div>

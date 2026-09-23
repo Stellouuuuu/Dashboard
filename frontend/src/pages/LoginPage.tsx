@@ -2,20 +2,8 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormField } from '../components/FormField';
-import { BrandMark, IconGithub } from '../components/Icons';
 import { useAuth } from '../auth/AuthContext';
 import { AuthError } from '../api/demo';
-
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="#EA4335"
-        d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3.2 14.7 2.2 12 2.2 6.8 2.2 2.6 6.5 2.6 12S6.8 21.8 12 21.8c6.9 0 9.6-4.9 9.6-7.4 0-.5-.1-.9-.1-1.2H12Z"
-      />
-    </svg>
-  );
-}
 
 function IconEye({ off }: { off?: boolean }) {
   if (off) {
@@ -84,10 +72,7 @@ export function LoginPage() {
   return (
     <AuthLayout>
       <div className="auth-glass">
-        <div className="auth-glass-mark" aria-hidden="true">
-          <BrandMark size={40} />
-        </div>
-        <h1 className="auth-glass-title">Bon retour !</h1>
+        <h1 className="auth-glass-title">Bon retour.</h1>
         <p className="auth-glass-lead">
           Connecte-toi pour retrouver ton dashboard, tes widgets et tes services
           connectés.
@@ -97,7 +82,7 @@ export function LoginPage() {
           {errors.form && (
             <div className="form-banner error" role="alert">
               {errors.form}
-              {errors.form.includes('confirmé') && (
+              {import.meta.env.DEV && errors.form.includes('confirmé') && (
                 <>
                   {' '}
                   <Link to="/confirm/pending-yao-token">Confirmer le compte démo</Link>
@@ -149,9 +134,6 @@ export function LoginPage() {
               />
               <span>Se souvenir de moi</span>
             </label>
-            <span className="auth-forgot" title="Bientôt disponible">
-              Mot de passe oublié ?
-            </span>
           </div>
 
           <button
@@ -163,20 +145,11 @@ export function LoginPage() {
           </button>
         </form>
 
-        <div className="rule">ou</div>
-
-        <div className="oauth-row auth-oauth">
-          <button type="button" className="oauth-btn" disabled title="Bientôt disponible">
-            <GoogleMark /> Continuer avec Google
-          </button>
-          <button type="button" className="oauth-btn" disabled title="Bientôt disponible">
-            <IconGithub /> Continuer avec GitHub
-          </button>
-        </div>
-
-        <p className="auth-demo-hint">
-          Démo : <code>stella@epitech.eu</code> / <code>password123</code>
-        </p>
+        {import.meta.env.DEV && (
+          <p className="auth-demo-hint">
+            Démo : <code>stella@epitech.eu</code> / <code>password123</code>
+          </p>
+        )}
 
         <div className="switch-line">
           Pas encore de compte ? <Link to="/register">Créer un compte</Link>

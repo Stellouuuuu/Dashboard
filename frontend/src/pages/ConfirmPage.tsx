@@ -1,7 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AuthLayout } from '../components/AuthLayout';
-import { BrandMark } from '../components/Icons';
 import { useAuth } from '../auth/AuthContext';
 import { AuthError } from '../api/demo';
 
@@ -24,7 +23,7 @@ export function ConfirmPage() {
         await confirm(token);
         if (!cancelled) {
           setStatus('ok');
-          setMessage('Compte confirmé -- bienvenue !');
+          setMessage('Compte confirmé — bienvenue !');
         }
       } catch (err) {
         if (!cancelled) {
@@ -45,9 +44,6 @@ export function ConfirmPage() {
   return (
     <AuthLayout>
       <div className="auth-glass">
-        <div className="auth-glass-mark" aria-hidden="true">
-          <BrandMark size={40} />
-        </div>
         <h1 className="auth-glass-title">Confirmation d’email</h1>
         {status === 'loading' && (
           <div className="confirm-email">

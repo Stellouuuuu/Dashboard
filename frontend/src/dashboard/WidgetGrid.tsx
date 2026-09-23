@@ -10,7 +10,7 @@ interface WidgetGridProps {
   previewCount?: number;
   /** When set, render this list instead of all instances (e.g. service filter). */
   instancesOverride?: WidgetInstance[];
-  /** Mobile My Home: 2-col masonry, first card full-width. */
+  /** Grille du dashboard principal (colonnes adaptées au mobile). */
   masonry?: boolean;
 }
 
@@ -37,7 +37,9 @@ export function WidgetGrid({
 
   if (!isPreview && widgetsLoading) return <DashboardSkeleton />;
 
-  if (!isPreview && widgetsError) {
+  // Erreur bloquante seulement s'il n'y a rien à afficher ; sinon on garde la grille
+  // (données de démo ou dernière version chargée) avec un avertissement discret.
+  if (!isPreview && widgetsError && list.length === 0) {
     return (
       <div className="form-banner error" role="alert">
         {widgetsError}{' '}
@@ -68,11 +70,6 @@ export function WidgetGrid({
     );
   }
 
-  const pairFlagUid =
-    !isPreview && list.filter((w) => w.pair).length >= 2
-      ? list.filter((w) => w.pair)[1]?.uid
-      : undefined;
-
   const handleDrop = (targetUid: number) => {
     if (dragUid === null || dragUid === targetUid) {
       setDragUid(null);
@@ -94,9 +91,17 @@ export function WidgetGrid({
   };
 
   return (
-    <div className={`grid-widgets${masonry ? ' grid-widgets--masonry' : ''}`}>
-      {list.flatMap((inst, index) => {
-        const card = (
+    <>
+      {!isPreview && widgetsError && (
+        <p className="grid-notice" role="status">
+          {widgetsError}{' '}
+          <button type="button" className="link-btn" onClick={() => void loadWidgets()}>
+            Réessayer
+          </button>
+        </p>
+      )}
+      <div className={`grid-widgets${masonry ? ' grid-widgets--masonry' : ''}`}>
+        {list.map((inst) => (
           <WidgetCard
             key={inst.uid}
             inst={inst}
@@ -111,38 +116,17 @@ export function WidgetGrid({
               setOverUid(null);
             }}
           />
-        );
+        ))}
 
-        const wrapped =
-          masonry && index === 0 ? (
-            <div key={inst.uid} className="grid-widgets-span">
-              {card}
-            </div>
-          ) : (
-            card
-          );
-
-        if (inst.uid === pairFlagUid) {
-          return [
-            wrapped,
-            <div key="pair-flag" className="pair-flag">
-              <span className="line" />
-              <span>Même widget, configuration différente → données distinctes</span>
-              <span className="line" />
-            </div>,
-          ];
-        }
-        return [wrapped];
-      })}
-
-      {!isPreview && (
-        <button type="button" className="add-card" onClick={() => openWizard()}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          <span>Ajouter un widget</span>
-        </button>
-      )}
-    </div>
+        {!isPreview && (
+          <button type="button" className="add-card" onClick={() => openWizard()}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>Ajouter un widget</span>
+          </button>
+        )}
+      </div>
+    </>
   );
 }

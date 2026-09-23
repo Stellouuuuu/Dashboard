@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormField } from '../components/FormField';
-import { BrandMark } from '../components/Icons';
 import { useAuth } from '../auth/AuthContext';
 import { AuthError } from '../api/demo';
 
@@ -42,9 +41,6 @@ export function RegisterPage() {
   return (
     <AuthLayout>
       <div className="auth-glass">
-        <div className="auth-glass-mark" aria-hidden="true">
-          <BrandMark size={40} />
-        </div>
         <h1 className="auth-glass-title">
           {done ? 'Vérifie ta boîte mail' : 'Créer un compte'}
         </h1>

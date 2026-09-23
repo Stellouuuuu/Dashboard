@@ -1,5 +1,5 @@
-export type ServiceId = 'weather' | 'github' | 'rss' | 'spotify' | 'whatsapp';
-export type Accent = 'cyan' | 'violet' | 'amber' | 'green' | 'mint';
+export type ServiceId = 'weather' | 'github' | 'rss';
+export type Accent = 'cyan' | 'violet' | 'amber';
 export type ParamType = 'string' | 'integer';
 
 export interface WidgetParam {
@@ -14,8 +14,6 @@ export interface CatalogWidget {
   name: string;
   desc: string;
   params: WidgetParam[];
-  /** Optional: hide from wizard until service is live. */
-  comingSoon?: boolean;
 }
 
 export type WidgetStatus = 'ok' | 'loading' | 'error';
@@ -35,24 +33,22 @@ export const ACCENT: Record<ServiceId, Accent> = {
   weather: 'cyan',
   github: 'violet',
   rss: 'amber',
-  spotify: 'green',
-  whatsapp: 'mint',
 };
 
+export const SERVICES: ServiceId[] = ['weather', 'github', 'rss'];
+
 export const SERVICE_LABEL: Record<ServiceId, string> = {
-  weather: 'Weather',
+  weather: 'Météo',
   github: 'GitHub',
   rss: 'RSS',
-  spotify: 'Spotify',
-  whatsapp: 'WhatsApp',
 };
 
 export const CATALOG: CatalogWidget[] = [
   {
     id: 'city_temperature',
     service: 'weather',
-    name: 'City temperature',
-    desc: 'Température et ciel actuels pour une ville.',
+    name: 'Température',
+    desc: 'Température et ciel actuels d’une ville.',
     params: [
       { name: 'city', type: 'string', label: 'Ville' },
       { name: 'unit', type: 'string', label: 'Unité' },
@@ -61,7 +57,7 @@ export const CATALOG: CatalogWidget[] = [
   {
     id: 'precipitation_forecast',
     service: 'weather',
-    name: 'Precipitation forecast',
+    name: 'Prévisions de pluie',
     desc: 'Chances de pluie sur les prochains jours.',
     params: [
       { name: 'city', type: 'string', label: 'Ville' },
@@ -71,7 +67,7 @@ export const CATALOG: CatalogWidget[] = [
   {
     id: 'recent_commits',
     service: 'github',
-    name: 'Recent commits',
+    name: 'Commits récents',
     desc: "Derniers commits d'un dépôt.",
     params: [
       { name: 'repo', type: 'string', label: 'Dépôt' },
@@ -81,7 +77,7 @@ export const CATALOG: CatalogWidget[] = [
   {
     id: 'security_alerts',
     service: 'github',
-    name: 'Security alerts',
+    name: 'Alertes de sécurité',
     desc: 'Alertes de sécurité ouvertes.',
     params: [
       { name: 'repo', type: 'string', label: 'Dépôt' },
@@ -91,7 +87,7 @@ export const CATALOG: CatalogWidget[] = [
   {
     id: 'article_list',
     service: 'rss',
-    name: 'Article list',
+    name: 'Derniers articles',
     desc: "Derniers articles d'un flux.",
     params: [
       { name: 'feed_url', type: 'string', label: 'URL du flux' },
@@ -101,44 +97,12 @@ export const CATALOG: CatalogWidget[] = [
   {
     id: 'feed_summary',
     service: 'rss',
-    name: 'Feed summary',
-    desc: 'Un titre qui tourne depuis un flux.',
+    name: 'Résumé de flux',
+    desc: 'Le titre à la une d’un flux.',
     params: [
       { name: 'feed_url', type: 'string', label: 'URL du flux' },
       { name: 'label', type: 'string', label: 'Étiquette' },
     ],
-  },
-  {
-    id: 'now_playing',
-    service: 'spotify',
-    name: 'Now playing',
-    desc: 'Titre en cours d’écoute sur Spotify.',
-    comingSoon: true,
-    params: [{ name: 'account', type: 'string', label: 'Compte' }],
-  },
-  {
-    id: 'playlist_pulse',
-    service: 'spotify',
-    name: 'Playlist pulse',
-    desc: 'Aperçu d’une playlist favorite.',
-    comingSoon: true,
-    params: [{ name: 'playlist', type: 'string', label: 'Playlist' }],
-  },
-  {
-    id: 'unread_chats',
-    service: 'whatsapp',
-    name: 'Unread chats',
-    desc: 'Conversations non lues.',
-    comingSoon: true,
-    params: [{ name: 'filter', type: 'string', label: 'Filtre' }],
-  },
-  {
-    id: 'last_message',
-    service: 'whatsapp',
-    name: 'Last message',
-    desc: 'Dernier message reçu.',
-    comingSoon: true,
-    params: [{ name: 'contact', type: 'string', label: 'Contact' }],
   },
 ];
 
@@ -200,9 +164,9 @@ export const REFRESH_RATES = [10, 15, 30, 60, 300] as const;
 
 export const AUDIT_EVENTS = [
   'GitHub connecté par Stella G.',
-  'Widget ajouté : Recent commits',
+  'Widget ajouté : Commits récents',
   'Compte confirmé : Nadia B.',
-  'Widget supprimé : Feed summary',
+  'Widget supprimé : Résumé de flux',
   'Flux RSS ajouté par Aichath R.',
   'Nouvel utilisateur inscrit : Marc O.',
 ];

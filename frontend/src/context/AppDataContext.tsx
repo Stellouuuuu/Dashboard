@@ -13,9 +13,20 @@ import {
   type WidgetInstance,
 } from '../data/catalog';
 import type { ToastItem } from '../components/Toasts';
-import { apiConnectGithub, apiFetchWidgets, apiSubscribeRss } from '../api/demo';
+import { apiConnectGithub, apiSubscribeRss } from '../api/demo';
+import { apiListDashboard, type ApiWidgetInstance } from '../api/client';
 
 export type ModalId = 'oauth' | 'wizard' | null;
+
+function toWidgetInstance(row: ApiWidgetInstance): WidgetInstance {
+  return {
+    uid: row.id,
+    widgetId: row.widgetName,
+    config: row.config,
+    refresh: row.refreshRate,
+    status: row.status === 'pending' ? 'loading' : row.status,
+  };
+}
 
 interface AppDataContextValue {
   modal: ModalId;
@@ -52,7 +63,9 @@ interface AppDataContextValue {
   unsubscribeRss: () => void;
   isSubscribed: (service: ServiceId) => boolean;
   wizardEditUid: number | null;
-  openWizard: (editUid?: number | null) => void;
+  /** Widget présélectionné à l'ouverture de l'assistant (ex. depuis « Widgets disponibles »). */
+  wizardPresetId: string | null;
+  openWizard: (editUid?: number | null, presetWidgetId?: string | null) => void;
   nextUid: () => number;
   flashUid: number | null;
   setFlashUid: (uid: number | null) => void;
@@ -78,6 +91,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [rssError, setRssError] = useState<string | null>(null);
   const [rssLoading, setRssLoading] = useState(false);
   const [wizardEditUid, setWizardEditUid] = useState<number | null>(null);
+  const [wizardPresetId, setWizardPresetId] = useState<string | null>(null);
   const [flashUid, setFlashUid] = useState<number | null>(null);
   const [addedUid, setAddedUid] = useState<number | null>(null);
   const uidSeq = useRef(100);
@@ -91,13 +105,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setWidgetsLoading(true);
     setWidgetsError(null);
     try {
-      await apiFetchWidgets();
+      const rows = await apiListDashboard();
+      setInstances(rows.map(toWidgetInstance));
+      hydrated.current = true;
+    } catch {
+      // Backend indisponible (dev sans Docker, ou pas encore de vraie session
+      // utilisateur) : on retombe sur les données de démo plutôt que de bloquer l'UI.
       if (!hydrated.current) {
         setInstances(INITIAL_INSTANCES.map((w) => ({ ...w, status: 'ok' as const })));
         hydrated.current = true;
       }
-    } catch {
-      setWidgetsError('Impossible de charger le dashboard. Réessaie.');
+      setWidgetsError('Impossible de charger le dashboard depuis l’API. Données de démo affichées.');
     } finally {
       setWidgetsLoading(false);
     }
@@ -132,8 +150,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setToasts((t) => t.filter((x) => x.id !== id));
   }, []);
 
-  const openWizard = useCallback((editUid: number | null = null) => {
+  const openWizard = useCallback((editUid: number | null = null, presetWidgetId: string | null = null) => {
     setWizardEditUid(editUid);
+    setWizardPresetId(presetWidgetId);
     setModal('wizard');
   }, []);
 
@@ -231,6 +250,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       unsubscribeRss,
       isSubscribed,
       wizardEditUid,
+      wizardPresetId,
       openWizard,
       nextUid,
       flashUid,
@@ -268,6 +288,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       unsubscribeRss,
       isSubscribed,
       wizardEditUid,
+      wizardPresetId,
       openWizard,
       nextUid,
       flashUid,

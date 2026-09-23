@@ -257,7 +257,7 @@ export function ProfilePage() {
                   <b>{user.name}</b>
                   <p>{user.email}</p>
                   <span className="field-hint">
-                    Avatar généré depuis tes initiales (démo -- pas d’upload).
+                    Avatar généré depuis tes initiales.
                   </span>
                 </div>
               </section>
@@ -371,15 +371,15 @@ export function ProfilePage() {
                   <dl className="profile-dl">
                     <div>
                       <dt>Pseudo GitHub</dt>
-                      <dd>{user.serviceCredentials.githubUsername || '--'}</dd>
+                      <dd>{user.serviceCredentials.githubUsername || '—'}</dd>
                     </div>
                     <div>
                       <dt>Ville météo par défaut</dt>
-                      <dd>{user.serviceCredentials.weatherDefaultCity || '--'}</dd>
+                      <dd>{user.serviceCredentials.weatherDefaultCity || '—'}</dd>
                     </div>
                     <div>
                       <dt>Flux RSS par défaut</dt>
-                      <dd>{user.serviceCredentials.rssDefaultFeed || '--'}</dd>
+                      <dd>{user.serviceCredentials.rssDefaultFeed || '—'}</dd>
                     </div>
                   </dl>
                   <div className="profile-section-actions">
@@ -542,7 +542,7 @@ export function ProfilePage() {
                       >
                         <span>
                           <b>Supprimer le compte</b>
-                          <small>Action définitive -- données locales effacées</small>
+                          <small>Action définitive — données locales effacées</small>
                         </span>
                         <span className="profile-menu-chevron" aria-hidden="true">
                           ›
