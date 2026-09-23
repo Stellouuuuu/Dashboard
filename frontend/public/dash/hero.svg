@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice">
+
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="45%" stop-color="#3d2a4f"/>
+      <stop offset="100%" stop-color="#c4784a"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe8a3"/>
+      <stop offset="100%" stop-color="#ff6a1a"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2038" stop-opacity=".9"/>
+      <stop offset="100%" stop-color="#121018"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="700" fill="url(#sky)"/>
+  <circle cx="980" cy="220" r="70" fill="url(#sun)" opacity=".95"/>
+  <ellipse cx="980" cy="220" rx="140" ry="40" fill="#ff8f4a" opacity=".25"/>
+  <path d="M0 420 L180 300 L320 380 L480 260 L640 360 L820 240 L1000 340 L1180 280 L1400 360 L1400 700 L0 700Z" fill="#1c1828"/>
+  <path d="M0 480 L220 360 L400 440 L560 340 L760 420 L960 320 L1200 400 L1400 360 L1400 700 L0 700Z" fill="#14121c"/>
+  <rect y="520" width="1400" height="180" fill="url(#water)"/>
+  <path d="M200 520 Q400 500 600 520 T1000 515 T1400 525" fill="none" stroke="#ffb07a" stroke-width="2" opacity=".35"/>
+  <circle cx="320" cy="480" r="8" fill="#fff" opacity=".5"/>
+  <circle cx="540" cy="450" r="4" fill="#fff" opacity=".4"/>
+
+</svg>
