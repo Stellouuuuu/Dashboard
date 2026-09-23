@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threshold -- dashboard prototype</title>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d16;
+  --bg-2:#0e1220;
+  --panel:#131829;
+  --panel-2:#171d33;
+  --border:#242c48;
+  --border-soft:#1b2038;
+  --text:#eceef7;
+  --text-dim:#9aa2bf;
+  --text-faint:#5c6488;
+  --cyan:#5fd4ff;
+  --cyan-soft:rgba(95,212,255,.14);
+  --violet:#b79bff;
+  --violet-soft:rgba(183,155,255,.14);
+  --amber:#ffb46b;
+  --amber-soft:rgba(255,180,107,.14);
+  --green:#7fe3ab;
+  --red:#ff8a93;
+  --r-lg:22px;
+  --r-md:14px;
+  --r-sm:9px;
+  --r-pill:999px;
+  --font-d:'Satoshi','Switzer',sans-serif;
+  --font-b:'Switzer','Satoshi',sans-serif;
+  --font-m:'JetBrains Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.22,.9,.32,1);
+  --shadow-cyan:0 8px 30px -8px rgba(95,212,255,.35);
+  --shadow-violet:0 8px 30px -8px rgba(183,155,255,.35);
+  --shadow-amber:0 8px 30px -8px rgba(255,180,107,.35);
+}
+:root[data-theme="dark"]{ color-scheme: dark; }
+@media (prefers-color-scheme: light){ :root:not([data-theme="light-unused"]){ color-scheme: dark; } }
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-b);
+  line-height:1.5;
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%;}
+a{color:inherit;text-decoration:none;}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;}
+input,select{font:inherit;color:inherit;}
+ul{list-style:none;}
+.icon{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+::selection{background:var(--cyan-soft);color:var(--text);}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:4px;}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+@media (max-width:640px){.wrap{padding:0 20px;}}
+
+/* ---------- ambient background ---------- */
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6;}
+.stars span{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:.35;animation:twinkle 4s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.15;}50%{opacity:.7;}}
+
+/* ---------- view switcher (prototype nav) ---------- */
+.proto-switch{
+  position:fixed;top:16px;right:16px;z-index:500;
+  display:flex;background:rgba(19,24,41,.85);backdrop-filter:blur(10px);
+  border:1px solid var(--border);border-radius:var(--r-pill);padding:4px;gap:2px;
+}
+.proto-switch button{padding:7px 14px;font-size:.78rem;border-radius:var(--r-pill);color:var(--text-faint);transition:color .2s var(--ease);}
+.proto-switch button.active{color:var(--bg);background:var(--text);}
+@media (max-width:640px){.proto-switch{top:auto;bottom:16px;right:16px;}}
+
+/* ================= LANDING ================= */
+#landing{position:relative;z-index:1;}
+#landing[hidden]{display:none;}
+
+.nav{display:flex;align-items:center;justify-content:space-between;padding:26px 0;}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:600;font-size:1.15rem;letter-spacing:-.01em;}
+.brand .mark{width:30px;height:30px;color:var(--cyan);}
+.nav-links{display:flex;align-items:center;gap:30px;}
+.nav-links a{font-size:.92rem;color:var(--text-dim);transition:color .2s;}
+.nav-links a:hover{color:var(--text);}
+.nav-cta{display:flex;align-items:center;gap:10px;}
+@media (max-width:800px){.nav-links{display:none;}}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 22px;border-radius:var(--r-pill);font-size:.92rem;font-weight:500;
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s var(--ease),border-color .2s;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--text);color:var(--bg);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px -10px rgba(236,238,247,.4);}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--text-dim);}
+.btn-sm{padding:8px 16px;font-size:.82rem;}
+.btn:active{transform:scale(.97);}
+
+/* hero */
+.hero{
+  display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center;
+  padding:56px 0 90px;
+}
+@media (max-width:900px){.hero{grid-template-columns:1fr;padding:20px 0 60px;}}
+
+.hero-copy h1{
+  font-family:var(--font-d);font-weight:600;letter-spacing:-.02em;line-height:1.04;
+  font-size:clamp(2.3rem,4.4vw + 1rem,3.7rem);
+}
+.hero-copy p{margin-top:20px;color:var(--text-dim);font-size:1.08rem;max-width:46ch;}
+.hero-actions{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap;}
+.hero-stats{display:flex;gap:36px;margin-top:52px;flex-wrap:wrap;}
+.hero-stat b{display:block;font-family:var(--font-d);font-size:1.7rem;font-weight:600;}
+.hero-stat span{font-size:.82rem;color:var(--text-faint);}
+
+/* hero portal visual */
+.portal-stage{position:relative;aspect-ratio:1/1;max-width:460px;margin:0 auto;}
+.portal-ring{position:absolute;inset:0;border-radius:50%;border:1px solid;opacity:0;transform:scale(.85);}
+.pr-1{border-color:var(--cyan);inset:8%;box-shadow:0 0 60px -10px rgba(95,212,255,.25) inset;}
+.pr-2{border-color:var(--violet);inset:22%;box-shadow:0 0 60px -10px rgba(183,155,255,.25) inset;}
+.pr-3{border-color:var(--amber);inset:36%;box-shadow:0 0 60px -10px rgba(255,180,107,.25) inset;}
+.portal-core{position:absolute;inset:44%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a3358,var(--bg-2) 70%);opacity:0;}
+.orbit{position:absolute;inset:0;border-radius:50%;animation:spin 26s linear infinite;}
+.orbit-2{animation-duration:34s;animation-direction:reverse;}
+.orbit-3{animation-duration:42s;}
+.orbit i{
+  position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--panel);border:1px solid var(--border);
+}
+.orbit i svg{width:17px;height:17px;}
+.orbit-1 i{color:var(--cyan);}
+.orbit-2 i{color:var(--violet);top:auto;bottom:-15px;}
+.orbit-3 i{color:var(--amber);top:50%;left:-15px;transform:translateY(-50%);}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes ringIn{to{opacity:1;transform:scale(1);}}
+@keyframes coreIn{to{opacity:1;}}
+
+/* section shell */
+section{padding:70px 0;position:relative;z-index:1;}
+.section-head{max-width:640px;margin-bottom:44px;}
+.eyebrow{font-size:.82rem;color:var(--text-faint);margin-bottom:10px;}
+.section-head h2{font-family:var(--font-d);font-size:clamp(1.7rem,2.4vw + .8rem,2.35rem);font-weight:600;letter-spacing:-.015em;}
+.section-head p{color:var(--text-dim);margin-top:14px;max-width:56ch;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);}
+
+/* how it works */
+.steps{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0;counter-reset:step;}
+.steps::before{content:'';position:absolute;top:19px;left:6%;right:6%;height:1px;background:var(--border);}
+@media (max-width:860px){.steps{grid-template-columns:1fr;gap:26px;}.steps::before{display:none;}}
+.step{position:relative;padding-right:20px;}
+.step-dot{width:38px;height:38px;border-radius:50%;background:var(--panel);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--cyan);margin-bottom:18px;position:relative;z-index:1;}
+.step h3{font-family:var(--font-d);font-size:1.02rem;font-weight:600;margin-bottom:8px;}
+.step p{color:var(--text-dim);font-size:.92rem;}
+
+/* services */
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media (max-width:860px){.svc-grid{grid-template-columns:1fr;}}
+.svc-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:26px;
+  transition:border-color .25s,transform .25s var(--ease);
+}
+.svc-card:hover{transform:translateY(-3px);}
+.svc-top{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.svc-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;}
+.svc-icon svg{width:19px;height:19px;}
+.svc-card h3{font-family:var(--font-d);font-size:1.08rem;font-weight:600;}
+.svc-tagline{color:var(--text-dim);font-size:.88rem;margin:12px 0 18px;}
+.svc-widgets{display:flex;flex-direction:column;gap:8px;}
+.svc-widget-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 12px;background:var(--bg-2);border-radius:var(--r-sm);}
+.svc-widget-row b{font-size:.86rem;font-weight:500;}
+.svc-widget-row span{font-size:.72rem;color:var(--text-faint);font-family:var(--font-m);}
+
+/* preview */
+.preview-shell{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;}
+.preview-note{display:flex;align-items:center;gap:8px;color:var(--text-faint);font-size:.78rem;margin-top:16px;}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulseDot 1.6s ease-in-out infinite;}
+@keyframes pulseDot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(127,227,171,.5);}50%{opacity:.5;box-shadow:0 0 0 6px rgba(127,227,171,0);}}
+
+/* cta */
+.cta-band{background:linear-gradient(160deg,var(--panel),var(--bg-2));border:1px solid var(--border);border-radius:var(--r-lg);padding:60px 44px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:30px;flex-wrap:wrap;}
+.cta-band h2{font-family:var(--font-d);font-size:clamp(1.5rem,2vw + .8rem,2rem);font-weight:600;max-width:20ch;}
+.footer{padding:36px 0 60px;display:flex;justify-content:space-between;color:var(--text-faint);font-size:.82rem;flex-wrap:wrap;gap:10px;}
+
+/* reveal-on-scroll (used once per section, not stacked everywhere) */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease);}
+.reveal.in{opacity:1;transform:none;}
+
+/* count-up numbers */
+.count[data-count]{font-variant-numeric:tabular-nums;}
+
+/* ================= DASHBOARD APP ================= */
+#app{position:relative;z-index:1;}
+#app[hidden]{display:none;}
+.appbar{
+  position:sticky;top:0;z-index:50;background:rgba(10,13,22,.82);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border-soft);
+}
+.appbar-inner{display:flex;align-items:center;gap:24px;padding:14px 32px;max-width:1280px;margin:0 auto;}
+@media (max-width:640px){.appbar-inner{padding:12px 18px;gap:14px;}}
+.app-tabs{display:flex;gap:4px;background:var(--panel);border:1px solid var(--border);padding:4px;border-radius:var(--r-pill);}
+.app-tabs button{padding:8px 16px;border-radius:var(--r-pill);font-size:.85rem;color:var(--text-dim);transition:.2s;}
+.app-tabs button.active{background:var(--bg-2);color:var(--text);}
+.appbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.clock{text-align:right;line-height:1.25;}
+.clock .t{font-family:var(--font-d);font-size:.92rem;font-weight:600;}
+.clock .epoch{font-family:var(--font-m);font-size:.68rem;color:var(--text-faint);}
+@media (max-width:760px){.clock{display:none;}}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet));display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:600;font-size:.85rem;color:#0a0d16;}
+
+.app-main{max-width:1280px;margin:0 auto;padding:32px;}
+@media (max-width:640px){.app-main{padding:20px;}}
+.app-pane[hidden]{display:none;}
+
+.pane-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px;flex-wrap:wrap;}
+.pane-head h1{font-family:var(--font-d);font-size:1.7rem;font-weight:600;letter-spacing:-.01em;}
+.pane-sub{color:var(--text-faint);font-size:.85rem;margin-top:6px;display:flex;align-items:center;gap:7px;}
+
+.pair-flag{
+  grid-column:1/-1;display:flex;align-items:center;gap:10px;color:var(--text-faint);font-size:.78rem;
+  padding-top:6px;margin-top:-6px;
+}
+.pair-flag .line{flex:1;height:1px;background:var(--border);}
+
+.grid-widgets{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:18px;}
+
+.wcard{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;
+  position:relative;transition:transform .25s var(--ease),box-shadow .25s var(--ease),opacity .25s,border-color .2s;
+  --accent:var(--cyan); --accent-soft:var(--cyan-soft);
+}
+.wcard.accent-violet{--accent:var(--violet);--accent-soft:var(--violet-soft);}
+.wcard.accent-amber{--accent:var(--amber);--accent-soft:var(--amber-soft);}
+.wcard:hover{border-color:var(--accent);}
+.wcard.dragging{opacity:.4;}
+.wcard.drop-target{outline:1.5px dashed var(--accent);outline-offset:3px;}
+.wcard.removing{transform:scale(.9);opacity:0;}
+.wcard.added{animation:cardIn .5s var(--ease);}
+@keyframes cardIn{from{opacity:0;transform:scale(.92) translateY(6px);}}
+.wcard.flash{box-shadow:0 0 0 2px var(--accent);}
+
+.wcard-top{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.wcard-grip{color:var(--text-faint);cursor:grab;width:16px;height:16px;}
+.wcard-icon{width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;}
+.wcard-icon svg{width:15px;height:15px;}
+.wcard-titles{flex:1;min-width:0;}
+.wcard-titles b{display:block;font-size:.92rem;font-weight:600;}
+.wcard-titles span{font-size:.72rem;color:var(--text-faint);}
+.wcard-menu-btn{color:var(--text-faint);padding:4px;border-radius:6px;}
+.wcard-menu-btn:hover{color:var(--text);background:var(--bg-2);}
+
+.wcard-body{min-height:74px;}
+.fade-swap{animation:fadeSwap .5s var(--ease);}
+@keyframes fadeSwap{from{opacity:0;transform:translateY(3px);}}
+
+.temp-row{display:flex;align-items:baseline;gap:10px;}
+.temp-big{font-family:var(--font-d);font-size:2.1rem;font-weight:600;}
+.temp-meta{color:var(--text-dim);font-size:.84rem;}
+.metric-row{display:flex;justify-content:space-between;margin-top:12px;font-size:.78rem;color:var(--text-faint);}
+
+.commit-item{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border-soft);}
+.commit-item:last-child{border-bottom:none;}
+.commit-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;}
+.commit-item p{font-size:.82rem;}
+.commit-item small{color:var(--text-faint);font-size:.72rem;}
+
+.alert-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;}
+.sev{font-size:.72rem;padding:2px 9px;border-radius:var(--r-pill);}
+.sev-high{background:rgba(255,138,147,.15);color:var(--red);}
+.sev-medium{background:var(--amber-soft);color:var(--amber);}
+
+.article-item{padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:.82rem;}
+.article-item:last-child{border-bottom:none;}
+.article-item .new-badge{font-size:.62rem;background:var(--accent-soft);color:var(--accent);padding:1px 7px;border-radius:var(--r-pill);margin-left:6px;}
+
+.wcard-foot{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft);}
+.timer-ring-wrap{display:flex;align-items:center;gap:7px;}
+.timer-ring{width:22px;height:22px;transform:rotate(-90deg);}
+.timer-ring circle{fill:none;stroke-width:2.4;}
+.timer-ring .bg{stroke:var(--border);}
+.timer-ring .fg{stroke:var(--accent);stroke-linecap:round;stroke-dasharray:56.5;transform-origin:center;}
+@keyframes ringFill{from{stroke-dashoffset:0;}to{stroke-dashoffset:56.5;}}
+.timer-label{font-size:.7rem;color:var(--text-faint);}
+.cfg-tag{font-size:.7rem;color:var(--text-faint);font-family:var(--font-m);}
+
+.add-card{
+  border:1.5px dashed var(--border);border-radius:var(--r-lg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;color:var(--text-faint);min-height:180px;
+  transition:border-color .2s,color .2s;
+}
+.add-card:hover{border-color:var(--cyan);color:var(--cyan);}
+.add-card svg{width:22px;height:22px;}
+
+/* dropdown menu */
+.dropdown{position:relative;}
+.menu{
+  position:absolute;top:calc(100% + 6px);right:0;min-width:168px;background:var(--panel-2);
+  border:1px solid var(--border);border-radius:var(--r-md);padding:6px;z-index:20;
+  box-shadow:0 14px 34px -10px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(-4px) scale(.98);pointer-events:none;transition:.15s var(--ease);
+}
+.menu.open{opacity:1;transform:none;pointer-events:auto;}
+.menu button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:9px 10px;border-radius:8px;font-size:.85rem;}
+.menu button:hover{background:var(--bg-2);}
+.menu button.danger{color:var(--red);}
+.menu svg{width:15px;height:15px;color:var(--text-faint);}
+
+/* services pane */
+.svc-list{display:flex;flex-direction:column;gap:14px;max-width:720px;}
+.svc-row{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.svc-row-info{flex:1;min-width:200px;}
+.svc-row-info h3{font-family:var(--font-d);font-size:1rem;font-weight:600;margin-bottom:4px;}
+.svc-row-info p{font-size:.82rem;color:var(--text-dim);}
+.badge{font-size:.72rem;padding:4px 11px;border-radius:var(--r-pill);white-space:nowrap;}
+.badge-on{background:rgba(127,227,171,.15);color:var(--green);}
+.badge-off{background:var(--bg-2);color:var(--text-faint);}
+.feed-input{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;font-size:.85rem;width:220px;}
+
+/* admin pane */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+@media (max-width:700px){.stat-grid{grid-template-columns:1fr;}}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;}
+.stat-card b{font-family:var(--font-d);font-size:1.7rem;font-weight:600;display:block;}
+.stat-card span{font-size:.8rem;color:var(--text-faint);}
+.admin-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;}
+@media (max-width:900px){.admin-grid{grid-template-columns:1fr;}}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+th,td{text-align:left;padding:12px 16px;font-size:.84rem;border-bottom:1px solid var(--border-soft);}
+th{color:var(--text-faint);font-weight:500;font-size:.76rem;}
+tr:last-child td{border-bottom:none;}
+.pill-status{font-size:.72rem;padding:3px 10px;border-radius:var(--r-pill);}
+.pill-confirmed{background:rgba(127,227,171,.15);color:var(--green);}
+.pill-pending{background:var(--amber-soft);color:var(--amber);}
+.audit-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;}
+.audit-box h3{font-size:.85rem;font-weight:600;margin-bottom:12px;}
+.audit-item{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--border-soft);font-size:.8rem;}
+.audit-item:last-child{border-bottom:none;}
+.audit-item span{color:var(--text-faint);font-size:.7rem;white-space:nowrap;}
+
+/* ================= MODALS ================= */
+.overlay{
+  position:fixed;inset:0;background:rgba(6,8,14,.72);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;padding:20px;z-index:200;
+  opacity:0;pointer-events:none;transition:opacity .25s var(--ease);
+}
+.overlay.open{opacity:1;pointer-events:auto;}
+.modal{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);
+  width:100%;max-width:440px;padding:30px;max-height:88vh;overflow:auto;
+  transform:translateY(14px) scale(.98);transition:transform .25s var(--ease);
+}
+.overlay.open .modal{transform:none;}
+.modal.wide{max-width:600px;}
+.modal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.modal-top h2{font-family:var(--font-d);font-size:1.25rem;font-weight:600;}
+.modal-close{color:var(--text-faint);padding:4px;border-radius:8px;}
+.modal-close:hover{background:var(--bg-2);color:var(--text);}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:.82rem;color:var(--text-dim);margin-bottom:6px;}
+.field input,.field select{
+  width:100%;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:11px 13px;font-size:.9rem;transition:border-color .2s;
+}
+.field input:focus,.field select:focus{border-color:var(--cyan);}
+.oauth-row{display:flex;gap:10px;margin-bottom:18px;}
+.oauth-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.84rem;transition:border-color .2s;}
+.oauth-btn:hover{border-color:var(--text-dim);}
+.oauth-btn svg{width:16px;height:16px;}
+.rule{display:flex;align-items:center;gap:12px;color:var(--text-faint);font-size:.76rem;margin:16px 0;}
+.rule::before,.rule::after{content:'';flex:1;height:1px;background:var(--border);}
+.switch-line{text-align:center;font-size:.85rem;color:var(--text-faint);margin-top:14px;}
+.switch-line button{color:var(--cyan);}
+
+/* wizard */
+.wiz-steps{display:flex;gap:6px;margin-bottom:22px;}
+.wiz-steps span{flex:1;height:3px;border-radius:99px;background:var(--border);}
+.wiz-steps span.done,.wiz-steps span.active{background:var(--cyan);}
+.wiz-pane[hidden]{display:none;}
+.wiz-cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media (max-width:480px){.wiz-cat-grid{grid-template-columns:1fr;}}
+.wiz-cat{
+  border:1px solid var(--border);border-radius:var(--r-md);padding:14px;text-align:left;
+  transition:border-color .2s,background .2s;
+}
+.wiz-cat:hover{border-color:var(--text-dim);}
+.wiz-cat.selected{border-color:var(--cyan);background:var(--cyan-soft);}
+.wiz-cat b{display:block;font-size:.86rem;font-weight:600;margin-bottom:3px;}
+.wiz-cat span{font-size:.72rem;color:var(--text-faint);}
+.wiz-actions{display:flex;justify-content:space-between;margin-top:22px;}
+.rate-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.rate-chip{padding:8px 14px;border:1px solid var(--border);border-radius:var(--r-pill);font-size:.82rem;}
+.rate-chip.selected{border-color:var(--cyan);background:var(--cyan-soft);color:var(--cyan);}
+.review-box{background:var(--bg-2);border-radius:var(--r-md);padding:14px 16px;font-size:.86rem;}
+.review-box div{display:flex;justify-content:space-between;padding:4px 0;color:var(--text-dim);}
+.review-box div b{color:var(--text);font-weight:500;}
+
+/* toasts */
+.toasts{position:fixed;bottom:20px;left:20px;z-index:400;display:flex;flex-direction:column-reverse;gap:8px;}
+.toast{
+  background:var(--panel-2);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 16px;
+  font-size:.84rem;display:flex;align-items:center;gap:9px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);
+  animation:toastIn .3s var(--ease);
+}
+.toast svg{width:15px;height:15px;color:var(--green);}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}}
+.toast.out{animation:toastOut .25s ease forwards;}
+@keyframes toastOut{to{opacity:0;transform:translateX(-10px);}}
+
+.confirm-email{text-align:center;padding:6px 0 10px;}
+.confirm-email svg{width:44px;height:44px;color:var(--cyan);margin:0 auto 16px;}
+.confirm-email p{color:var(--text-dim);font-size:.88rem;margin-bottom:20px;}
+.resend-line{font-size:.8rem;color:var(--text-faint);margin-top:14px;}
+.resend-line button:disabled{color:var(--text-faint);cursor:default;}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+  html{scroll-behavior:auto;}
+}
+</style>
+</head>
+<body data-view="landing">
+<div class="stars" id="stars" aria-hidden="true"></div>
+
+<div class="proto-switch" role="tablist" aria-label="Aperçu du prototype">
+  <button type="button" data-goto="landing" class="active" role="tab" aria-selected="true">Landing</button>
+  <button type="button" data-goto="app" role="tab" aria-selected="false">Dashboard</button>
+</div>
+
+<!-- ============ LANDING ============ -->
+<div id="landing">
+  <div class="wrap">
+    <nav class="nav">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="20" cy="20" r="10.5" stroke="currentColor" stroke-width="1.6" opacity=".55"/>
+        </svg>
+        Threshold
+      </div>
+      <div class="nav-links">
+        <a href="#how">Comment ça marche</a>
+        <a href="#services">Services</a>
+        <a href="#preview">Aperçu</a>
+      </div>
+      <div class="nav-cta">
+        <button class="btn btn-ghost btn-sm" id="btn-login">Se connecter</button>
+        <button class="btn btn-primary btn-sm" id="btn-signup-nav">Créer un compte</button>
+      </div>
+    </nav>
+
+    <section class="hero" style="padding-top:10px;">
+      <div class="hero-copy">
+        <h1>Construis un tableau de bord qui ouvre une porte vers tout ce que tu utilises.</h1>
+        <p>Abonne-toi aux services que tu utilises déjà, ajoute un widget pour ce qui compte, et laisse un timer le garder à jour -- sans changer d'onglet.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="btn-signup-hero">Créer mon dashboard</button>
+          <button class="btn btn-ghost" data-goto="app">Voir un dashboard en direct</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><b class="count" data-count="3">0</b><span>services connectables</span></div>
+          <div class="hero-stat"><b class="count" data-count="6">0</b><span>widgets configurables</span></div>
+          <div class="hero-stat"><b class="count" data-count="24">0</b><span>refresh possibles / min</span></div>
+        </div>
+      </div>
+      <div class="portal-stage" aria-hidden="true">
+        <div class="portal-core" id="p-core"></div>
+        <div class="portal-ring pr-1" id="p-r1"></div>
+        <div class="portal-ring pr-2" id="p-r2"></div>
+        <div class="portal-ring pr-3" id="p-r3"></div>
+        <div class="orbit orbit-1"><i>
+          <svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M5.6 18.4l1.7-1.7M16.7 7.3l1.7-1.7"/></svg>
+        </i></div>
+        <div class="orbit orbit-2"><i>
+          <svg viewBox="0 0 24 24" class="icon"><path d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8 0 4.3 2.8 8 6.7 9.3.5.1.7-.2.7-.5v-1.9c-2.7.6-3.3-1.3-3.3-1.3-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.2-4.5-1.1-4.5-4.9 0-1.1.4-2 1-2.6-.1-.2-.4-1.2.1-2.6 0 0 .8-.3 2.7 1a9 9 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.6.6.6 1 1.5 1 2.6 0 3.8-2.3 4.6-4.5 4.9.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5 3.9-1.3 6.7-5 6.7-9.3 0-5.4-4.4-9.8-9.8-9.8Z"/></svg>
+        </i></div>
+        <div class="orbit orbit-3"><i>
+          <svg viewBox="0 0 24 24" class="icon"><path d="M4 4a16 16 0 0 1 16 16"/><path d="M4 10a10 10 0 0 1 10 10"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/></svg>
+        </i></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="wrap">
+    <section id="how" class="reveal">
+      <div class="section-head">
+        <p class="eyebrow">Le parcours</p>
+        <h2>Quatre étapes, ensuite tout tourne tout seul</h2>
+        <p>Après ça, c'est un mécanisme central -- le timer -- qui garde chaque widget à jour à son propre rythme.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <h3>Crée ton compte</h3>
+          <p>Inscription puis confirmation par email -- indispensable avant d'accéder à la plateforme.</p>
+        </div>
+        <div class="step">
+          <div class="step-dot"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M8 12l3 3 6-7"/><rect x="3" y="4" width="18" height="16" rx="3"/></svg></div>
+          <h3>Abonne-toi à un service</h3>
+          <p>Weather est prêt immédiatement. GitHub se connecte en OAuth, RSS avec une simple URL.</p>
+        </div>
+        <div class="step">
+          <div class="step-dot"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M12 5v14M5 12h14"/></svg></div>
+          <h3>Ajoute un widget</h3>
+          <p>Choisis-le, configure ses paramètres, fixe sa fréquence de rafraîchissement.</p>
+        </div>
+        <div class="step">
+          <div class="step-dot"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <h3>Regarde-le vivre</h3>
+          <p>Le timer déclenche les mises à jour en arrière-plan, à l'intervalle que tu as choisi.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="wrap">
+    <section id="services" class="reveal">
+      <div class="section-head">
+        <p class="eyebrow">Le catalogue</p>
+        <h2>Trois services, six widgets -- chacun avec ses vrais paramètres</h2>
+        <p>Chaque widget expose les paramètres qu'il faut configurer pour l'ajouter au dashboard.</p>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card">
+          <div class="svc-top">
+            <div class="svc-icon" style="background:var(--cyan-soft);color:var(--cyan);">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M17 17a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.7A3.8 3.8 0 0 0 7 18h10Z"/></svg>
+            </div>
+            <h3>Weather</h3>
+          </div>
+          <p class="svc-tagline">Prêt dès l'inscription -- aucun compte requis.</p>
+          <div class="svc-widgets">
+            <div class="svc-widget-row"><b>City temperature</b><span>city, unit</span></div>
+            <div class="svc-widget-row"><b>Precipitation forecast</b><span>city, days</span></div>
+          </div>
+        </div>
+        <div class="svc-card">
+          <div class="svc-top">
+            <div class="svc-icon" style="background:var(--violet-soft);color:var(--violet);">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8 0 4.3 2.8 8 6.7 9.3.5.1.7-.2.7-.5v-1.9c-2.7.6-3.3-1.3-3.3-1.3-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.2-4.5-1.1-4.5-4.9 0-1.1.4-2 1-2.6-.1-.2-.4-1.2.1-2.6 0 0 .8-.3 2.7 1a9 9 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.6.6.6 1 1.5 1 2.6 0 3.8-2.3 4.6-4.5 4.9.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5 3.9-1.3 6.7-5 6.7-9.3 0-5.4-4.4-9.8-9.8-9.8Z"/></svg>
+            </div>
+            <h3>GitHub</h3>
+          </div>
+          <p class="svc-tagline">Connexion via OAuth 2.0 pour lire tes dépôts.</p>
+          <div class="svc-widgets">
+            <div class="svc-widget-row"><b>Recent commits</b><span>repo, limit</span></div>
+            <div class="svc-widget-row"><b>Security alerts</b><span>repo, severity</span></div>
+          </div>
+        </div>
+        <div class="svc-card">
+          <div class="svc-top">
+            <div class="svc-icon" style="background:var(--amber-soft);color:var(--amber);">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M4 4a16 16 0 0 1 16 16"/><path d="M4 10a10 10 0 0 1 10 10"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/></svg>
+            </div>
+            <h3>RSS</h3>
+          </div>
+          <p class="svc-tagline">Une simple URL de flux -- pas de compte à créer.</p>
+          <div class="svc-widgets">
+            <div class="svc-widget-row"><b>Article list</b><span>feed_url, number</span></div>
+            <div class="svc-widget-row"><b>Feed summary</b><span>feed_url, label</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="wrap">
+    <section id="preview" class="reveal">
+      <div class="section-head">
+        <p class="eyebrow">En direct</p>
+        <h2>Ce n'est pas une maquette figée</h2>
+        <p>Ces cartes viennent du vrai dashboard plus bas -- regarde-les tourner.</p>
+      </div>
+      <div class="preview-shell">
+        <div class="grid-widgets" id="landing-preview-grid"></div>
+        <div class="preview-note"><span class="pulse-dot" aria-hidden="true"></span> Données simulées, rythme accéléré pour la démo</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="wrap">
+    <section>
+      <div class="cta-band reveal">
+        <h2>Prêt à ouvrir ta première porte ?</h2>
+        <button class="btn btn-primary" id="btn-signup-cta">Créer mon dashboard</button>
+      </div>
+    </section>
+    <div class="footer">
+      <span>Threshold -- prototype de maquette</span>
+      <span>Projet Dashboard · module G-WEB-500</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD APP ============ -->
+<div id="app" hidden>
+  <div class="appbar">
+    <div class="appbar-inner">
+      <div class="brand" style="font-size:1rem;">
+        <svg class="mark" style="width:24px;height:24px;" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="20" cy="20" r="10.5" stroke="currentColor" stroke-width="1.6" opacity=".55"/>
+        </svg>
+        Threshold
+      </div>
+      <div class="app-tabs" role="tablist">
+        <button data-pane="dashboard" class="active" role="tab" aria-selected="true">Dashboard</button>
+        <button data-pane="services" role="tab" aria-selected="false">Mes services</button>
+        <button data-pane="admin" role="tab" aria-selected="false">Admin</button>
+      </div>
+      <div class="appbar-right">
+        <div class="clock">
+          <div class="t" id="clock-time">--:--:--</div>
+          <div class="epoch" id="clock-epoch">current_time: 0</div>
+        </div>
+        <div class="avatar">SD</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-main">
+    <!-- DASHBOARD PANE -->
+    <div class="app-pane" data-pane="dashboard">
+      <div class="pane-head">
+        <div>
+          <h1>Mon dashboard</h1>
+          <div class="pane-sub"><span class="pulse-dot" aria-hidden="true"></span> dernier rafraîchissement il y a <span id="last-refresh">2</span>s</div>
+        </div>
+        <button class="btn btn-primary" id="btn-add-widget">
+          <svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M12 5v14M5 12h14"/></svg>
+          Ajouter un widget
+        </button>
+      </div>
+      <div class="grid-widgets" id="dashboard-grid"></div>
+    </div>
+
+    <!-- SERVICES PANE -->
+    <div class="app-pane" data-pane="services" hidden>
+      <div class="pane-head"><div><h1>Mes services</h1><div class="pane-sub">Abonne-toi pour débloquer leurs widgets</div></div></div>
+      <div class="svc-list">
+        <div class="svc-row">
+          <div class="svc-icon" style="background:var(--cyan-soft);color:var(--cyan);"><svg class="icon" viewBox="0 0 24 24"><path d="M17 17a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.7A3.8 3.8 0 0 0 7 18h10Z"/></svg></div>
+          <div class="svc-row-info"><h3>Weather</h3><p>Aucun compte requis -- disponible pour tout utilisateur authentifié.</p></div>
+          <span class="badge badge-on">Actif</span>
+        </div>
+        <div class="svc-row" id="row-github">
+          <div class="svc-icon" style="background:var(--violet-soft);color:var(--violet);"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8 0 4.3 2.8 8 6.7 9.3.5.1.7-.2.7-.5v-1.9c-2.7.6-3.3-1.3-3.3-1.3-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.2-4.5-1.1-4.5-4.9 0-1.1.4-2 1-2.6-.1-.2-.4-1.2.1-2.6 0 0 .8-.3 2.7 1a9 9 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.6.6.6 1 1.5 1 2.6 0 3.8-2.3 4.6-4.5 4.9.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5 3.9-1.3 6.7-5 6.7-9.3 0-5.4-4.4-9.8-9.8-9.8Z"/></svg></div>
+          <div class="svc-row-info"><h3>GitHub</h3><p id="github-status-text">Connecte ton compte pour lire tes dépôts.</p></div>
+          <button class="btn btn-ghost btn-sm" id="btn-connect-github">Connecter GitHub</button>
+        </div>
+        <div class="svc-row" id="row-rss">
+          <div class="svc-icon" style="background:var(--amber-soft);color:var(--amber);"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4a16 16 0 0 1 16 16"/><path d="M4 10a10 10 0 0 1 10 10"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/></svg></div>
+          <div class="svc-row-info"><h3>RSS</h3><p id="rss-status-text">Ajoute l'URL d'un flux pour t'y abonner.</p></div>
+          <input class="feed-input" id="rss-input" placeholder="https://flux.exemple.com/rss" hidden>
+          <button class="btn btn-ghost btn-sm" id="btn-connect-rss">S'abonner</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN PANE -->
+    <div class="app-pane" data-pane="admin" hidden>
+      <div class="pane-head"><div><h1>Administration</h1><div class="pane-sub">Vue simplifiée pour la modération des comptes</div></div></div>
+      <div class="stat-grid">
+        <div class="stat-card"><b id="stat-users">128</b><span>utilisateurs inscrits</span></div>
+        <div class="stat-card"><b id="stat-widgets">6</b><span>widgets disponibles</span></div>
+        <div class="stat-card"><b id="stat-refresh">1204</b><span>rafraîchissements aujourd'hui</span></div>
+      </div>
+      <div class="admin-grid">
+        <table>
+          <thead><tr><th>Utilisateur</th><th>Email</th><th>Statut</th><th>Inscrit le</th></tr></thead>
+          <tbody>
+            <tr><td>Stella G.</td><td>stella@epitech.eu</td><td><span class="pill-status pill-confirmed">Confirmé</span></td><td>16 sept.</td></tr>
+            <tr><td>Aichath R.</td><td>aichath@epitech.eu</td><td><span class="pill-status pill-confirmed">Confirmé</span></td><td>16 sept.</td></tr>
+            <tr><td>Yao K.</td><td>yao.k@mail.com</td><td><span class="pill-status pill-pending">En attente</span></td><td>15 sept.</td></tr>
+            <tr><td>Nadia B.</td><td>nadia.b@mail.com</td><td><span class="pill-status pill-confirmed">Confirmé</span></td><td>14 sept.</td></tr>
+            <tr><td>Marc O.</td><td>marc.o@mail.com</td><td><span class="pill-status pill-pending">En attente</span></td><td>13 sept.</td></tr>
+          </tbody>
+        </table>
+        <div class="audit-box">
+          <h3>Journal d'activité</h3>
+          <div id="audit-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODALS ============ -->
+<div class="overlay" id="overlay-login">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="modal-top"><h2 id="login-title">Se connecter</h2><button class="modal-close" data-close><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="oauth-row">
+      <button class="oauth-btn" id="oidc-google"><svg viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3.2 14.7 2.2 12 2.2 6.8 2.2 2.6 6.5 2.6 12S6.8 21.8 12 21.8c6.9 0 9.6-4.9 9.6-7.4 0-.5-.1-.9-.1-1.2H12Z"/></svg> Google</button>
+      <button class="oauth-btn" id="oidc-github"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8 0 4.3 2.8 8 6.7 9.3.5.1.7-.2.7-.5v-1.9c-2.7.6-3.3-1.3-3.3-1.3-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.2-4.5-1.1-4.5-4.9 0-1.1.4-2 1-2.6-.1-.2-.4-1.2.1-2.6 0 0 .8-.3 2.7 1a9 9 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.6.6.6 1 1.5 1 2.6 0 3.8-2.3 4.6-4.5 4.9.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5 3.9-1.3 6.7-5 6.7-9.3 0-5.4-4.4-9.8-9.8-9.8Z"/></svg> GitHub</button>
+    </div>
+    <div class="rule">ou avec ton email</div>
+    <form id="form-login">
+      <div class="field"><label>Email</label><input type="email" required placeholder="toi@exemple.com"></div>
+      <div class="field"><label>Mot de passe</label><input type="password" required placeholder="••••••••"></div>
+      <button class="btn btn-primary" style="width:100%;" type="submit">Continuer</button>
+    </form>
+    <div class="switch-line">Pas encore de compte ? <button id="to-register">Créer un compte</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-register">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="reg-title">
+    <div class="modal-top"><h2 id="reg-title">Créer un compte</h2><button class="modal-close" data-close><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div id="reg-step-form">
+      <form id="form-register">
+        <div class="field"><label>Nom</label><input type="text" required placeholder="Ton nom"></div>
+        <div class="field"><label>Email</label><input type="email" required id="reg-email" placeholder="toi@exemple.com"></div>
+        <div class="field"><label>Mot de passe</label><input type="password" required placeholder="••••••••"></div>
+        <button class="btn btn-primary" style="width:100%;" type="submit">Créer mon compte</button>
+      </form>
+      <div class="switch-line">Déjà un compte ? <button id="to-login">Se connecter</button></div>
+    </div>
+    <div id="reg-step-confirm" hidden>
+      <div class="confirm-email">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>
+        <p>Un email de confirmation a été envoyé à <b id="reg-email-display" style="color:var(--text);"></b>. Confirme-le pour accéder à la plateforme.</p>
+        <button class="btn btn-primary" style="width:100%;" id="btn-confirmed">J'ai confirmé mon email</button>
+        <div class="resend-line">Rien reçu ? <button id="btn-resend" disabled>Renvoyer (<span id="resend-count">15</span>s)</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-oauth">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="oauth-title">
+    <div class="modal-top"><h2 id="oauth-title">Autoriser Threshold</h2><button class="modal-close" data-close><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <p style="color:var(--text-dim);font-size:.9rem;margin-bottom:16px;">Threshold souhaite accéder à ton compte GitHub pour :</p>
+    <ul style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">
+      <li style="display:flex;gap:8px;font-size:.85rem;"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--green);"><path d="M20 6 9 17l-5-5"/></svg> Lire la liste de tes dépôts</li>
+      <li style="display:flex;gap:8px;font-size:.85rem;"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--green);"><path d="M20 6 9 17l-5-5"/></svg> Lire les commits et alertes de sécurité</li>
+    </ul>
+    <button class="btn btn-primary" style="width:100%;" id="btn-authorize">Autoriser</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-wizard">
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="wiz-title">
+    <div class="modal-top"><h2 id="wiz-title">Ajouter un widget</h2><button class="modal-close" data-close><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="wiz-steps"><span class="active" data-s="1"></span><span data-s="2"></span><span data-s="3"></span><span data-s="4"></span></div>
+
+    <div class="wiz-pane" data-wp="1">
+      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:14px;">Choisis un widget dans le catalogue.</p>
+      <div class="wiz-cat-grid" id="wiz-catalog"></div>
+    </div>
+
+    <div class="wiz-pane" data-wp="2" hidden>
+      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:14px;">Configure ses paramètres.</p>
+      <div id="wiz-config-fields"></div>
+    </div>
+
+    <div class="wiz-pane" data-wp="3" hidden>
+      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:6px;">À quelle fréquence doit-il se rafraîchir ?</p>
+      <div class="rate-chips" id="wiz-rates"></div>
+    </div>
+
+    <div class="wiz-pane" data-wp="4" hidden>
+      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:14px;">Vérifie avant de confirmer.</p>
+      <div class="review-box" id="wiz-review"></div>
+    </div>
+
+    <div class="wiz-actions">
+      <button class="btn btn-ghost btn-sm" id="wiz-back" style="visibility:hidden;">Retour</button>
+      <button class="btn btn-primary btn-sm" id="wiz-next">Continuer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = (s,c)=> (c||document).querySelector(s);
+const $$ = (s,c)=> Array.from((c||document).querySelectorAll(s));
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- stars ---------- */
+const starsEl = $('#stars');
+for(let i=0;i<60;i++){
+  const s = document.createElement('span');
+  s.style.left = Math.random()*100+'%';
+  s.style.top = Math.random()*100+'%';
+  s.style.animationDelay = (Math.random()*4)+'s';
+  starsEl.appendChild(s);
+}
+
+/* ---------- view switching ---------- */
+function setView(view){
+  document.body.dataset.view = view;
+  $('#landing').hidden = view !== 'landing';
+  $('#app').hidden = view !== 'app';
+  $$('.proto-switch button').forEach(b=> {
+    const on = b.dataset.goto === view;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on);
+  });
+  window.scrollTo({top:0, behavior:'auto'});
+}
+$$('[data-goto]').forEach(el=> el.addEventListener('click', ()=> setView(el.dataset.goto)));
+
+/* ---------- hero portal entrance (one orchestrated moment) ---------- */
+window.addEventListener('DOMContentLoaded', ()=>{
+  if(reducedMotion){
+    $('#p-r1').style.opacity = 1; $('#p-r1').style.transform='none';
+    $('#p-r2').style.opacity = 1; $('#p-r2').style.transform='none';
+    $('#p-r3').style.opacity = 1; $('#p-r3').style.transform='none';
+    $('#p-core').style.opacity = 1;
+    return;
+  }
+  $('#p-r1').style.animation = 'ringIn .8s .1s var(--ease) forwards';
+  $('#p-r2').style.animation = 'ringIn .8s .28s var(--ease) forwards';
+  $('#p-r3').style.animation = 'ringIn .8s .46s var(--ease) forwards';
+  $('#p-core').style.animation = 'coreIn .6s .6s var(--ease) forwards';
+});
+
+/* ---------- reveal on scroll ---------- */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+},{threshold:.15});
+$$('.reveal').forEach(el=> io.observe(el));
+
+/* ---------- count-up numbers ---------- */
+const counted = new WeakSet();
+const io2 = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting && !counted.has(e.target)){
+      counted.add(e.target);
+      const target = parseInt(e.target.dataset.count,10);
+      const dur = reducedMotion ? 0 : 900;
+      const start = performance.now();
+      function step(now){
+        const p = dur ? Math.min(1,(now-start)/dur) : 1;
+        e.target.textContent = Math.round(target * (1-Math.pow(1-p,3)));
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+  });
+},{threshold:.5});
+$$('.count[data-count]').forEach(el=> io2.observe(el));
+
+/* ---------- toasts ---------- */
+function toast(msg){
+  const box = document.createElement('div');
+  box.className = 'toast';
+  box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg><span>'+msg+'</span>';
+  $('#toasts').appendChild(box);
+  setTimeout(()=>{ box.classList.add('out'); setTimeout(()=>box.remove(), 300); }, 3200);
+}
+
+/* ---------- modal helpers ---------- */
+function openModal(id){
+  const ov = document.getElementById(id);
+  ov.classList.add('open');
+  const firstInput = ov.querySelector('input, button');
+  if(firstInput) setTimeout(()=>firstInput.focus(), 50);
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+$$('.overlay').forEach(ov=>{
+  ov.addEventListener('click', (e)=>{ if(e.target === ov) closeModal(ov.id); });
+  ov.querySelectorAll('[data-close]').forEach(b=> b.addEventListener('click', ()=> closeModal(ov.id)));
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){ $$('.overlay.open').forEach(ov=> closeModal(ov.id)); }
+});
+
+$('#btn-login').addEventListener('click', ()=> openModal('overlay-login'));
+$('#btn-signup-nav').addEventListener('click', ()=> openModal('overlay-register'));
+$('#btn-signup-hero').addEventListener('click', ()=> openModal('overlay-register'));
+$('#btn-signup-cta').addEventListener('click', ()=> openModal('overlay-register'));
+$('#to-register').addEventListener('click', ()=>{ closeModal('overlay-login'); openModal('overlay-register'); });
+$('#to-login').addEventListener('click', ()=>{ closeModal('overlay-register'); openModal('overlay-login'); });
+
+$('#form-login').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  closeModal('overlay-login');
+  setView('app');
+  toast('Bon retour parmi nous');
+});
+['oidc-google','oidc-github'].forEach(id=>{
+  $('#'+id).addEventListener('click', ()=>{ closeModal('overlay-login'); setView('app'); toast('Connexion via fournisseur externe réussie'); });
+});
+
+$('#form-register').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  $('#reg-email-display').textContent = $('#reg-email').value || 'ton adresse';
+  $('#reg-step-form').hidden = true;
+  $('#reg-step-confirm').hidden = false;
+  startResend();
+});
+$('#btn-confirmed').addEventListener('click', ()=>{
+  closeModal('overlay-register');
+  setView('app');
+  toast('Compte confirmé -- bienvenue !');
+  setTimeout(()=>{
+    $('#reg-step-form').hidden = false;
+    $('#reg-step-confirm').hidden = true;
+  }, 400);
+});
+let resendTimer;
+function startResend(){
+  let n = 15;
+  const btn = $('#btn-resend'); btn.disabled = true;
+  clearInterval(resendTimer);
+  resendTimer = setInterval(()=>{
+    n--; $('#resend-count').textContent = n;
+    if(n<=0){ clearInterval(resendTimer); btn.disabled=false; btn.innerHTML='Renvoyer l\'email'; }
+  },1000);
+}
+$('#btn-resend').addEventListener('click', ()=>{ toast('Email renvoyé'); startResend(); $('#btn-resend').disabled=true; });
+
+/* ---------- app tabs ---------- */
+$$('.app-tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    $$('.app-tabs button').forEach(b=>{b.classList.remove('active'); b.setAttribute('aria-selected','false');});
+    btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+    $$('.app-pane').forEach(p=> p.hidden = p.dataset.pane !== btn.dataset.pane);
+  });
+});
+
+/* ---------- clock ---------- */
+function tickClock(){
+  const now = new Date();
+  $('#clock-time').textContent = now.toLocaleTimeString('fr-FR');
+  $('#clock-epoch').textContent = 'current_time: '+Math.floor(now.getTime()/1000);
+}
+tickClock(); setInterval(tickClock, 1000);
+let lastRefreshSec = 0;
+setInterval(()=>{ lastRefreshSec++; $('#last-refresh').textContent = lastRefreshSec; }, 1000);
+
+/* ---------- widget catalog ---------- */
+const ICONS = {
+  weather: '<svg class="icon" viewBox="0 0 24 24"><path d="M17 17a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.7A3.8 3.8 0 0 0 7 18h10Z"/></svg>',
+  github: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8 0 4.3 2.8 8 6.7 9.3.5.1.7-.2.7-.5v-1.9c-2.7.6-3.3-1.3-3.3-1.3-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.2-4.5-1.1-4.5-4.9 0-1.1.4-2 1-2.6-.1-.2-.4-1.2.1-2.6 0 0 .8-.3 2.7 1a9 9 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.6.6.6 1 1.5 1 2.6 0 3.8-2.3 4.6-4.5 4.9.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5 3.9-1.3 6.7-5 6.7-9.3 0-5.4-4.4-9.8-9.8-9.8Z"/></svg>',
+  rss: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4a16 16 0 0 1 16 16"/><path d="M4 10a10 10 0 0 1 10 10"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/></svg>'
+};
+const ACCENT = { weather:'cyan', github:'violet', rss:'amber' };
+
+const CATALOG = [
+  {id:'city_temperature', service:'weather', name:'City temperature', desc:'Température et ciel actuels pour une ville.', params:[{name:'city',type:'string',label:'Ville'},{name:'unit',type:'string',label:'Unité'}]},
+  {id:'precipitation_forecast', service:'weather', name:'Precipitation forecast', desc:'Chances de pluie sur les prochains jours.', params:[{name:'city',type:'string',label:'Ville'},{name:'days',type:'integer',label:'Jours'}]},
+  {id:'recent_commits', service:'github', name:'Recent commits', desc:'Derniers commits d\'un dépôt.', params:[{name:'repo',type:'string',label:'Dépôt'},{name:'limit',type:'integer',label:'Limite'}]},
+  {id:'security_alerts', service:'github', name:'Security alerts', desc:'Alertes de sécurité ouvertes.', params:[{name:'repo',type:'string',label:'Dépôt'},{name:'severity',type:'string',label:'Sévérité min.'}]},
+  {id:'article_list', service:'rss', name:'Article list', desc:'Derniers articles d\'un flux.', params:[{name:'feed_url',type:'string',label:'URL du flux'},{name:'number',type:'integer',label:'Nombre'}]},
+  {id:'feed_summary', service:'rss', name:'Feed summary', desc:'Un titre qui tourne depuis un flux.', params:[{name:'feed_url',type:'string',label:'URL du flux'},{name:'label',type:'string',label:'Étiquette'}]},
+];
+function catalogOf(id){ return CATALOG.find(c=>c.id===id); }
+
+/* ---------- live data frames per widget instance ---------- */
+const FRAMES = {
+  temp_cotonou: [ {big:'31°C',meta:'Partiellement nuageux'}, {big:'30°C',meta:'Ensoleillé'}, {big:'29°C',meta:'Légère brume'} ],
+  temp_paris: [ {big:'14°C',meta:'Pluie légère'}, {big:'13°C',meta:'Couvert'}, {big:'15°C',meta:'Nuageux'} ],
+  precip: [ {days:['+2j 20%','+3j 45%','+4j 10%']}, {days:['+2j 15%','+3j 55%','+4j 30%']}, {days:['+2j 25%','+3j 40%','+4j 5%']} ],
+  commits: [
+    [{m:'Fix widget refresh race condition',a:'stella',t:'2 min'},{m:'Add OAuth callback handler',a:'aichath',t:'40 min'},{m:'Update docker-compose ports',a:'stella',t:'2 h'}],
+    [{m:'Improve /about.json generator',a:'stella',t:'à l\'instant'},{m:'Fix widget refresh race condition',a:'stella',t:'5 min'},{m:'Add OAuth callback handler',a:'aichath',t:'43 min'}],
+  ],
+  alerts: [ {high:2,medium:5}, {high:1,medium:5}, {high:2,medium:6} ],
+  articles: [
+    [{t:'Comment le Timer orchestre les widgets', n:true},{t:'RGAA : les bases de l\'accessibilité'},{t:'OAuth 2.0 expliqué simplement'}],
+    [{t:'Les secrets d\'un bon docker-compose', n:true},{t:'Comment le Timer orchestre les widgets'},{t:'RGAA : les bases de l\'accessibilité'}],
+  ]
+};
+let frameIdx = {};
+
+function renderWidgetBody(inst){
+  const cat = catalogOf(inst.widgetId);
+  if(inst.widgetId==='city_temperature'){
+    const key = inst.frameKey; const i = frameIdx[inst.uid]||0;
+    const f = FRAMES[key][i % FRAMES[key].length];
+    return '<div class="temp-row"><span class="temp-big">'+f.big+'</span><span class="temp-meta">'+f.meta+'</span></div>'+
+      '<div class="metric-row"><span>'+inst.config.city+'</span><span>Rafraîchi via API météo</span></div>';
+  }
+  if(inst.widgetId==='precipitation_forecast'){
+    const i = frameIdx[inst.uid]||0; const f = FRAMES.precip[i % FRAMES.precip.length];
+    return '<div class="metric-row" style="margin-top:0;">'+f.days.map(d=>'<span>'+d+'</span>').join('')+'</div>';
+  }
+  if(inst.widgetId==='recent_commits'){
+    const i = frameIdx[inst.uid]||0; const list = FRAMES.commits[i % FRAMES.commits.length].slice(0, inst.config.limit||3);
+    return list.map(c=>'<div class="commit-item"><span class="commit-dot"></span><div><p>'+c.m+'</p><small>'+c.a+' · '+c.t+'</small></div></div>').join('');
+  }
+  if(inst.widgetId==='security_alerts'){
+    const i = frameIdx[inst.uid]||0; const f = FRAMES.alerts[i % FRAMES.alerts.length];
+    return '<div class="alert-row"><span>Sévérité haute</span><span class="sev sev-high">'+f.high+'</span></div>'+
+      '<div class="alert-row"><span>Sévérité moyenne</span><span class="sev sev-medium">'+f.medium+'</span></div>';
+  }
+  if(inst.widgetId==='article_list'){
+    const i = frameIdx[inst.uid]||0; const list = FRAMES.articles[i % FRAMES.articles.length].slice(0, inst.config.number||3);
+    return list.map(a=>'<div class="article-item">'+a.t+(a.n?'<span class="new-badge">nouveau</span>':'')+'</div>').join('');
+  }
+  if(inst.widgetId==='feed_summary'){
+    return '<div class="article-item" style="border:none;">« Threshold : construire un dashboard vivant »</div>';
+  }
+  return '';
+}
+
+let uidSeq = 100;
+const instances = [
+  {uid:1, widgetId:'city_temperature', config:{city:'Cotonou',unit:'°C'}, refresh:9, frameKey:'temp_cotonou', pair:true},
+  {uid:2, widgetId:'city_temperature', config:{city:'Paris',unit:'°C'}, refresh:9, frameKey:'temp_paris', pair:true},
+  {uid:3, widgetId:'recent_commits', config:{repo:'team/dashboard', limit:3}, refresh:13},
+  {uid:4, widgetId:'security_alerts', config:{repo:'team/dashboard', severity:'medium'}, refresh:17},
+  {uid:5, widgetId:'article_list', config:{feed_url:'blog.example.com/feed', number:3}, refresh:15},
+  {uid:6, widgetId:'precipitation_forecast', config:{city:'Cotonou', days:3}, refresh:20},
+];
+
+function widgetCardHTML(inst){
+  const cat = catalogOf(inst.widgetId);
+  const accent = ACCENT[cat.service];
+  const cfgTag = Object.values(inst.config).slice(0,2).join(' · ');
+  const circumference = 56.5;
+  return '<div class="wcard accent-'+accent+'" data-uid="'+inst.uid+'" draggable="true">'+
+    '<div class="wcard-top">'+
+      '<svg class="wcard-grip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="6" cy="5" r="1.4" fill="currentColor"/><circle cx="6" cy="10" r="1.4" fill="currentColor"/><circle cx="6" cy="15" r="1.4" fill="currentColor"/><circle cx="13" cy="5" r="1.4" fill="currentColor"/><circle cx="13" cy="10" r="1.4" fill="currentColor"/><circle cx="13" cy="15" r="1.4" fill="currentColor"/></svg>'+
+      '<div class="wcard-icon">'+ICONS[cat.service]+'</div>'+
+      '<div class="wcard-titles"><b>'+cat.name+'</b><span>'+cat.service+'</span></div>'+
+      '<div class="dropdown">'+
+        '<button class="wcard-menu-btn" data-menu-toggle aria-label="Options du widget"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><circle cx="12" cy="5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.4" fill="currentColor" stroke="none"/></svg></button>'+
+        '<div class="menu">'+
+          '<button data-act="reconfigure"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.4"/></svg> Reconfigurer</button>'+
+          '<button data-act="move-start"><svg class="icon" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg> Déplacer en premier</button>'+
+          '<button data-act="move-end"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg> Déplacer en dernier</button>'+
+          '<button data-act="delete" class="danger"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m-8 0v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7"/></svg> Supprimer</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="wcard-body" data-body>'+renderWidgetBody(inst)+'</div>'+
+    '<div class="wcard-foot">'+
+      '<span class="cfg-tag">'+cfgTag+'</span>'+
+      '<div class="timer-ring-wrap">'+
+        '<svg class="timer-ring" viewBox="0 0 22 22" aria-hidden="true">'+
+          '<circle class="bg" cx="11" cy="11" r="9"/>'+
+          '<circle class="fg" data-ring cx="11" cy="11" r="9" style="animation:'+(reducedMotion?'none':'ringFill '+inst.refresh+'s linear infinite')+'"/>'+
+        '</svg>'+
+        '<span class="timer-label">'+inst.refresh+'s</span>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderGrid(){
+  const grid = $('#dashboard-grid');
+  grid.innerHTML = '';
+  const pairOnes = instances.filter(i=>i.pair);
+  if(pairOnes.length){
+    const flag = document.createElement('div');
+    flag.className = 'pair-flag';
+    flag.innerHTML = '<span class="line"></span><span>Même widget, configuration différente → données distinctes</span><span class="line"></span>';
+    // inserted just before rendering, handled via order below
+  }
+  instances.forEach(inst=>{
+    const div = document.createElement('div');
+    div.innerHTML = widgetCardHTML(inst);
+    grid.appendChild(div.firstElementChild);
+  });
+  const addCard = document.createElement('button');
+  addCard.className = 'add-card';
+  addCard.id = 'inline-add-card';
+  addCard.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Ajouter un widget</span>';
+  addCard.addEventListener('click', ()=> openWizard());
+  grid.appendChild(addCard);
+  attachCardEvents();
+  syncLandingPreview();
+}
+
+function syncLandingPreview(){
+  const src = $('#dashboard-grid');
+  const dest = $('#landing-preview-grid');
+  dest.innerHTML = '';
+  Array.from(src.children).slice(0,3).forEach(card=>{
+    if(card.id === 'inline-add-card') return;
+    const clone = card.cloneNode(true);
+    clone.removeAttribute('draggable');
+    clone.querySelectorAll('[data-menu-toggle], .dropdown').forEach(n=>{});
+    dest.appendChild(clone);
+  });
+}
+
+function attachCardEvents(){
+  $$('.wcard').forEach(card=>{
+    const uid = parseInt(card.dataset.uid,10);
+    const toggleBtn = card.querySelector('[data-menu-toggle]');
+    const menu = card.querySelector('.menu');
+    toggleBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      $$('.menu.open').forEach(m=> { if(m!==menu) m.classList.remove('open'); });
+      menu.classList.toggle('open');
+    });
+    menu.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        menu.classList.remove('open');
+        handleCardAction(uid, btn.dataset.act);
+      });
+    });
+    // ring -> tick sync
+    const ring = card.querySelector('[data-ring]');
+    if(ring && !reducedMotion){
+      ring.addEventListener('animationiteration', ()=> tickWidget(uid));
+    }
+    // drag reorder
+    card.addEventListener('dragstart', ()=>{ card.classList.add('dragging'); });
+    card.addEventListener('dragend', ()=>{ card.classList.remove('dragging'); $$('.wcard').forEach(c=>c.classList.remove('drop-target')); });
+    card.addEventListener('dragover', (e)=>{ e.preventDefault(); card.classList.add('drop-target'); });
+    card.addEventListener('dragleave', ()=> card.classList.remove('drop-target'));
+    card.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      card.classList.remove('drop-target');
+      const draggingCard = $('.wcard.dragging');
+      if(draggingCard && draggingCard !== card){
+        const grid = $('#dashboard-grid');
+        const dragUid = parseInt(draggingCard.dataset.uid,10);
+        const dropIndex = instances.findIndex(i=>i.uid===uid);
+        const dragIndex = instances.findIndex(i=>i.uid===dragUid);
+        const [moved] = instances.splice(dragIndex,1);
+        instances.splice(dropIndex,0,moved);
+        renderGrid();
+        toast('Widget déplacé');
+      }
+    });
+  });
+}
+document.addEventListener('click', ()=> $$('.menu.open').forEach(m=>m.classList.remove('open')));
+
+function tickWidget(uid){
+  frameIdx[uid] = (frameIdx[uid]||0) + 1;
+  const inst = instances.find(i=>i.uid===uid);
+  const card = document.querySelector('.wcard[data-uid="'+uid+'"]');
+  if(!inst || !card) return;
+  const body = card.querySelector('[data-body]');
+  body.classList.remove('fade-swap'); void body.offsetWidth;
+  body.innerHTML = renderWidgetBody(inst);
+  body.classList.add('fade-swap');
+  lastRefreshSec = 0;
+}
+// fallback interval refresh for reduced-motion users
+if(reducedMotion){
+  instances.forEach(inst=> setInterval(()=> tickWidget(inst.uid), inst.refresh*1000));
+}
+
+function handleCardAction(uid, act){
+  const idx = instances.findIndex(i=>i.uid===uid);
+  if(idx===-1) return;
+  if(act==='delete'){
+    const card = document.querySelector('.wcard[data-uid="'+uid+'"]');
+    card.classList.add('removing');
+    setTimeout(()=>{ instances.splice(idx,1); renderGrid(); toast('Widget supprimé'); }, 220);
+  } else if(act==='move-start'){
+    const [m] = instances.splice(idx,1); instances.unshift(m); renderGrid(); toast('Widget déplacé au début');
+  } else if(act==='move-end'){
+    const [m] = instances.splice(idx,1); instances.push(m); renderGrid(); toast('Widget déplacé à la fin');
+  } else if(act==='reconfigure'){
+    openWizard(instances[idx]);
+  }
+}
+
+renderGrid();
+
+/* ---------- add / reconfigure wizard ---------- */
+let wizStep = 1;
+let wizWidget = null;
+let wizConfig = {};
+let wizRate = 30;
+let wizEditingUid = null;
+
+function openWizard(editInst){
+  wizStep = 1; wizWidget = null; wizConfig = {}; wizRate = 30; wizEditingUid = null;
+  $('#wiz-title').textContent = 'Ajouter un widget';
+  if(editInst){
+    wizWidget = catalogOf(editInst.widgetId);
+    wizConfig = Object.assign({}, editInst.config);
+    wizRate = editInst.refresh;
+    wizEditingUid = editInst.uid;
+    wizStep = 2;
+    $('#wiz-title').textContent = 'Reconfigurer le widget';
+  }
+  renderCatalogPicker();
+  renderConfigFields();
+  renderRateChips();
+  goToStep(wizStep);
+  openModal('overlay-wizard');
+}
+
+function renderCatalogPicker(){
+  const box = $('#wiz-catalog');
+  box.innerHTML = '';
+  CATALOG.forEach(w=>{
+    const b = document.createElement('button');
+    b.className = 'wiz-cat' + (wizWidget && wizWidget.id===w.id ? ' selected' : '');
+    b.innerHTML = '<b>'+w.name+'</b><span>'+w.desc+'</span>';
+    b.addEventListener('click', ()=>{
+      wizWidget = w; wizConfig = {};
+      renderCatalogPicker(); renderConfigFields();
+    });
+    box.appendChild(b);
+  });
+}
+function renderConfigFields(){
+  const box = $('#wiz-config-fields');
+  box.innerHTML = '';
+  if(!wizWidget) return;
+  wizWidget.params.forEach(p=>{
+    const field = document.createElement('div');
+    field.className = 'field';
+    const inputType = p.type==='integer' ? 'number' : 'text';
+    field.innerHTML = '<label>'+p.label+' <span style="color:var(--text-faint);font-family:var(--font-m);">('+p.type+')</span></label>'+
+      '<input type="'+inputType+'" data-param="'+p.name+'" value="'+(wizConfig[p.name]!==undefined?wizConfig[p.name]:'')+'">';
+    box.appendChild(field);
+  });
+}
+function renderRateChips(){
+  const box = $('#wiz-rates');
+  box.innerHTML = '';
+  [10,15,30,60,300].forEach(sec=>{
+    const label = sec<60 ? sec+' s' : (sec/60)+' min';
+    const chip = document.createElement('button');
+    chip.className = 'rate-chip' + (wizRate===sec?' selected':'');
+    chip.textContent = 'Toutes les '+label;
+    chip.addEventListener('click', ()=>{ wizRate = sec; renderRateChips(); });
+    box.appendChild(chip);
+  });
+}
+function goToStep(n){
+  wizStep = n;
+  $$('.wiz-pane').forEach(p=> p.hidden = parseInt(p.dataset.wp,10) !== n);
+  $$('.wiz-steps span').forEach(s=>{
+    const i = parseInt(s.dataset.s,10);
+    s.classList.toggle('done', i<n); s.classList.toggle('active', i===n);
+  });
+  $('#wiz-back').style.visibility = n===1 ? 'hidden' : 'visible';
+  $('#wiz-next').textContent = n===4 ? (wizEditingUid ? 'Enregistrer' : 'Ajouter au dashboard') : 'Continuer';
+  if(n===4){
+    const box = $('#wiz-review');
+    box.innerHTML = '<div><span>Widget</span><b>'+wizWidget.name+'</b></div>'+
+      Object.entries(wizConfig).map(([k,v])=>'<div><span>'+k+'</span><b>'+v+'</b></div>').join('')+
+      '<div><span>Rafraîchissement</span><b>'+wizRate+' s</b></div>';
+  }
+}
+$('#wiz-back').addEventListener('click', ()=> goToStep(Math.max(1,wizStep-1)));
+$('#wiz-next').addEventListener('click', ()=>{
+  if(wizStep===1){
+    if(!wizWidget){ toast('Choisis un widget pour continuer'); return; }
+    goToStep(2);
+  } else if(wizStep===2){
+    $$('#wiz-config-fields [data-param]').forEach(inp=>{ wizConfig[inp.dataset.param] = inp.value; });
+    goToStep(3);
+  } else if(wizStep===3){
+    goToStep(4);
+  } else {
+    closeModal('overlay-wizard');
+    if(wizEditingUid){
+      const inst = instances.find(i=>i.uid===wizEditingUid);
+      inst.config = Object.assign({}, wizConfig);
+      inst.refresh = wizRate;
+      renderGrid();
+      const card = document.querySelector('.wcard[data-uid="'+wizEditingUid+'"]');
+      if(card){ card.classList.add('flash'); setTimeout(()=>card.classList.remove('flash'),700); }
+      toast('Widget reconfiguré');
+    } else {
+      uidSeq++;
+      instances.push({uid:uidSeq, widgetId:wizWidget.id, config:Object.assign({},wizConfig), refresh:wizRate, frameKey: wizWidget.id==='city_temperature' ? 'temp_cotonou' : undefined});
+      renderGrid();
+      const card = document.querySelector('.wcard[data-uid="'+uidSeq+'"]');
+      if(card) card.classList.add('added');
+      toast('Widget ajouté au dashboard');
+    }
+  }
+});
+$('#btn-add-widget').addEventListener('click', ()=> openWizard());
+
+/* ---------- services pane interactions ---------- */
+$('#btn-connect-github').addEventListener('click', ()=> openModal('overlay-oauth'));
+$('#btn-authorize').addEventListener('click', ()=>{
+  closeModal('overlay-oauth');
+  $('#github-status-text').textContent = 'Connecté en tant que @stella-dev';
+  $('#btn-connect-github').textContent = 'Déconnecter';
+  $('#btn-connect-github').classList.add('badge-on');
+  toast('GitHub connecté');
+});
+const rssInput = $('#rss-input');
+const rssBtn = $('#btn-connect-rss');
+let rssSubscribed = false;
+rssBtn.addEventListener('click', ()=>{
+  if(!rssSubscribed){
+    rssInput.hidden = false; rssInput.focus();
+    if(rssInput.value){
+      rssSubscribed = true;
+      $('#rss-status-text').textContent = 'Abonné(e) -- '+rssInput.value;
+      rssInput.hidden = true; rssBtn.textContent = 'Se désabonner';
+      toast('Flux RSS ajouté');
+    }
+  } else {
+    rssSubscribed = false;
+    $('#rss-status-text').textContent = "Ajoute l'URL d'un flux pour t'y abonner.";
+    rssBtn.textContent = "S'abonner";
+    toast('Désabonnement effectué');
+  }
+});
+rssInput.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' && rssInput.value){
+    rssSubscribed = true;
+    $('#rss-status-text').textContent = 'Abonné(e) -- '+rssInput.value;
+    rssInput.hidden = true; rssBtn.textContent = 'Se désabonner';
+    toast('Flux RSS ajouté');
+  }
+});
+
+/* ---------- admin audit log, live-ish ---------- */
+const auditEvents = [
+  'GitHub connecté par Stella G.',
+  'Widget ajouté : Recent commits',
+  'Compte confirmé : Nadia B.',
+  'Widget supprimé : Feed summary',
+  'Flux RSS ajouté par Aichath R.',
+  'Nouvel utilisateur inscrit : Marc O.'
+];
+let auditPtr = 0;
+function pushAudit(){
+  const list = $('#audit-list');
+  const item = document.createElement('div');
+  item.className = 'audit-item';
+  const now = new Date();
+  item.innerHTML = '<span>'+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</span><p>'+auditEvents[auditPtr % auditEvents.length]+'</p>';
+  auditPtr++;
+  list.prepend(item);
+  while(list.children.length > 6) list.removeChild(list.lastChild);
+  const refreshEl = $('#stat-refresh');
+  refreshEl.textContent = parseInt(refreshEl.textContent,10) + Math.ceil(Math.random()*4);
+}
+for(let i=0;i<3;i++) pushAudit();
+setInterval(pushAudit, reducedMotion ? 8000 : 6000);
+
+})();
+</script>
+</body>
+</html>
