@@ -1,37 +1,37 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormField } from '../components/FormField';
 import { useAuth } from '../auth/AuthContext';
-import { AuthError } from '../api/demo';
+import { ApiAuthError } from '../api/auth';
 
 export function RegisterPage() {
+  const { t } = useTranslation();
   const { register } = useAuth();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState<{ confirmToken: string; email: string } | null>(null);
+  const [done, setDone] = useState<{ email: string } | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const next: Record<string, string> = {};
-    if (!name.trim()) next.name = 'Le nom est requis.';
-    if (!email.trim()) next.email = 'L’email est requis.';
-    if (password.length < 8) next.password = 'Au moins 8 caractères.';
+    if (!email.trim()) next.email = t('auth.login.emailRequired');
+    if (password.length < 12) next.password = t('auth.register.passwordMin');
     setErrors(next);
     if (Object.keys(next).length) return;
 
     setSubmitting(true);
     try {
-      const res = await register(name.trim(), email.trim(), password);
+      const res = await register(email.trim(), password);
       setDone(res);
     } catch (err) {
-      if (err instanceof AuthError && err.code === 'EMAIL_TAKEN') {
-        setErrors({ email: err.message });
+      if (err instanceof ApiAuthError && err.code === 'AUTH_EMAIL_TAKEN') {
+        setErrors({ email: t('errors.AUTH_EMAIL_TAKEN') });
       } else {
-        setErrors({ form: 'Inscription impossible. Réessaie.' });
+        setErrors({ form: t('auth.register.failed') });
       }
     } finally {
       setSubmitting(false);
@@ -42,38 +42,27 @@ export function RegisterPage() {
     <AuthLayout>
       <div className="auth-glass">
         <h1 className="auth-glass-title">
-          {done ? 'Vérifie ta boîte mail' : 'Créer un compte'}
+          {done ? t('auth.register.checkInbox') : t('auth.register.title')}
         </h1>
         {!done ? (
           <>
-            <p className="auth-glass-lead">
-              Ouvre ta première porte vers un dashboard qui rassemble météo, GitHub et
-              flux RSS.
-            </p>
+            <p className="auth-glass-lead">{t('auth.register.lead')}</p>
             <form className="auth-glass-form" onSubmit={onSubmit} noValidate>
               {errors.form && (
                 <div className="form-banner error" role="alert">
                   {errors.form}
                 </div>
               )}
-              <FormField label="Nom" error={errors.name} htmlFor="reg-name">
-                <input
-                  id="reg-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ton nom"
-                />
-              </FormField>
-              <FormField label="Email" error={errors.email} htmlFor="reg-email">
+              <FormField label={t('auth.emailLabel')} error={errors.email} htmlFor="reg-email">
                 <input
                   id="reg-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="toi@exemple.com"
+                  placeholder={t('auth.emailPlaceholder')}
                 />
               </FormField>
-              <FormField label="Mot de passe" error={errors.password} htmlFor="reg-password">
+              <FormField label={t('auth.passwordLabel')} error={errors.password} htmlFor="reg-password">
                 <input
                   id="reg-password"
                   type="password"
@@ -87,27 +76,32 @@ export function RegisterPage() {
                 type="submit"
                 disabled={submitting}
               >
-                {submitting ? 'Création…' : 'Créer mon compte'}
+                {submitting ? t('auth.register.submitting') : t('auth.register.submit')}
               </button>
             </form>
             <div className="switch-line">
-              Déjà un compte ? <Link to="/login">Se connecter</Link>
+              {t('auth.register.hasAccount')} <Link to="/login">{t('auth.login.submit')}</Link>
             </div>
           </>
         ) : (
           <div className="confirm-email">
             <p>
-              Un email de confirmation a été envoyé à{' '}
-              <b style={{ color: 'var(--text)' }}>{done.email}</b>.
+              <Trans
+                i18nKey="auth.register.confirmSent"
+                values={{ email: done.email }}
+                components={{ b: <b style={{ color: 'var(--text)' }} /> }}
+              />
             </p>
-            <p className="auth-demo-hint" style={{ marginBottom: 16 }}>
-              En démo, ouvre le lien de confirmation directement :
-            </p>
-            <Link
-              className="btn btn-primary auth-submit"
-              to={`/confirm/${done.confirmToken}`}
-            >
-              Ouvrir le lien de confirmation
+            {import.meta.env.DEV && (
+              <p className="auth-demo-hint" style={{ marginBottom: 16 }}>
+                {t('auth.register.devMailHint')}{' '}
+                <a href="http://localhost:8025" target="_blank" rel="noreferrer">
+                  localhost:8025
+                </a>
+              </p>
+            )}
+            <Link className="btn btn-primary auth-submit" to="/login">
+              {t('auth.register.goToLogin')}
             </Link>
           </div>
         )}
