@@ -1,19 +1,21 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 
 export function NotFoundPage() {
+  const { t } = useTranslation();
   return (
     <PublicLayout>
       <section className="lp-404">
-        <p className="lp-kicker">Erreur 404</p>
-        <h1>Cette porte n’existe pas.</h1>
-        <p>La page demandée est introuvable ou a été déplacée.</p>
+        <p className="lp-kicker">{t('notFound.kicker')}</p>
+        <h1>{t('notFound.title')}</h1>
+        <p>{t('notFound.lead')}</p>
         <div className="lp-actions">
           <Link to="/" className="btn btn-ghost">
-            Accueil
+            {t('notFound.home')}
           </Link>
           <Link to="/dashboard" className="btn btn-primary">
-            Dashboard
+            {t('notFound.dashboard')}
           </Link>
         </div>
       </section>

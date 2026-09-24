@@ -1,23 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppData } from '../context/AppDataContext';
-import { SERVICES, SERVICE_LABEL, catalogOf, type ServiceId } from '../data/catalog';
+import { SERVICES, type ServiceId } from '../data/catalog';
 import { WidgetGrid } from '../dashboard/WidgetGrid';
 import { DashHero } from '../dashboard/DashHero';
 import { DashLeft } from '../dashboard/DashLeft';
 import { DashPlanning } from '../dashboard/DashPlanning';
-import { summarize } from '../dashboard/summary';
-
-const FILTERS: { id: 'all' | ServiceId; label: string }[] = [
-  { id: 'all', label: 'Tous' },
-  ...SERVICES.map((id) => ({ id, label: SERVICE_LABEL[id] })),
-];
+import { summarizeData } from '../dashboard/summary';
+import { widgetName } from '../i18n/widgets';
 
 export function DashboardPage() {
-  const { loadWidgets, instances, frameIdx } = useAppData();
+  const { t } = useTranslation();
+  const { loadWidgets, instances, catalog } = useAppData();
   const [params] = useSearchParams();
   const query = (params.get('q') ?? '').trim().toLowerCase();
   const [filter, setFilter] = useState<'all' | ServiceId>('all');
+
+  const FILTERS: { id: 'all' | ServiceId; label: string }[] = [
+    { id: 'all', label: t('dashboard.page.filterAll') },
+    ...SERVICES.map((id) => ({ id, label: t(`common.services.${id}`) })),
+  ];
 
   useEffect(() => {
     void loadWidgets();
@@ -26,16 +29,17 @@ export function DashboardPage() {
   const filtered = useMemo(
     () =>
       instances.filter((inst) => {
-        const cat = catalogOf(inst.widgetId);
-        if (filter !== 'all' && cat?.service !== filter) return false;
+        const def = catalog.find((w) => w.name === inst.widgetId);
+        if (filter !== 'all' && def?.service !== filter) return false;
         if (!query) return true;
-        const s = summarize(inst, frameIdx[inst.uid] || 0);
-        return [cat?.name, cat && SERVICE_LABEL[cat.service], s.kicker, s.title]
+        const s = summarizeData(inst.widgetId, inst.data);
+        const name = def ? widgetName(t, def.name) : '';
+        return [name, def && t(`common.services.${def.service}`), s.kicker, s.title]
           .join(' ')
           .toLowerCase()
           .includes(query);
       }),
-    [instances, filter, query, frameIdx],
+    [instances, catalog, filter, query, t],
   );
 
   const pickService = (s: ServiceId) => {
@@ -54,9 +58,9 @@ export function DashboardPage() {
           <section id="mes-widgets" aria-labelledby="widgets-title">
             <div className="section-head">
               <h2 id="widgets-title" className="section-title">
-                Mes widgets
+                {t('dashboard.page.myWidgets')}
               </h2>
-              <div className="chips" role="tablist" aria-label="Filtrer par service">
+              <div className="chips" role="tablist" aria-label={t('dashboard.page.filterLabel')}>
                 {FILTERS.map((f) => (
                   <button
                     key={f.id}
@@ -73,7 +77,7 @@ export function DashboardPage() {
             </div>
             {query && (
               <p className="search-note">
-                Recherche « {params.get('q')} » : {filtered.length} widget{filtered.length > 1 ? 's' : ''}
+                {t('dashboard.page.searchNote', { query: params.get('q'), count: filtered.length })}
               </p>
             )}
             <WidgetGrid instancesOverride={filtered} />
