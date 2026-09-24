@@ -139,10 +139,30 @@ export function IconMore() {
   );
 }
 
+export function IconFinance() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 17l5-5 4 4 7-9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconHackerNews() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="4" y="5" width="16" height="14" rx="2" strokeLinejoin="round" />
+      <path d="M8 9l3 3-3 3M13 15h3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function ServiceIcon({ service }: { service: ServiceId }) {
   if (service === 'weather') return <IconWeather />;
   if (service === 'github') return <IconGithub />;
-  return <IconRss />;
+  if (service === 'rss') return <IconRss />;
+  if (service === 'finance') return <IconFinance />;
+  return <IconHackerNews />;
 }
 
 export function IconDashboard() {
@@ -188,14 +208,6 @@ export function IconLogout() {
     <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M10 4H6.5A2.5 2.5 0 0 0 4 6.5v11A2.5 2.5 0 0 0 6.5 20H10" />
       <path d="M14 16l4-4-4-4M18 12H9" />
-    </svg>
-  );
-}
-
-export function IconPlay() {
-  return (
-    <svg className="icon icon-fill" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" />
     </svg>
   );
 }
