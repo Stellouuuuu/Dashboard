@@ -37,6 +37,14 @@ Format JPG, qualité ~80, poids < 300 Ko (< 450 Ko pour `bg.jpg` et `hero-*`).
 | `widget-security_alerts.jpg` | 600 × 760 | Carte Alertes de sécurité | Cadenas, serrure, ou ville rouge crépuscule | `padlock`, `red dusk city` |
 | `widget-article_list.jpg` | 600 × 760 | Carte Derniers articles | Livres, bibliothèque, tons chauds | `books warm light`, `library pastel` |
 | `widget-feed_summary.jpg` | 600 × 760 | Carte Résumé de flux | Journal plié, tons clairs | `newspaper morning light` |
+| `hero-finance.jpg` | 1600 × 900 | Bannière du dashboard (widget Finance) | Graphique boursier en chandeliers, écran sombre | `stock market candlestick dark` |
+| `hero-hackernews.jpg` | 1600 × 900 | Bannière du dashboard (widget Hacker News) | Écran de code/terminal, ambiance sombre | `terminal code dark screen` |
+| `svc-finance.jpg` | 640 × 440 | Carte « Finance » | Graphique boursier en chandeliers | `candlestick chart dark` |
+| `svc-hackernews.jpg` | 640 × 440 | Carte « Hacker News » | Code affiché sur écran sombre | `computer code dark screen` |
+| `widget-exchange_rate.jpg` | 600 × 760 | Carte Taux de change | Pièce/puce électronique, tons finance | `crypto coin computer chip` |
+| `widget-crypto_price.jpg` | 600 × 760 | Carte Prix crypto | Bitcoin posé sur un livre | `bitcoin coin book` |
+| `widget-top_stories.jpg` | 600 × 760 | Carte Meilleures actus HN | Terminal/code, ambiance sombre | `terminal output code` |
+| `widget-story_search.jpg` | 600 × 760 | Carte Recherche d'actus HN | Loupe posée près d'un ordinateur portable | `magnifying glass laptop` |
 | `auth.jpg` | 1200 × 1600 | Colonne image du login / inscription | Même univers que `hero-weather.jpg`, en portrait | `lofi rooftop sky vertical` |
 | `dashboard-preview.jpg` | 1600 × 1000 | Section « Aperçu » de la landing | **Capture d'écran** du dashboard une fois les vraies images en place | — |
 
@@ -69,5 +77,13 @@ gauche et en bas.
 | `widget-security_alerts.jpg` | Anne Nygård | https://unsplash.com/photos/silver-and-black-combination-padlock-rTC5SF27jIc | Unsplash License |
 | `widget-article_list.jpg` | Eman Ali | https://unsplash.com/photos/a-stack-of-books-FDuxrHs9zpE | Unsplash License |
 | `widget-feed_summary.jpg` | Emre Gencer | https://www.pexels.com/photo/newspaper-in-sunlight-on-wooden-table-29818003/ | Pexels License |
+| `hero-finance.jpg` | Maxim Hopman | https://unsplash.com/photos/stock-market-candlestick-chart-on-dark-screen-fiXLQXAhCfk | Unsplash License |
+| `hero-hackernews.jpg` | Bernd Dittrich | https://unsplash.com/photos/computer-screen-displaying-code-and-terminal-output-fmH6yLBwEPw | Unsplash License |
+| `svc-finance.jpg` | Austin Hervias | https://unsplash.com/photos/candlestick-stock-chart-on-dark-screen-VLpWpv3oDB4 | Unsplash License |
+| `svc-hackernews.jpg` | Bernd Dittrich | https://unsplash.com/photos/computer-code-displayed-on-a-dark-screen--PZhcbjJxdI | Unsplash License |
+| `widget-exchange_rate.jpg` | Michael Förtsch | https://unsplash.com/photos/a-bit-coin-sitting-on-top-of-a-computer-chip-q9V8LMHx2jo | Unsplash License |
+| `widget-crypto_price.jpg` | rc.xyz NFT gallery | https://unsplash.com/photos/a-bit-coin-sitting-on-top-of-an-open-book-LeF9iK78QLU | Unsplash License |
+| `widget-top_stories.jpg` | Bernd Dittrich | https://unsplash.com/photos/computer-screen-showing-code-and-terminal-output-gflXHUC_f3w | Unsplash License |
+| `widget-story_search.jpg` | Agence Olloweb | https://unsplash.com/photos/magnifying-glass-near-gray-laptop-computer-d9ILr-dbEdg | Unsplash License |
 | `auth.jpg` | Nick Nice | https://unsplash.com/photos/a-view-of-a-sunset-from-a-rooftop-CMn0hdjdQgo | Unsplash License |
 | `dashboard-preview.jpg` | Capture d'écran de l'app (page /dashboard, compte de démo) | — | — |
