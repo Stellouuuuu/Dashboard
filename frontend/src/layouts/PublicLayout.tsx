@@ -1,17 +1,19 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Brand } from '../components/Icons';
 import { SkipLink } from '../components/SkipLink';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { useAuth } from '../auth/AuthContext';
-
-const LINKS = [
-  { href: '/#services', label: 'Services' },
-  { href: '/#fonctionnement', label: 'Fonctionnement' },
-  { href: '/#apercu', label: 'Aperçu' },
-];
 
 /** Coque des pages publiques : toujours sombre (univers de marque). */
 export function PublicLayout({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
+  const LINKS = [
+    { href: '/#services', label: t('landing.nav.services') },
+    { href: '/#fonctionnement', label: t('landing.nav.howItWorks') },
+    { href: '/#apercu', label: t('landing.nav.preview') },
+  ];
   const [menuOpen, setMenuOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
@@ -30,7 +32,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
     <div className="force-dark lp-shell">
       <SkipLink />
       <header className="lp-nav-wrap">
-        <nav className="lp-nav" aria-label="Navigation principale">
+        <nav className="lp-nav" aria-label={t('nav.mainLabel')}>
           <Link to="/" className="brand-link" onClick={close}>
             <Brand size={28} fontSize="1.1rem" />
           </Link>
@@ -42,17 +44,18 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             ))}
           </div>
           <div className="lp-nav-cta">
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <Link to="/dashboard" className="btn btn-primary btn-sm">
-                Ouvrir le dashboard
+                {t('landing.nav.openDashboard')}
               </Link>
             ) : (
               <>
                 <Link to="/login" className="lp-nav-login">
-                  Se connecter
+                  {t('landing.nav.login')}
                 </Link>
                 <Link to="/register" className="btn btn-primary btn-sm lp-hide-sm">
-                  Créer un compte
+                  {t('landing.nav.createAccount')}
                 </Link>
               </>
             )}
@@ -61,7 +64,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               className="lp-burger"
               aria-expanded={menuOpen}
               aria-controls="lp-mobile-nav"
-              aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-label={menuOpen ? t('landing.nav.closeMenu') : t('landing.nav.openMenu')}
               onClick={() => setMenuOpen((o) => !o)}
             >
               <span />
@@ -77,7 +80,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           ))}
           {!isAuthenticated && (
             <Link to="/register" className="btn btn-primary" onClick={close}>
-              Créer un compte
+              {t('landing.nav.createAccount')}
             </Link>
           )}
         </div>
@@ -87,7 +90,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
       <footer className="lp-footer">
         <Brand size={22} fontSize=".95rem" />
-        <p>Projet Dashboard — Epitech, module G-WEB-500</p>
+        <p>{t('landing.footer')}</p>
       </footer>
     </div>
   );

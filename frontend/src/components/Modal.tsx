@@ -5,6 +5,7 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IconClose } from './Icons';
 
 interface ModalProps {
@@ -16,6 +17,7 @@ interface ModalProps {
 }
 
 export function Modal({ open, onClose, title, wide, children }: ModalProps) {
+  const { t } = useTranslation();
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +62,7 @@ export function Modal({ open, onClose, title, wide, children }: ModalProps) {
       >
         <div className="modal-top">
           <h2 id={titleId}>{title}</h2>
-          <button type="button" className="modal-close" onClick={onClose} aria-label="Fermer">
+          <button type="button" className="modal-close" onClick={onClose} aria-label={t('modal.close')}>
             <IconClose />
           </button>
         </div>

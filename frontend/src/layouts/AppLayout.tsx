@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   BrandMark,
   IconAdmin,
-  IconBell,
   IconDashboard,
   IconLogout,
   IconPlus,
@@ -13,18 +13,28 @@ import {
 } from '../components/Icons';
 import { SkipLink } from '../components/SkipLink';
 import { Toasts } from '../components/Toasts';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { useAuth } from '../auth/AuthContext';
 import { useAppData } from '../context/AppDataContext';
 import { WizardModal } from '../modals/WizardModal';
 import { OAuthModal } from '../modals/OAuthModal';
-import { AUDIT_EVENTS } from '../data/catalog';
 
-const TABS = [
-  { to: '/dashboard', label: 'Accueil', end: true, icon: <IconDashboard /> },
-  { to: '/services', label: 'Services', icon: <IconServices /> },
-  { to: '/admin', label: 'Admin', adminOnly: true, icon: <IconAdmin /> },
-  { to: '/profile', label: 'Profil', icon: <IconProfile /> },
-] as const;
+function useTabs() {
+  const { t } = useTranslation();
+  return [
+    { to: '/dashboard', labelKey: 'nav.tabs.home', end: true, icon: <IconDashboard /> },
+    { to: '/services', labelKey: 'nav.tabs.services', icon: <IconServices /> },
+    { to: '/admin', labelKey: 'nav.tabs.admin', adminOnly: true, icon: <IconAdmin /> },
+    { to: '/profile', labelKey: 'nav.tabs.profile', icon: <IconProfile /> },
+  ].map((tab) => ({ ...tab, label: t(tab.labelKey) })) as {
+    to: string;
+    labelKey: string;
+    label: string;
+    end?: boolean;
+    adminOnly?: boolean;
+    icon: React.ReactNode;
+  }[];
+}
 
 /** Ferme un menu déroulant au clic extérieur ou sur Échap. */
 function useDismiss(open: boolean, close: () => void) {
@@ -48,16 +58,16 @@ function useDismiss(open: boolean, close: () => void) {
 }
 
 export function AppLayout() {
+  const { t } = useTranslation();
   const { user, logout, isAdmin } = useAuth();
   const { toasts, dismissToast, tickLastRefresh, openWizard } = useAppData();
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
-  const [bellOpen, setBellOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
-  const bellRef = useDismiss(bellOpen, () => setBellOpen(false));
   const userRef = useDismiss(userOpen, () => setUserOpen(false));
   const query = location.pathname.startsWith('/dashboard') ? (params.get('q') ?? '') : '';
+  const TABS = useTabs();
 
   useEffect(() => {
     const id = window.setInterval(() => tickLastRefresh(), 1000);
@@ -71,7 +81,7 @@ export function AppLayout() {
     .slice(0, 2)
     .toUpperCase();
 
-  const visibleTabs = TABS.filter((t) => !('adminOnly' in t && t.adminOnly) || isAdmin);
+  const visibleTabs = TABS.filter((tab) => !tab.adminOnly || isAdmin);
 
   const handleLogout = async () => {
     await logout();
@@ -89,7 +99,7 @@ export function AppLayout() {
       <SkipLink />
       <div id="app" className="app-shell">
         <header className="topbar">
-          <Link to="/dashboard" className="topbar-brand" aria-label="Threshold — accueil">
+          <Link to="/dashboard" className="topbar-brand" aria-label={t('nav.brandAria')}>
             <BrandMark size={26} />
           </Link>
 
@@ -97,19 +107,19 @@ export function AppLayout() {
             <IconSearch />
             <input
               type="search"
-              placeholder="Rechercher un widget…"
-              aria-label="Rechercher un widget"
+              placeholder={t('nav.searchPlaceholder')}
+              aria-label={t('nav.searchLabel')}
               value={query}
               onChange={(e) => onSearch(e.target.value)}
             />
           </label>
 
-          <nav className="topbar-tabs" aria-label="Sections">
+          <nav className="topbar-tabs" aria-label={t('nav.sectionsLabel')}>
             {visibleTabs.map((tab) => (
               <NavLink
                 key={tab.to}
                 to={tab.to}
-                end={'end' in tab ? tab.end : false}
+                end={tab.end ?? false}
                 className={({ isActive }) => `topbar-tab${isActive ? ' active' : ''}`}
               >
                 {tab.label}
@@ -118,29 +128,6 @@ export function AppLayout() {
           </nav>
 
           <div className="topbar-right">
-            <div className="topbar-pop" ref={bellRef}>
-              <button
-                type="button"
-                className="topbar-bell glass"
-                aria-label="Activité récente"
-                aria-expanded={bellOpen}
-                onClick={() => setBellOpen((o) => !o)}
-              >
-                <IconBell />
-                <span className="topbar-bell-dot" aria-hidden="true" />
-              </button>
-              {bellOpen && (
-                <div className="topbar-menu glass" role="dialog" aria-label="Activité récente">
-                  <p className="topbar-menu-title">Activité récente</p>
-                  <ul className="topbar-activity">
-                    {AUDIT_EVENTS.slice(0, 4).map((e) => (
-                      <li key={e}>{e}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
             <div className="topbar-pop" ref={userRef}>
               <button
                 type="button"
@@ -154,7 +141,7 @@ export function AppLayout() {
                 </span>
                 <span className="topbar-user-text">
                   <b>{user?.name ?? ''}</b>
-                  <small>{isAdmin ? 'Admin' : 'Utilisateur'}</small>
+                  <small>{isAdmin ? t('nav.userMenu.roleAdmin') : t('nav.userMenu.roleUser')}</small>
                 </span>
                 <svg className="icon topbar-chevron" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="m6 9 6 6 6-6" />
@@ -163,10 +150,13 @@ export function AppLayout() {
               {userOpen && (
                 <div className="topbar-menu glass" role="menu">
                   <Link to="/profile" role="menuitem" onClick={() => setUserOpen(false)}>
-                    <IconProfile /> Mon profil
+                    <IconProfile /> {t('nav.userMenu.profile')}
                   </Link>
+                  <div className="topbar-menu-lang" role="menuitem">
+                    <LanguageSwitcher />
+                  </div>
                   <button type="button" role="menuitem" onClick={handleLogout}>
-                    <IconLogout /> Se déconnecter
+                    <IconLogout /> {t('nav.userMenu.logout')}
                   </button>
                 </div>
               )}
@@ -178,13 +168,13 @@ export function AppLayout() {
           <Outlet />
         </main>
 
-        <nav className="app-bottom-nav" aria-label="Navigation mobile">
+        <nav className="app-bottom-nav" aria-label={t('nav.mobileNavLabel')}>
           <div className="app-bottom-pill glass">
             {visibleTabs.slice(0, Math.ceil(visibleTabs.length / 2)).map((tab) => (
               <NavLink
                 key={tab.to}
                 to={tab.to}
-                end={'end' in tab ? tab.end : false}
+                end={tab.end ?? false}
                 className={({ isActive }) => `app-bottom-link${isActive ? ' active' : ''}`}
               >
                 <span className="app-bottom-ico" aria-hidden="true">
@@ -196,7 +186,7 @@ export function AppLayout() {
             <button
               type="button"
               className="app-bottom-add"
-              aria-label="Ajouter un widget"
+              aria-label={t('nav.addWidgetLabel')}
               onClick={() => openWizard()}
             >
               <IconPlus />
@@ -205,7 +195,7 @@ export function AppLayout() {
               <NavLink
                 key={tab.to}
                 to={tab.to}
-                end={'end' in tab ? tab.end : false}
+                end={tab.end ?? false}
                 className={({ isActive }) => `app-bottom-link${isActive ? ' active' : ''}`}
               >
                 <span className="app-bottom-ico" aria-hidden="true">

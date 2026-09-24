@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export function Skeleton({
   className = '',
@@ -32,8 +33,9 @@ export function WidgetSkeleton() {
 }
 
 export function DashboardSkeleton() {
+  const { t } = useTranslation();
   return (
-    <div className="grid-widgets" aria-busy="true" aria-label="Chargement des widgets">
+    <div className="grid-widgets" aria-busy="true" aria-label={t('skeleton.loadingWidgets')}>
       {Array.from({ length: 6 }, (_, i) => (
         <WidgetSkeleton key={i} />
       ))}

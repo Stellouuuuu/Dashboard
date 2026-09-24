@@ -34,6 +34,8 @@
   --violet: var(--accent); --violet-soft: var(--accent-soft);
   --amber: #ffd9a8; --amber-soft: rgba(255, 217, 168, 0.2);
   --green: #9ad8f5; --green-soft: rgba(154, 216, 245, 0.2);
+  --emerald: #a8e6c1; --emerald-soft: rgba(168, 230, 193, 0.2);
+  --coral: #ffb4a8; --coral-soft: rgba(255, 180, 168, 0.2);
   --shadow-cyan: none; --shadow-violet: none; --shadow-amber: none;
   --overlay: rgba(20, 22, 28, 0.45);
   --appbar-bg: rgba(90, 88, 90, 0.42);
@@ -193,6 +195,26 @@ ul{list-style:none;}
   .theme-pill-btn span{opacity:1;max-width:40px;}
 }
 
+/* language switcher — same visual language as the theme pill */
+.lang-pill{
+  display:inline-flex;align-items:center;gap:2px;
+  padding:3px;
+  border-radius:999px;
+  background:color-mix(in srgb, var(--bg) 70%, transparent);
+  border:1px solid var(--border-soft);
+}
+.lang-pill-btn{
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:.72rem;font-weight:700;letter-spacing:.02em;
+  color:var(--text-faint);
+  transition:background .2s, color .2s, box-shadow .2s;
+}
+.lang-pill-btn.active{background:var(--accent);color:#fff;box-shadow:var(--btn-primary-shadow);}
+.lang-pill-btn:not(.active):hover{color:var(--text);background:color-mix(in srgb, var(--text) 6%, transparent);}
+.lp-nav .lang-pill,
+.au-visual-top .lang-pill{margin-left:6px;}
+
 /* ================= Shared primitives ================= */
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:600;font-size:1.15rem;letter-spacing:-.01em;}
 .brand .mark{width:30px;height:30px;color:var(--accent);}
@@ -277,6 +299,8 @@ ul{list-style:none;}
 .svc-icon.cyan{background:var(--cyan-soft);color:var(--cyan);}
 .svc-icon.violet{background:var(--violet-soft);color:var(--violet);}
 .svc-icon.amber{background:var(--amber-soft);color:var(--amber);}
+.svc-icon.emerald{background:var(--emerald-soft);color:var(--emerald);}
+.svc-icon.coral{background:var(--coral-soft);color:var(--coral);}
 
 .pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulseDot 1.6s ease-in-out infinite;}
 @keyframes pulseDot{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--pulse-glow);}50%{opacity:.5;box-shadow:0 0 0 6px transparent;}}
@@ -424,6 +448,8 @@ ul{list-style:none;}
 .appbar-svc.accent-cyan{--svc-c:var(--cyan);--svc-soft:var(--cyan-soft);}
 .appbar-svc.accent-violet{--svc-c:var(--violet);--svc-soft:var(--violet-soft);}
 .appbar-svc.accent-amber{--svc-c:var(--amber);--svc-soft:var(--amber-soft);}
+.appbar-svc.accent-emerald{--svc-c:var(--emerald);--svc-soft:var(--emerald-soft);}
+.appbar-svc.accent-coral{--svc-c:var(--coral);--svc-soft:var(--coral-soft);}
 .appbar-svc-ico{
   width:26px;height:26px;border-radius:8px;
   display:inline-flex;align-items:center;justify-content:center;
@@ -644,6 +670,8 @@ ul{list-style:none;}
 .wcard-svc.svc-cyan{--svc-c:var(--cyan);}
 .wcard-svc.svc-violet{--svc-c:var(--violet);}
 .wcard-svc.svc-amber{--svc-c:var(--amber);}
+.wcard-svc.svc-emerald{--svc-c:var(--emerald);}
+.wcard-svc.svc-coral{--svc-c:var(--coral);}
 
 /* Compact analytics card: thin media strip → meta → body → foot */
 .wcard-media{
