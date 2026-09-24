@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAppData } from '../context/AppDataContext';
 import type { WidgetInstance } from '../data/catalog';
 import { EmptyState } from '../components/EmptyState';
@@ -19,9 +20,10 @@ export function WidgetGrid({
   instancesOverride,
   masonry,
 }: WidgetGridProps) {
+  const { t } = useTranslation();
   const {
     instances,
-    setInstances,
+    reorderInstances,
     openWizard,
     toast,
     widgetsLoading,
@@ -44,7 +46,7 @@ export function WidgetGrid({
       <div className="form-banner error" role="alert">
         {widgetsError}{' '}
         <button type="button" className="link-btn" onClick={() => void loadWidgets()}>
-          Réessayer
+          {t('dashboard.grid.retry')}
         </button>
       </div>
     );
@@ -54,16 +56,12 @@ export function WidgetGrid({
     const filteredEmpty = instancesOverride !== undefined && instances.length > 0;
     return (
       <EmptyState
-        title={filteredEmpty ? 'Aucun widget ici' : 'Ton dashboard est encore vide'}
-        description={
-          filteredEmpty
-            ? 'Aucun widget pour ce service — change de filtre ou ajoute-en un.'
-            : 'Ajoute ton premier widget pour ouvrir une porte vers un service — météo, GitHub ou RSS.'
-        }
+        title={t(filteredEmpty ? 'dashboard.grid.emptyFilteredTitle' : 'dashboard.grid.emptyTitle')}
+        description={t(filteredEmpty ? 'dashboard.grid.emptyFilteredDesc' : 'dashboard.grid.emptyDesc')}
         action={
           <button type="button" className="btn btn-primary" onClick={() => openWizard()}>
             <IconPlus />
-            {filteredEmpty ? 'Ajouter un widget' : 'Ajouter mon premier widget'}
+            {t(filteredEmpty ? 'dashboard.grid.addWidget' : 'dashboard.grid.addFirstWidget')}
           </button>
         }
       />
@@ -76,16 +74,15 @@ export function WidgetGrid({
       setOverUid(null);
       return;
     }
-    setInstances((prev) => {
-      const next = [...prev];
-      const from = next.findIndex((w) => w.uid === dragUid);
-      const to = next.findIndex((w) => w.uid === targetUid);
-      if (from < 0 || to < 0) return prev;
+    const next = [...instances];
+    const from = next.findIndex((w) => w.uid === dragUid);
+    const to = next.findIndex((w) => w.uid === targetUid);
+    if (from >= 0 && to >= 0) {
       const [moved] = next.splice(from, 1);
       next.splice(to, 0, moved);
-      return next;
-    });
-    toast('Widget déplacé');
+      void reorderInstances(next);
+      toast(t('dashboard.grid.moved'));
+    }
     setDragUid(null);
     setOverUid(null);
   };
@@ -96,7 +93,7 @@ export function WidgetGrid({
         <p className="grid-notice" role="status">
           {widgetsError}{' '}
           <button type="button" className="link-btn" onClick={() => void loadWidgets()}>
-            Réessayer
+            {t('dashboard.grid.retry')}
           </button>
         </p>
       )}
@@ -123,7 +120,7 @@ export function WidgetGrid({
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 5v14M5 12h14" />
             </svg>
-            <span>Ajouter un widget</span>
+            <span>{t('dashboard.grid.addWidget')}</span>
           </button>
         )}
       </div>
