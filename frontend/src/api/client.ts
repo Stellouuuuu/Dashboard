@@ -1,10 +1,6 @@
 // Appels réels vers l'API backend (PLAN.md §6.3). Même origine que le front via
-// nginx (`/api/v1/*` proxifié), donc pas de CORS à gérer.
-//
-// Contrairement à api/demo.ts (mock, encore utilisé pour l'auth tant que le
-// backend auth n'existe pas — Membre A, 24/09), ces fonctions font de vraies
-// requêtes HTTP. Le backend fait encore tourner toutes ces routes pour un seul
-// utilisateur de dev (voir TODO dans dashboard.routes.ts côté backend).
+// nginx (`/api/v1/*` proxifié), donc pas de CORS à gérer. Toutes les routes
+// dashboard sont protégées par `requireAuth` (session par cookie httpOnly).
 
 export interface ApiWidgetParam {
   name: string;
@@ -14,7 +10,7 @@ export interface ApiWidgetParam {
 
 export interface ApiWidgetDefinition {
   name: string;
-  service: 'weather' | 'github' | 'rss';
+  service: 'weather' | 'github' | 'rss' | 'finance' | 'hackernews';
   description: string;
   params: ApiWidgetParam[];
 }
@@ -37,11 +33,13 @@ export interface ApiWidgetData {
   lastRefreshedAt: string;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  code: string;
+  constructor(status: number, message: string, code: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -52,7 +50,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }));
-    throw new ApiError(res.status, body.error ?? `Erreur API (${res.status})`);
+    throw new ApiError(res.status, body.error ?? `Erreur API (${res.status})`, body.code ?? 'INTERNAL_ERROR');
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
