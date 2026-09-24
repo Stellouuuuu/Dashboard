@@ -1,14 +1,16 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAppData } from '../context/AppDataContext';
-import { SERVICE_LABEL, catalogOf } from '../data/catalog';
 import { IMG } from '../data/images';
-import { IconBook, IconBookmark, IconChevron, IconFlame, IconPlay, IconPlus } from '../components/Icons';
-import { summarize } from './summary';
+import { widgetName } from '../i18n/widgets';
+import { IconBook, IconBookmark, IconChevron, IconFlame, IconPlus } from '../components/Icons';
+import { summarizeData } from './summary';
 import { useWidgetRefresh } from './useWidgetRefresh';
 
 /** Bannière « À la une » : fait défiler les widgets de l'utilisateur. */
 export function DashHero() {
-  const { instances, frameIdx, openWizard, setFlashUid } = useAppData();
+  const { t } = useTranslation();
+  const { instances, catalog, openWizard, setFlashUid } = useAppData();
   const refresh = useWidgetRefresh();
   const [index, setIndex] = useState(0);
 
@@ -19,13 +21,13 @@ export function DashHero() {
         <div className="hero-shade" aria-hidden="true" />
         <div className="hero-content">
           <span className="hero-badge">
-            <IconFlame /> Bienvenue
+            <IconFlame /> {t('dashboard.hero.emptyBadge')}
           </span>
-          <h1 id="hero-title">Ton dashboard est vide</h1>
-          <p>Ajoute ton premier widget : météo, commits GitHub ou flux RSS.</p>
+          <h1 id="hero-title">{t('dashboard.hero.emptyTitle')}</h1>
+          <p>{t('dashboard.hero.emptyLead')}</p>
           <div className="hero-actions">
             <button type="button" className="btn-white" onClick={() => openWizard()}>
-              <IconPlus /> Ajouter un widget
+              <IconPlus /> {t('dashboard.hero.addWidget')}
             </button>
           </div>
         </div>
@@ -35,8 +37,8 @@ export function DashHero() {
 
   const i = index % instances.length;
   const inst = instances[i];
-  const cat = catalogOf(inst.widgetId);
-  const data = summarize(inst, frameIdx[inst.uid] || 0);
+  const def = catalog.find((w) => w.name === inst.widgetId);
+  const data = summarizeData(inst.widgetId, inst.data);
   const go = (delta: number) => setIndex((n) => (n + delta + instances.length) % instances.length);
 
   const showCard = () => {
@@ -46,18 +48,18 @@ export function DashHero() {
 
   return (
     <section className="hero glass" aria-labelledby="hero-title" aria-roledescription="carrousel">
-      <img className="hero-img" src={cat ? IMG.hero[cat.service] : IMG.hero.weather} alt="" />
+      <img className="hero-img" src={def ? IMG.hero[def.service] : IMG.hero.weather} alt="" />
       <div className="hero-shade" aria-hidden="true" />
       <div className="hero-content">
         <span className="hero-badge">
-          <IconFlame /> Widget à la une
+          <IconFlame /> {t('dashboard.hero.featuredBadge')}
         </span>
         <div className="hero-tags">
-          {cat && <span className="tag">{SERVICE_LABEL[cat.service]}</span>}
-          <span className="tag">Toutes les {inst.refresh} s</span>
+          {def && <span className="tag">{t(`common.services.${def.service}`)}</span>}
+          <span className="tag">{t('dashboard.hero.every', { count: inst.refresh })}</span>
         </div>
         <h1 id="hero-title">
-          {cat?.name} :<br />
+          {def && widgetName(t, def.name)} :<br />
           {data.kicker || data.title}
         </h1>
         <p>
@@ -66,16 +68,16 @@ export function DashHero() {
         </p>
         <div className="hero-actions">
           <button type="button" className="btn-white" onClick={showCard}>
-            <IconPlay /> Voir
+            {t('dashboard.hero.view')}
           </button>
           <button type="button" className="btn-outline-white" onClick={() => openWizard(inst.uid)}>
-            <IconBook /> Reconfigurer
+            <IconBook /> {t('dashboard.hero.reconfigure')}
           </button>
           <button
             type="button"
             className="btn-round-white"
-            aria-label="Rafraîchir maintenant"
-            title="Rafraîchir maintenant"
+            aria-label={t('dashboard.hero.refreshNow')}
+            title={t('dashboard.hero.refreshNow')}
             onClick={() => void refresh(inst)}
           >
             <IconBookmark />
@@ -84,16 +86,16 @@ export function DashHero() {
       </div>
       {instances.length > 1 && (
         <div className="hero-nav">
-          <button type="button" className="round-glass" aria-label="Widget précédent" onClick={() => go(-1)}>
+          <button type="button" className="round-glass" aria-label={t('dashboard.hero.prev')} onClick={() => go(-1)}>
             <IconChevron dir="left" />
           </button>
-          <button type="button" className="round-glass" aria-label="Widget suivant" onClick={() => go(1)}>
+          <button type="button" className="round-glass" aria-label={t('dashboard.hero.next')} onClick={() => go(1)}>
             <IconChevron dir="right" />
           </button>
         </div>
       )}
       <p className="sr-only" aria-live="polite">
-        Widget {i + 1} sur {instances.length}
+        {t('dashboard.hero.counter', { current: i + 1, total: instances.length })}
       </p>
     </section>
   );

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppData } from '../context/AppDataContext';
 import { IconChevron } from '../components/Icons';
+import { formatCompact, formatDate, formatMonthYear, formatNumber, weekdayInitials } from '../i18n/format';
 
-const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 const DAY_MS = 86_400_000;
 
 function startOfDay(d: Date) {
@@ -17,15 +18,15 @@ function mondayOf(d: Date) {
   const s = startOfDay(d);
   return new Date(s.getTime() - ((s.getDay() + 6) % 7) * DAY_MS);
 }
-function compact(n: number) {
-  return n >= 1000 ? `${Math.round(n / 100) / 10}k`.replace('.', ',') : String(n);
-}
 
 /**
  * Planning : calendrier + étapes de prise en main + nombre de rafraîchissements
  * prévus par jour, calculé à partir des fréquences des widgets.
  */
 export function DashPlanning() {
+  const { t, i18n } = useTranslation();
+  const lng = i18n.resolvedLanguage ?? i18n.language;
+  const WEEKDAYS = weekdayInitials(lng);
   const { instances, isSubscribed, openWizard } = useAppData();
   const today = startOfDay(new Date());
   const [month, setMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -56,47 +57,47 @@ export function DashPlanning() {
   instances.forEach((i) => counts.set(i.widgetId, (counts.get(i.widgetId) ?? 0) + 1));
   const steps = [
     {
-      group: 'Pour commencer',
+      group: t('dashboard.planning.groups.start'),
       items: [
-        { label: 'Créer et confirmer ton compte', done: true },
-        { label: 'Connecter ton compte GitHub', done: isSubscribed('github') },
-        { label: "S'abonner à un flux RSS", done: isSubscribed('rss') },
+        { label: t('dashboard.planning.items.createAccount'), done: true },
+        { label: t('dashboard.planning.items.connectGithub'), done: isSubscribed('github') },
+        { label: t('dashboard.planning.items.subscribeRss'), done: isSubscribed('rss') },
       ],
     },
     {
-      group: 'Ton dashboard',
+      group: t('dashboard.planning.groups.dashboard'),
       items: [
-        { label: 'Ajouter au moins 6 widgets', done: instances.length >= 6 },
-        { label: 'Configurer deux fois le même widget', done: [...counts.values()].some((n) => n > 1) },
+        { label: t('dashboard.planning.items.add6Widgets'), done: instances.length >= 6 },
+        { label: t('dashboard.planning.items.duplicateWidget'), done: [...counts.values()].some((n) => n > 1) },
       ],
     },
     {
-      group: 'Pour aller plus loin',
+      group: t('dashboard.planning.groups.further'),
       items: [
-        { label: 'Régler un timer sous les 15 s', done: instances.some((i) => i.refresh < 15) },
-        { label: 'Réorganiser tes widgets', done: false },
+        { label: t('dashboard.planning.items.fastTimer'), done: instances.some((i) => i.refresh < 15) },
+        { label: t('dashboard.planning.items.reorder'), done: false },
       ],
     },
   ];
 
   const days = Array.from({ length: 6 }, (_, k) => new Date(selected.getTime() + k * DAY_MS));
-  const monthLabel = month.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const monthLabel = formatMonthYear(month, lng);
 
   return (
     <section className="planning" aria-labelledby="planning-title">
       <h2 id="planning-title" className="section-title">
-        Planning
+        {t('dashboard.planning.title')}
       </h2>
       <div className="planning-grid">
         <div className="calendar glass">
           <div className="cal">
             <div className="cal-head">
-              <h3>{monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}</h3>
+              <h3>{monthLabel}</h3>
               <div className="cal-nav">
                 <button
                   type="button"
                   className="round-white"
-                  aria-label="Mois précédent"
+                  aria-label={t('dashboard.planning.prevMonth')}
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
                 >
                   <IconChevron dir="left" />
@@ -104,7 +105,7 @@ export function DashPlanning() {
                 <button
                   type="button"
                   className="round-white"
-                  aria-label="Mois suivant"
+                  aria-label={t('dashboard.planning.nextMonth')}
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
                 >
                   <IconChevron dir="right" />
@@ -138,7 +139,7 @@ export function DashPlanning() {
                     type="button"
                     className={cls}
                     aria-pressed={sameDay(d, selected)}
-                    aria-label={d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    aria-label={formatDate(d, lng, { weekday: 'long', day: 'numeric', month: 'long' })}
                     onClick={() => setSelected(startOfDay(d))}
                   >
                     <span>{d.getDate()}</span>
@@ -153,11 +154,13 @@ export function DashPlanning() {
               <div key={g.group} className="task-group">
                 <h4>{g.group}</h4>
                 <ul>
-                  {g.items.map((t) => (
-                    <li key={t.label} className={t.done ? 'done' : ''}>
+                  {g.items.map((item) => (
+                    <li key={item.label} className={item.done ? 'done' : ''}>
                       <span className="task-box" aria-hidden="true" />
-                      <span>{t.label}</span>
-                      <span className="sr-only">{t.done ? ' (fait)' : ' (à faire)'}</span>
+                      <span>{item.label}</span>
+                      <span className="sr-only">
+                        {item.done ? t('dashboard.planning.done') : t('dashboard.planning.todo')}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -165,16 +168,16 @@ export function DashPlanning() {
             ))}
             <div className="tasks-actions">
               <Link to="/services" className="btn-edit">
-                Services
+                {t('dashboard.planning.services')}
               </Link>
               <button type="button" className="btn-edit" onClick={() => openWizard()}>
-                Ajouter
+                {t('dashboard.planning.add')}
               </button>
             </div>
           </div>
         </div>
 
-        <ol className="days" aria-label="Rafraîchissements prévus par jour">
+        <ol className="days" aria-label={t('dashboard.planning.refreshesPerDay')}>
           {days.map((d) => {
             const isToday = sameDay(d, today);
             const weekend = d.getDay() === 0 || d.getDay() === 6;
@@ -183,14 +186,14 @@ export function DashPlanning() {
               <li key={d.toISOString()} className={`day glass${weekend ? ' day--cool' : ''}`}>
                 <b className="day-num">{d.getDate()}</b>
                 <span className="day-text">
-                  <small>{d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</small>
-                  <span>{isToday ? "Aujourd'hui" : d.toLocaleDateString('fr-FR', { weekday: 'long' })}</span>
+                  <small>{formatDate(d, lng, { month: 'long', year: 'numeric' })}</small>
+                  <span>{isToday ? t('dashboard.planning.today') : formatDate(d, lng, { weekday: 'long' })}</span>
                 </span>
                 <span
                   className={`day-badge${weekend ? ' day-badge--light' : ''}`}
-                  title={`${n.toLocaleString('fr-FR')} rafraîchissements prévus`}
+                  title={t('dashboard.planning.refreshesPlanned', { count: n, formatted: formatNumber(n, lng) })}
                 >
-                  {compact(n)}
+                  {formatCompact(n, lng)}
                 </span>
               </li>
             );
