@@ -1,10 +1,12 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AuthLayout } from '../components/AuthLayout';
 import { useAuth } from '../auth/AuthContext';
-import { AuthError } from '../api/demo';
+import { ApiAuthError } from '../api/auth';
 
 export function ConfirmPage() {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const { confirm, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -14,7 +16,7 @@ export function ConfirmPage() {
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('Token manquant.');
+      setMessage(t('auth.confirm.missingToken'));
       return;
     }
     let cancelled = false;
@@ -23,15 +25,15 @@ export function ConfirmPage() {
         await confirm(token);
         if (!cancelled) {
           setStatus('ok');
-          setMessage('Compte confirmé — bienvenue !');
+          setMessage(t('auth.confirm.success'));
         }
       } catch (err) {
         if (!cancelled) {
           setStatus('error');
           setMessage(
-            err instanceof AuthError
-              ? err.message
-              : 'La confirmation a échoué.',
+            err instanceof ApiAuthError
+              ? t(`errors.${err.code}`, { defaultValue: t('auth.confirm.failed') })
+              : t('auth.confirm.failed'),
           );
         }
       }
@@ -39,16 +41,16 @@ export function ConfirmPage() {
     return () => {
       cancelled = true;
     };
-  }, [token, confirm]);
+  }, [token, confirm, t]);
 
   return (
     <AuthLayout>
       <div className="auth-glass">
-        <h1 className="auth-glass-title">Confirmation d’email</h1>
+        <h1 className="auth-glass-title">{t('auth.confirm.title')}</h1>
         {status === 'loading' && (
           <div className="confirm-email">
             <div className="boot-spinner" style={{ margin: '0 auto 16px' }} />
-            <p>Vérification du lien…</p>
+            <p>{t('auth.confirm.checking')}</p>
           </div>
         )}
         {status === 'ok' && (
@@ -59,9 +61,9 @@ export function ConfirmPage() {
             <button
               type="button"
               className="btn btn-primary auth-submit"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/login')}
             >
-              Aller au dashboard
+              {t('auth.login.submit')}
             </button>
           </div>
         )}
@@ -71,11 +73,11 @@ export function ConfirmPage() {
               {message}
             </div>
             <Link to="/register" className="btn btn-ghost auth-submit">
-              Créer un nouveau compte
+              {t('auth.confirm.newAccount')}
             </Link>
             {!isAuthenticated && (
               <div className="switch-line">
-                <Link to="/login">Se connecter</Link>
+                <Link to="/login">{t('auth.login.submit')}</Link>
               </div>
             )}
           </div>
