@@ -6,5 +6,8 @@ build/
 .env.*
 !.env.example
 
+# Auto-generated secrets (local / non-Docker runs)
+.data/
+
 .DS_Store
 *.log
