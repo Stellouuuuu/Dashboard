@@ -1,25 +1,29 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAppData } from '../context/AppDataContext';
-import { apiRefreshWidget } from '../api/demo';
+import { apiGetDashboardWidgetData, ApiError } from '../api/client';
 import type { WidgetInstance } from '../data/catalog';
 
-/** Rafraîchit une instance (appel au serveur, puis nouvelle frame de données). */
+/** Rafraîchit une instance : GET /dashboard/widgets/:id/data (Timer, PLAN.md §4.3). */
 export function useWidgetRefresh() {
-  const { setWidgetStatus, bumpFrame, resetLastRefresh } = useAppData();
+  const { t } = useTranslation();
+  const { setWidgetStatus, setWidgetData, resetLastRefresh } = useAppData();
   return useCallback(
     async (inst: WidgetInstance) => {
       setWidgetStatus(inst.uid, 'loading');
       try {
-        const failKey =
-          String(inst.config.city || '').toLowerCase() === 'erreur' ? 'fail_demo' : inst.widgetId;
-        await apiRefreshWidget(failKey);
-        bumpFrame(inst.uid);
+        const res = await apiGetDashboardWidgetData(inst.uid);
+        setWidgetData(inst.uid, res.data);
         setWidgetStatus(inst.uid, 'ok');
         resetLastRefresh();
       } catch (e) {
-        setWidgetStatus(inst.uid, 'error', e instanceof Error ? e.message : 'Échec du rafraîchissement.');
+        const message =
+          e instanceof ApiError
+            ? t(`errors.${e.code}`, { defaultValue: t('dashboard.card.loadError') })
+            : t('dashboard.card.loadError');
+        setWidgetStatus(inst.uid, 'error', message);
       }
     },
-    [setWidgetStatus, bumpFrame, resetLastRefresh],
+    [setWidgetStatus, setWidgetData, resetLastRefresh, t],
   );
 }

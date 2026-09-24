@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 interface TimerRingProps {
@@ -8,6 +9,7 @@ interface TimerRingProps {
 }
 
 export function TimerRing({ seconds, onCycle, paused }: TimerRingProps) {
+  const { t } = useTranslation();
   const reduced = useReducedMotion();
   const fgRef = useRef<SVGCircleElement>(null);
   const onCycleRef = useRef(onCycle);
@@ -32,7 +34,7 @@ export function TimerRing({ seconds, onCycle, paused }: TimerRingProps) {
   }, [seconds, reduced, paused]);
 
   return (
-    <div className="timer-ring-wrap" title={`Rafraîchissement toutes les ${seconds}s`}>
+    <div className="timer-ring-wrap" title={t('dashboard.card.refreshedEvery', { count: seconds })}>
       <svg className="timer-ring" viewBox="0 0 22 22" aria-hidden="true">
         <circle className="bg" cx="11" cy="11" r="9" />
         <circle
