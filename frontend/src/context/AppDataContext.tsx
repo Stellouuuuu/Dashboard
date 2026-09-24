@@ -2,28 +2,36 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
 } from 'react';
-import {
-  INITIAL_INSTANCES,
-  type ServiceId,
-  type WidgetInstance,
-} from '../data/catalog';
+import { useTranslation } from 'react-i18next';
+import type { ServiceId, WidgetInstance } from '../data/catalog';
 import type { ToastItem } from '../components/Toasts';
-import { apiConnectGithub, apiSubscribeRss } from '../api/demo';
-import { apiListDashboard, type ApiWidgetInstance } from '../api/client';
+import {
+  apiListDashboard,
+  apiListWidgetCatalog,
+  apiMoveDashboardWidget,
+  ApiError,
+  type ApiWidgetDefinition,
+  type ApiWidgetInstance,
+} from '../api/client';
+import { apiListServices, apiSubscribeService, ServiceApiError } from '../api/services';
+import { apiUnlinkGithub, ApiAuthError } from '../api/auth';
 
 export type ModalId = 'oauth' | 'wizard' | null;
 
-function toWidgetInstance(row: ApiWidgetInstance): WidgetInstance {
+/** Partagé avec WizardModal (POST/PATCH renvoient la même forme de ligne). */
+export function toWidgetInstance(row: ApiWidgetInstance): WidgetInstance {
   return {
     uid: row.id,
     widgetId: row.widgetName,
     config: row.config,
     refresh: row.refreshRate,
+    position: row.position,
     status: row.status === 'pending' ? 'loading' : row.status,
   };
 }
@@ -34,16 +42,19 @@ interface AppDataContextValue {
   closeModal: () => void;
   instances: WidgetInstance[];
   setInstances: React.Dispatch<React.SetStateAction<WidgetInstance[]>>;
+  /** Réordonne localement puis persiste la position de chaque instance (PATCH .../position). */
+  reorderInstances: (list: WidgetInstance[]) => Promise<void>;
   widgetsLoading: boolean;
   widgetsError: string | null;
   loadWidgets: () => Promise<void>;
-  frameIdx: Record<number, number>;
-  bumpFrame: (uid: number) => void;
+  catalog: ApiWidgetDefinition[];
+  catalogError: string | null;
   setWidgetStatus: (
     uid: number,
     status: WidgetInstance['status'],
     errorMessage?: string,
   ) => void;
+  setWidgetData: (uid: number, data: unknown) => void;
   lastRefreshSec: number;
   resetLastRefresh: () => void;
   tickLastRefresh: () => void;
@@ -55,12 +66,9 @@ interface AppDataContextValue {
   githubError: string | null;
   githubLoading: boolean;
   connectGithub: () => Promise<void>;
-  disconnectGithub: () => void;
-  rssUrl: string | null;
-  rssError: string | null;
-  rssLoading: boolean;
-  subscribeRss: (url: string) => Promise<void>;
-  unsubscribeRss: () => void;
+  disconnectGithub: () => Promise<void>;
+  loadServices: () => Promise<void>;
+  completeGithubLink: () => Promise<void>;
   isSubscribed: (service: ServiceId) => boolean;
   wizardEditUid: number | null;
   /** Widget présélectionné à l'ouverture de l'assistant (ex. depuis « Widgets disponibles »). */
@@ -76,27 +84,25 @@ interface AppDataContextValue {
 const AppDataContext = createContext<AppDataContextValue | null>(null);
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [modal, setModal] = useState<ModalId>(null);
   const [instances, setInstances] = useState<WidgetInstance[]>([]);
   const [widgetsLoading, setWidgetsLoading] = useState(true);
   const [widgetsError, setWidgetsError] = useState<string | null>(null);
-  const [frameIdx, setFrameIdx] = useState<Record<number, number>>({});
+  const [catalog, setCatalog] = useState<ApiWidgetDefinition[]>([]);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
   const [lastRefreshSec, setLastRefreshSec] = useState(0);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [githubConnected, setGithubConnected] = useState(false);
   const [githubUsername, setGithubUsername] = useState<string | null>(null);
   const [githubError, setGithubError] = useState<string | null>(null);
   const [githubLoading, setGithubLoading] = useState(false);
-  const [rssUrl, setRssUrl] = useState<string | null>(null);
-  const [rssError, setRssError] = useState<string | null>(null);
-  const [rssLoading, setRssLoading] = useState(false);
   const [wizardEditUid, setWizardEditUid] = useState<number | null>(null);
   const [wizardPresetId, setWizardPresetId] = useState<string | null>(null);
   const [flashUid, setFlashUid] = useState<number | null>(null);
   const [addedUid, setAddedUid] = useState<number | null>(null);
   const uidSeq = useRef(100);
   const toastSeq = useRef(0);
-  const hydrated = useRef(false);
 
   const openModal = useCallback((m: ModalId) => setModal(m), []);
   const closeModal = useCallback(() => setModal(null), []);
@@ -107,23 +113,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     try {
       const rows = await apiListDashboard();
       setInstances(rows.map(toWidgetInstance));
-      hydrated.current = true;
-    } catch {
-      // Backend indisponible (dev sans Docker, ou pas encore de vraie session
-      // utilisateur) : on retombe sur les données de démo plutôt que de bloquer l'UI.
-      if (!hydrated.current) {
-        setInstances(INITIAL_INSTANCES.map((w) => ({ ...w, status: 'ok' as const })));
-        hydrated.current = true;
-      }
-      setWidgetsError('Impossible de charger le dashboard depuis l’API. Données de démo affichées.');
+    } catch (e) {
+      setWidgetsError(
+        e instanceof ApiError ? t(`errors.${e.code}`, { defaultValue: t('dashboard.grid.loadError') }) : t('dashboard.grid.loadError'),
+      );
     } finally {
       setWidgetsLoading(false);
     }
-  }, []);
+  }, [t]);
 
-  const bumpFrame = useCallback((uid: number) => {
-    setFrameIdx((prev) => ({ ...prev, [uid]: (prev[uid] || 0) + 1 }));
-  }, []);
+  const loadCatalog = useCallback(async () => {
+    try {
+      const rows = await apiListWidgetCatalog();
+      setCatalog(rows);
+      setCatalogError(null);
+    } catch (e) {
+      setCatalogError(e instanceof ApiError ? t(`errors.${e.code}`, { defaultValue: t('errors.INTERNAL_ERROR') }) : t('errors.INTERNAL_ERROR'));
+    }
+  }, [t]);
+
+  // Registre back : source de vérité pour les widgets/paramètres (PLAN.md §4.2),
+  // chargé une fois pour tout le dashboard (hero, grille, assistant).
+  useEffect(() => {
+    void loadCatalog();
+  }, [loadCatalog]);
 
   const setWidgetStatus = useCallback(
     (uid: number, status: WidgetInstance['status'], errorMessage?: string) => {
@@ -137,6 +150,25 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
+
+  const setWidgetData = useCallback((uid: number, data: unknown) => {
+    setInstances((list) => list.map((w) => (w.uid === uid ? { ...w, data } : w)));
+  }, []);
+
+  /** Réordonne localement puis persiste chaque position (PATCH .../position, PLAN.md §6.3). */
+  const reorderInstances = useCallback(async (list: WidgetInstance[]) => {
+    setInstances(list);
+    await Promise.all(
+      list.map((inst, index) =>
+        inst.position === index
+          ? null
+          : apiMoveDashboardWidget(inst.uid, index).catch(() => {
+              /* best-effort : l'ordre local reste correct même si une requête échoue */
+            }),
+      ),
+    );
+    setInstances((list2) => list2.map((w, index) => ({ ...w, position: index })));
+  }, []);
 
   const resetLastRefresh = useCallback(() => setLastRefreshSec(0), []);
   const tickLastRefresh = useCallback(() => setLastRefreshSec((s) => s + 1), []);
@@ -161,61 +193,58 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     return uidSeq.current;
   }, []);
 
+  const loadServices = useCallback(async () => {
+    try {
+      const services = await apiListServices();
+      const github = services.find((s) => s.name === 'github');
+      setGithubConnected(Boolean(github?.subscribed));
+    } catch {
+      // API indisponible (dev sans Docker, ou pas encore connecté) : on garde l'état
+      // local par défaut plutôt que de bloquer la page Services.
+    }
+  }, []);
+
+  // Vraie redirection OAuth (PLAN.md §6.1) : on quitte la page vers GitHub, impossible
+  // à faire dans une modale. `state` signé côté serveur, pas de code client à saisir.
   const connectGithub = useCallback(async () => {
+    window.location.assign('/api/v1/auth/oauth/github');
+  }, []);
+
+  const disconnectGithub = useCallback(async () => {
     setGithubLoading(true);
     setGithubError(null);
     try {
-      const res = await apiConnectGithub('demo');
-      setGithubConnected(true);
-      setGithubUsername(res.username);
-      toast('GitHub connecté');
-      closeModal();
+      await apiUnlinkGithub();
+      setGithubConnected(false);
+      setGithubUsername(null);
+      toast(t('services.github.disconnected'));
     } catch (e) {
-      setGithubError(e instanceof Error ? e.message : 'Connexion GitHub échouée.');
+      setGithubError(e instanceof ApiAuthError ? t(`errors.${e.code}`, { defaultValue: t('errors.INTERNAL_ERROR') }) : t('errors.INTERNAL_ERROR'));
     } finally {
       setGithubLoading(false);
     }
-  }, [closeModal, toast]);
+  }, [toast, t]);
 
-  const disconnectGithub = useCallback(() => {
-    setGithubConnected(false);
-    setGithubUsername(null);
-    setGithubError(null);
-    toast('GitHub déconnecté');
-  }, [toast]);
+  /** Complète le lien OAuth (redirigé depuis /services?github=linked) : s'abonne au service. */
+  const completeGithubLink = useCallback(async () => {
+    try {
+      await apiSubscribeService('github');
+      toast(t('services.github.connectedToast'));
+    } catch (e) {
+      setGithubError(e instanceof ServiceApiError ? t(`errors.${e.code}`, { defaultValue: t('errors.INTERNAL_ERROR') }) : t('errors.INTERNAL_ERROR'));
+    } finally {
+      await loadServices();
+    }
+  }, [loadServices, toast, t]);
 
-  const subscribeRss = useCallback(
-    async (url: string) => {
-      setRssLoading(true);
-      setRssError(null);
-      try {
-        const res = await apiSubscribeRss(url);
-        setRssUrl(res.url);
-        toast('Flux RSS ajouté');
-      } catch (e) {
-        setRssError(e instanceof Error ? e.message : 'Abonnement RSS échoué.');
-        throw e;
-      } finally {
-        setRssLoading(false);
-      }
-    },
-    [toast],
-  );
-
-  const unsubscribeRss = useCallback(() => {
-    setRssUrl(null);
-    setRssError(null);
-    toast('Désabonnement effectué');
-  }, [toast]);
-
+  // weather et rss sont disponibles par défaut, sans abonnement (PLAN.md §5) —
+  // seul github exige une liaison OAuth avant de pouvoir s'y abonner.
   const isSubscribed = useCallback(
     (service: ServiceId) => {
-      if (service === 'weather') return true;
       if (service === 'github') return githubConnected;
-      if (service === 'rss') return Boolean(rssUrl);
-      return false;
+      return true;
     },
-    [githubConnected, rssUrl],
+    [githubConnected],
   );
 
   const value = useMemo(
@@ -225,12 +254,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       closeModal,
       instances,
       setInstances,
+      reorderInstances,
       widgetsLoading,
       widgetsError,
       loadWidgets,
-      frameIdx,
-      bumpFrame,
+      catalog,
+      catalogError,
       setWidgetStatus,
+      setWidgetData,
       lastRefreshSec,
       resetLastRefresh,
       tickLastRefresh,
@@ -243,11 +274,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       githubLoading,
       connectGithub,
       disconnectGithub,
-      rssUrl,
-      rssError,
-      rssLoading,
-      subscribeRss,
-      unsubscribeRss,
+      loadServices,
+      completeGithubLink,
       isSubscribed,
       wizardEditUid,
       wizardPresetId,
@@ -263,12 +291,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       openModal,
       closeModal,
       instances,
+      reorderInstances,
       widgetsLoading,
       widgetsError,
       loadWidgets,
-      frameIdx,
-      bumpFrame,
+      catalog,
+      catalogError,
       setWidgetStatus,
+      setWidgetData,
       lastRefreshSec,
       resetLastRefresh,
       tickLastRefresh,
@@ -281,11 +311,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       githubLoading,
       connectGithub,
       disconnectGithub,
-      rssUrl,
-      rssError,
-      rssLoading,
-      subscribeRss,
-      unsubscribeRss,
+      loadServices,
+      completeGithubLink,
       isSubscribed,
       wizardEditUid,
       wizardPresetId,
