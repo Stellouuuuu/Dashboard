@@ -1,48 +1,44 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppData } from '../context/AppDataContext';
-import { FormField } from '../components/FormField';
 import { IMG } from '../data/images';
 
 export function ServicesPage() {
+  const { t } = useTranslation();
   const {
     githubConnected,
-    githubUsername,
     githubError,
     githubLoading,
-    openModal,
+    connectGithub,
     disconnectGithub,
-    rssUrl,
-    rssError,
-    rssLoading,
-    subscribeRss,
-    unsubscribeRss,
+    loadServices,
+    completeGithubLink,
   } = useAppData();
 
-  const [showRssInput, setShowRssInput] = useState(false);
-  const [rssDraft, setRssDraft] = useState('');
-  const [rssFieldError, setRssFieldError] = useState<string | undefined>();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const onSubscribeRss = async () => {
-    setRssFieldError(undefined);
-    if (!rssDraft.trim()) {
-      setRssFieldError('Indique une URL de flux.');
-      return;
+  // Retour de redirection OAuth GitHub (PLAN.md §6.1) : /services?github=linked|error.
+  useEffect(() => {
+    const github = searchParams.get('github');
+    if (github === 'linked') {
+      void completeGithubLink();
+    } else {
+      void loadServices();
     }
-    try {
-      await subscribeRss(rssDraft.trim());
-      setShowRssInput(false);
-      setRssDraft('');
-    } catch (e) {
-      setRssFieldError(e instanceof Error ? e.message : 'Échec');
+    if (github) {
+      searchParams.delete('github');
+      setSearchParams(searchParams, { replace: true });
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="app-pane">
       <div className="pane-head">
         <div>
-          <h1>Mes services</h1>
-          <div className="pane-sub">Connecte tes comptes pour débloquer leurs widgets.</div>
+          <h1>{t('services.title')}</h1>
+          <div className="pane-sub">{t('services.lead')}</div>
         </div>
       </div>
       <div className="svc-list">
@@ -51,11 +47,11 @@ export function ServicesPage() {
             <img src={IMG.service.weather} alt="" loading="lazy" />
           </span>
           <div className="svc-row-info">
-            <h3>Météo</h3>
-            <p>Aucun compte requis, disponible pour tout utilisateur connecté.</p>
+            <h3>{t('services.weather.title')}</h3>
+            <p>{t('services.weather.desc')}</p>
           </div>
           <div className="svc-row-actions">
-            <span className="badge badge-on">Actif</span>
+            <span className="badge badge-on">{t('services.active')}</span>
           </div>
         </div>
 
@@ -64,12 +60,8 @@ export function ServicesPage() {
             <img src={IMG.service.github} alt="" loading="lazy" />
           </span>
           <div className="svc-row-info">
-            <h3>GitHub</h3>
-            <p>
-              {githubConnected
-                ? `Connecté en tant que @${githubUsername}`
-                : 'Connecte ton compte pour lire tes dépôts.'}
-            </p>
+            <h3>{t('services.github.title')}</h3>
+            <p>{githubConnected ? t('services.github.connected') : t('services.github.notConnected')}</p>
             {githubError && !githubConnected && (
               <p className="field-error-msg" role="alert">
                 {githubError}
@@ -82,15 +74,15 @@ export function ServicesPage() {
               className="btn btn-ghost btn-sm"
               disabled={githubLoading}
               onClick={() => {
-                if (githubConnected) disconnectGithub();
-                else openModal('oauth');
+                if (githubConnected) void disconnectGithub();
+                else void connectGithub();
               }}
             >
               {githubLoading
                 ? '…'
                 : githubConnected
-                  ? 'Déconnecter'
-                  : 'Connecter GitHub'}
+                  ? t('services.github.disconnect')
+                  : t('services.github.connect')}
             </button>
           </div>
         </div>
@@ -100,61 +92,39 @@ export function ServicesPage() {
             <img src={IMG.service.rss} alt="" loading="lazy" />
           </span>
           <div className="svc-row-info">
-            <h3>RSS</h3>
-            <p className="svc-url">
-              {rssUrl
-                ? `Abonné(e) — ${rssUrl}`
-                : "Ajoute l'URL d'un flux pour t'y abonner."}
-            </p>
-            {showRssInput && !rssUrl && (
-              <div className="svc-rss-form">
-                <FormField
-                  label="URL du flux"
-                  error={rssFieldError || rssError || undefined}
-                  htmlFor="rss-url"
-                >
-                  <input
-                    id="rss-url"
-                    className="feed-input"
-                    value={rssDraft}
-                    onChange={(e) => setRssDraft(e.target.value)}
-                    placeholder="https://flux.exemple.com/rss"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') void onSubscribeRss();
-                    }}
-                  />
-                </FormField>
-              </div>
-            )}
+            <h3>{t('services.rss.title')}</h3>
+            <p>{t('services.rss.desc')}</p>
           </div>
           <div className="svc-row-actions">
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              disabled={rssLoading}
-              onClick={() => {
-                if (rssUrl) {
-                  unsubscribeRss();
-                  return;
-                }
-                if (!showRssInput) {
-                  setShowRssInput(true);
-                  return;
-                }
-                void onSubscribeRss();
-              }}
-            >
-              {rssLoading
-                ? '…'
-                : rssUrl
-                  ? 'Se désabonner'
-                  : showRssInput
-                    ? 'Valider'
-                    : "S'abonner"}
-            </button>
+            <span className="badge badge-on">{t('services.active')}</span>
           </div>
         </div>
 
+        <div className="svc-row">
+          <span className="dash-svc-thumb" aria-hidden="true">
+            <img src={IMG.service.finance} alt="" loading="lazy" />
+          </span>
+          <div className="svc-row-info">
+            <h3>{t('services.finance.title')}</h3>
+            <p>{t('services.finance.desc')}</p>
+          </div>
+          <div className="svc-row-actions">
+            <span className="badge badge-on">{t('services.active')}</span>
+          </div>
+        </div>
+
+        <div className="svc-row">
+          <span className="dash-svc-thumb" aria-hidden="true">
+            <img src={IMG.service.hackernews} alt="" loading="lazy" />
+          </span>
+          <div className="svc-row-info">
+            <h3>{t('services.hackernews.title')}</h3>
+            <p>{t('services.hackernews.desc')}</p>
+          </div>
+          <div className="svc-row-actions">
+            <span className="badge badge-on">{t('services.active')}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
