@@ -1,11 +1,13 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from './AuthContext';
 
 function BootScreen() {
+  const { t } = useTranslation();
   return (
     <div className="boot-screen" role="status" aria-live="polite">
       <div className="boot-spinner" />
-      <p>Chargement de la session…</p>
+      <p>{t('boot.loadingSession')}</p>
     </div>
   );
 }
