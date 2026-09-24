@@ -1,5 +1,5 @@
-import type { WidgetInstance } from '../data/catalog';
-import { FRAMES } from '../data/frames';
+import i18n from '../i18n';
+import { formatNumber } from '../i18n/format';
 
 export interface WidgetSummary {
   /** Petite ligne au-dessus du titre (ville, dépôt, flux…). */
@@ -10,50 +10,146 @@ export interface WidgetSummary {
   lines: string[];
 }
 
-/**
- * Résumé textuel des données d'une instance, utilisé par les cartes et la bannière.
- * Données de démo (frames) en attendant le backend : même forme que la réponse de /data.
- */
-export function summarize(inst: WidgetInstance, frame: number): WidgetSummary {
-  const c = inst.config;
-  switch (inst.widgetId) {
+// Formes renvoyées par les adaptateurs backend (backend/src/adapters/*.ts) —
+// dupliquées ici côté front car le payload de GET .../data est `unknown` par design.
+interface CityTemperature {
+  city: string;
+  temperature: number;
+  unit: string;
+  description: string;
+}
+interface PrecipitationDay {
+  day: string;
+  precipitation_mm: number;
+}
+interface CommitSummary {
+  sha: string;
+  message: string;
+  author: string;
+  date: string;
+  url: string;
+}
+interface SecurityAlertSummary {
+  number: number;
+  package: string;
+  summary: string;
+  severity: string;
+  cve: string | null;
+  url: string;
+  createdAt: string;
+}
+interface FeedItem {
+  title: string;
+  link: string;
+  pubDate: string | null;
+  description: string | null;
+  source: string;
+}
+interface ExchangeRate {
+  base: string;
+  target: string;
+  rate: number;
+  date: string;
+}
+interface CryptoPrice {
+  coin: string;
+  currency: string;
+  price: number;
+  change24h: number | null;
+}
+interface HnStory {
+  objectID: string;
+  title: string;
+  url: string | null;
+  points: number;
+  author: string;
+  commentsCount: number;
+  createdAt: string;
+}
+
+const EMPTY: WidgetSummary = { kicker: '', title: '—', lines: [] };
+
+function currentLng(): string {
+  return i18n.resolvedLanguage ?? i18n.language ?? 'fr';
+}
+
+/** Résumé textuel du payload réel de GET /dashboard/widgets/:id/data, par type de widget. */
+export function summarizeData(widgetId: string, data: unknown): WidgetSummary {
+  if (data == null) return EMPTY;
+
+  switch (widgetId) {
     case 'city_temperature': {
-      const key = (inst.frameKey || 'temp_cotonou') as 'temp_cotonou' | 'temp_paris';
-      const f = FRAMES[key][frame % FRAMES[key].length];
-      return { kicker: String(c.city ?? ''), title: f.big, lines: [f.meta] };
+      const d = data as CityTemperature;
+      return { kicker: d.city, title: `${d.temperature}°${d.unit}`, lines: [d.description] };
     }
     case 'precipitation_forecast': {
-      const f = FRAMES.precip[frame % FRAMES.precip.length];
-      const days = f.days.map((d) => d.replace('j ', ' j · '));
-      return { kicker: String(c.city ?? ''), title: `Pluie ${days[1]?.split(' · ')[1] ?? ''}`.trim(), lines: days };
+      const days = data as PrecipitationDay[];
+      if (!days.length) return EMPTY;
+      return {
+        kicker: i18n.t('dashboard.summary.days', { count: days.length }),
+        title: `${days[0].precipitation_mm} mm`,
+        lines: days.slice(0, 3).map((d) => `${d.day} · ${d.precipitation_mm} mm`),
+      };
     }
     case 'recent_commits': {
-      const list = FRAMES.commits[frame % FRAMES.commits.length].slice(0, Number(c.limit) || 3);
+      const commits = data as CommitSummary[];
+      if (!commits.length) return { kicker: '', title: i18n.t('dashboard.summary.noCommit'), lines: [] };
       return {
-        kicker: String(c.repo ?? ''),
-        title: `${list.length} commits récents`,
-        lines: list.map((x) => `${x.m} — ${x.a}, ${x.t}`),
+        kicker: i18n.t('dashboard.summary.commits', { count: commits.length }),
+        title: commits[0].message,
+        lines: commits.slice(0, 2).map((c) => `${c.sha} — ${c.author}`),
       };
     }
     case 'security_alerts': {
-      const f = FRAMES.alerts[frame % FRAMES.alerts.length];
+      const alerts = data as SecurityAlertSummary[];
+      if (!alerts.length) return { kicker: '', title: i18n.t('dashboard.summary.noAlert'), lines: [] };
       return {
-        kicker: String(c.repo ?? ''),
-        title: `${f.high + f.medium} alertes`,
-        lines: [`${f.high} de sévérité haute`, `${f.medium} de sévérité moyenne`],
+        kicker: i18n.t('dashboard.summary.alerts', { count: alerts.length }),
+        title: alerts[0].summary,
+        lines: alerts.slice(0, 2).map((a) => `${a.package} · ${a.severity}`),
       };
     }
-    case 'article_list': {
-      const list = FRAMES.articles[frame % FRAMES.articles.length].slice(0, Number(c.number) || 3);
-      return { kicker: String(c.feed_url ?? ''), title: `${list.length} articles`, lines: list.map((a) => a.t) };
-    }
-    case 'feed_summary':
+    case 'article_list':
+    case 'feed_summary': {
+      const items = data as FeedItem[];
+      if (!items.length) return { kicker: '', title: i18n.t('dashboard.summary.noArticle'), lines: [] };
       return {
-        kicker: String(c.feed_url ?? ''),
-        title: 'À la une',
-        lines: ['« Threshold : construire un dashboard vivant »'],
+        kicker: items[0].source,
+        title: items[0].title,
+        lines: items.slice(1, 3).map((a) => a.title),
       };
+    }
+    case 'exchange_rate': {
+      const d = data as ExchangeRate;
+      return {
+        kicker: `${d.base} → ${d.target}`,
+        title: formatNumber(d.rate, currentLng(), { maximumFractionDigits: 4 }),
+        lines: [d.date],
+      };
+    }
+    case 'crypto_price': {
+      const d = data as CryptoPrice;
+      const changeLine =
+        d.change24h == null
+          ? []
+          : [`${d.change24h >= 0 ? '+' : ''}${formatNumber(d.change24h, currentLng(), { maximumFractionDigits: 2 })}% (24h)`];
+      return {
+        kicker: d.coin,
+        title: `${formatNumber(d.price, currentLng(), { maximumFractionDigits: 2 })} ${d.currency.toUpperCase()}`,
+        lines: changeLine,
+      };
+    }
+    case 'top_stories':
+    case 'story_search': {
+      const stories = data as HnStory[];
+      if (!stories.length) return { kicker: '', title: i18n.t('dashboard.summary.noStory'), lines: [] };
+      return {
+        kicker: i18n.t('dashboard.summary.stories', { count: stories.length }),
+        title: stories[0].title,
+        lines: stories.slice(1, 3).map((s) => s.title),
+      };
+    }
     default:
-      return { kicker: '', title: '', lines: [] };
+      return EMPTY;
   }
 }

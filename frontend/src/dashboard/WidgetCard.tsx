@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { SERVICE_LABEL, catalogOf, type WidgetInstance } from '../data/catalog';
+import { useTranslation } from 'react-i18next';
+import type { WidgetInstance } from '../data/catalog';
 import { IMG } from '../data/images';
+import { widgetName } from '../i18n/widgets';
 import { useAppData } from '../context/AppDataContext';
-import { IconMore, IconPlay } from '../components/Icons';
+import { apiDeleteDashboardWidget, ApiError } from '../api/client';
+import { IconMore } from '../components/Icons';
 import { TimerRing } from './TimerRing';
-import { summarize } from './summary';
+import { summarizeData } from './summary';
 import { useWidgetRefresh } from './useWidgetRefresh';
 
 interface WidgetCardProps {
@@ -29,13 +32,24 @@ export function WidgetCard({
   isDragging,
   isDropTarget,
 }: WidgetCardProps) {
-  const { frameIdx, openWizard, setInstances, toast, flashUid, addedUid, setFlashUid, setAddedUid } =
-    useAppData();
+  const { t } = useTranslation();
+  const {
+    catalog,
+    instances,
+    setInstances,
+    reorderInstances,
+    toast,
+    flashUid,
+    addedUid,
+    setFlashUid,
+    setAddedUid,
+    openWizard,
+  } = useAppData();
   const refresh = useWidgetRefresh();
   const [menuOpen, setMenuOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [canDrag, setCanDrag] = useState(true);
-  const cat = catalogOf(inst.widgetId);
+  const def = catalog.find((w) => w.name === inst.widgetId);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 900px), (hover: none)');
@@ -44,6 +58,13 @@ export function WidgetCard({
     mq.addEventListener('change', update);
     return () => mq.removeEventListener('change', update);
   }, []);
+
+  // Premier chargement des vraies données — sinon la carte resterait vide jusqu'au
+  // premier cycle du Timer (jusqu'à `refresh` secondes, voir TimerRing).
+  useEffect(() => {
+    if (inst.data === undefined && inst.status !== 'error') void refresh(inst);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inst.uid]);
 
   useEffect(() => {
     if (flashUid !== inst.uid) return;
@@ -64,37 +85,44 @@ export function WidgetCard({
     return () => document.removeEventListener('click', close);
   }, [menuOpen]);
 
-  if (!cat) return null;
-  const data = summarize(inst, frameIdx[inst.uid] || 0);
+  if (!def) return null;
+  const data = summarizeData(inst.widgetId, inst.data);
 
-  const move = (toStart: boolean) =>
-    setInstances((list) => {
-      const idx = list.findIndex((w) => w.uid === inst.uid);
-      if (idx < 0) return list;
-      const next = [...list];
-      const [m] = next.splice(idx, 1);
-      if (toStart) next.unshift(m);
-      else next.push(m);
-      return next;
-    });
+  const move = (toStart: boolean) => {
+    const idx = instances.findIndex((w) => w.uid === inst.uid);
+    if (idx < 0) return;
+    const next = [...instances];
+    const [m] = next.splice(idx, 1);
+    if (toStart) next.unshift(m);
+    else next.push(m);
+    void reorderInstances(next);
+  };
 
-  const handleAction = (act: 'reconfigure' | 'start' | 'end' | 'delete') => {
+  const handleAction = (act: 'reconfigure' | 'refresh' | 'start' | 'end' | 'delete') => {
     setMenuOpen(false);
     if (act === 'reconfigure') openWizard(inst.uid);
+    if (act === 'refresh') void refresh(inst);
     if (act === 'start') {
       move(true);
-      toast('Widget déplacé au début');
+      toast(t('dashboard.card.movedFirst'));
     }
     if (act === 'end') {
       move(false);
-      toast('Widget déplacé à la fin');
+      toast(t('dashboard.card.movedLast'));
     }
     if (act === 'delete') {
       setRemoving(true);
-      window.setTimeout(() => {
-        setInstances((list) => list.filter((w) => w.uid !== inst.uid));
-        toast('Widget supprimé');
-      }, 220);
+      apiDeleteDashboardWidget(inst.uid)
+        .then(() => {
+          window.setTimeout(() => {
+            setInstances((list) => list.filter((w) => w.uid !== inst.uid));
+            toast(t('dashboard.card.deleted'));
+          }, 220);
+        })
+        .catch((e) => {
+          setRemoving(false);
+          toast(e instanceof ApiError ? t(`errors.${e.code}`, { defaultValue: t('dashboard.card.deleteFailed') }) : t('dashboard.card.deleteFailed'));
+        });
     }
   };
 
@@ -110,11 +138,15 @@ export function WidgetCard({
     .filter(Boolean)
     .join(' ');
 
+  const displayName = widgetName(t, def.name);
+
+  const svcLabel = t(`common.services.${def.service}`);
+
   return (
     <article
       className={classes}
       id={`widget-${inst.uid}`}
-      aria-label={`${cat.name} — ${data.kicker}`}
+      aria-label={`${displayName} — ${data.kicker}`}
       draggable={!preview && canDrag}
       onDragStart={() => canDrag && onDragStart?.(inst.uid)}
       onDragEnd={() => onDragEnd?.()}
@@ -133,16 +165,16 @@ export function WidgetCard({
       <div className="wtile-shade" aria-hidden="true" />
 
       <div className="wtile-top">
-        <span className="wtile-chip" title={`Rafraîchi toutes les ${inst.refresh} s`}>
+        <span className="wtile-chip" title={t('dashboard.card.refreshedEvery', { count: inst.refresh })}>
           <TimerRing seconds={inst.refresh} onCycle={() => void refresh(inst)} />
-          {SERVICE_LABEL[cat.service]}
+          {svcLabel}
         </span>
         {!preview && (
           <div className="dropdown">
             <button
               type="button"
               className="wtile-menu-btn"
-              aria-label="Options du widget"
+              aria-label={t('dashboard.card.optionsLabel')}
               aria-expanded={menuOpen}
               onClick={(e) => {
                 e.stopPropagation();
@@ -152,17 +184,20 @@ export function WidgetCard({
               <IconMore />
             </button>
             <div className={`menu${menuOpen ? ' open' : ''}`}>
+              <button type="button" onClick={() => handleAction('refresh')}>
+                {inst.status === 'error' ? t('dashboard.card.retry') : t('dashboard.card.refresh')}
+              </button>
               <button type="button" onClick={() => handleAction('reconfigure')}>
-                Reconfigurer
+                {t('dashboard.card.reconfigure')}
               </button>
               <button type="button" onClick={() => handleAction('start')}>
-                Déplacer en premier
+                {t('dashboard.card.moveFirst')}
               </button>
               <button type="button" onClick={() => handleAction('end')}>
-                Déplacer en dernier
+                {t('dashboard.card.moveLast')}
               </button>
               <button type="button" className="danger" onClick={() => handleAction('delete')}>
-                Supprimer
+                {t('dashboard.card.delete')}
               </button>
             </div>
           </div>
@@ -171,11 +206,11 @@ export function WidgetCard({
 
       <div className="wtile-bottom">
         <small className="wtile-kicker" title={data.kicker}>
-          {cat.name} · {data.kicker}
+          {displayName} · {data.kicker}
         </small>
         {inst.status === 'error' ? (
           <p className="wtile-error" role="alert">
-            {inst.errorMessage ?? 'Erreur de chargement'}
+            {inst.errorMessage ?? t('dashboard.card.loadError')}
           </p>
         ) : (
           <div
@@ -187,16 +222,6 @@ export function WidgetCard({
               <span key={l}>{l}</span>
             ))}
           </div>
-        )}
-        {!preview && (
-          <button
-            type="button"
-            className="play-btn wtile-play"
-            aria-label={inst.status === 'error' ? 'Réessayer' : 'Rafraîchir maintenant'}
-            onClick={() => void refresh(inst)}
-          >
-            <IconPlay />
-          </button>
         )}
       </div>
     </article>
