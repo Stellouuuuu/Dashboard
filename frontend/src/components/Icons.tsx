@@ -57,34 +57,6 @@ export function IconRss() {
   );
 }
 
-export function IconSpotify() {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" />
-      <path
-        d="M7.5 10.2c3.2-1 6.8-.8 9.5.6M8.2 13c2.5-.7 5.3-.5 7.4.6M8.8 15.6c1.8-.5 3.8-.4 5.4.4"
-        stroke="var(--bg, #050505)"
-        strokeWidth="1.6"
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-export function IconWhatsapp() {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 3.5a8 8 0 0 0-6.9 12l-1 3.5 3.6-.9A8 8 0 1 0 12 3.5Z" />
-      <path
-        d="M9.2 9.4c.2-.4.4-.4.7-.4h.5c.2 0 .4 0 .5.4l.7 1.7c.1.2 0 .4-.1.6l-.4.5c-.1.1-.1.3 0 .4.4.6 1 1.2 1.6 1.6.2.1.3.1.4 0l.5-.4c.2-.1.4-.2.6-.1l1.7.7c.3.1.4.3.4.5v.5c0 .3 0 .5-.4.7-.4.2-1 .4-1.6.3a7 7 0 0 1-4.4-2.5 7 7 0 0 1-1.6-3.2c-.1-.6.1-1.2.3-1.6Z"
-        fill="var(--bg, #050505)"
-        stroke="none"
-      />
-    </svg>
-  );
-}
-
 export function IconSun() {
   return (
     <svg viewBox="0 0 24 24" className="icon" aria-hidden="true">
@@ -167,12 +139,30 @@ export function IconMore() {
   );
 }
 
+export function IconFinance() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 17l5-5 4 4 7-9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconHackerNews() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="4" y="5" width="16" height="14" rx="2" strokeLinejoin="round" />
+      <path d="M8 9l3 3-3 3M13 15h3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function ServiceIcon({ service }: { service: ServiceId }) {
   if (service === 'weather') return <IconWeather />;
   if (service === 'github') return <IconGithub />;
   if (service === 'rss') return <IconRss />;
-  if (service === 'spotify') return <IconSpotify />;
-  return <IconWhatsapp />;
+  if (service === 'finance') return <IconFinance />;
+  return <IconHackerNews />;
 }
 
 export function IconDashboard() {
@@ -218,6 +208,39 @@ export function IconLogout() {
     <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M10 4H6.5A2.5 2.5 0 0 0 4 6.5v11A2.5 2.5 0 0 0 6.5 20H10" />
       <path d="M14 16l4-4-4-4M18 12H9" />
+    </svg>
+  );
+}
+
+export function IconBook() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" />
+      <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5Z" />
+    </svg>
+  );
+}
+
+export function IconBookmark() {
+  return (
+    <svg className="icon icon-fill" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 3.5A1.5 1.5 0 0 1 7.5 2h9A1.5 1.5 0 0 1 18 3.5v17.1a.6.6 0 0 1-.95.49L12 17.5l-5.05 3.59A.6.6 0 0 1 6 20.6V3.5Z" />
+    </svg>
+  );
+}
+
+export function IconChevron({ dir = 'right' }: { dir?: 'left' | 'right' }) {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d={dir === 'left' ? 'm15 6-6 6 6 6' : 'm9 6 6 6-6 6'} />
+    </svg>
+  );
+}
+
+export function IconFlame() {
+  return (
+    <svg className="icon icon-fill" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2c.5 3-1.5 4.5-3 6.5S7 12.6 7 14.5A5 5 0 0 0 17 15c0-2.2-1-3.8-2-5 .1 1.4-.4 2.6-1.4 3 .5-3.3-.4-8.3-1.6-11Z" />
     </svg>
   );
 }

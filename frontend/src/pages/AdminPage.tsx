@@ -1,147 +1,200 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { AUDIT_EVENTS } from '../data/catalog';
-import { getUsers, type User } from '../auth/session';
-import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useTranslation } from 'react-i18next';
+import {
+  apiDeleteAdminUser,
+  apiGetAdminStats,
+  apiGetAuditLog,
+  apiListAdminUsers,
+  apiUpdateAdminUser,
+  AdminApiError,
+  type ApiAdminStats,
+  type ApiAdminUser,
+  type ApiAuditLogEntry,
+} from '../api/admin';
 import { useAppData } from '../context/AppDataContext';
+import { useAuth } from '../auth/AuthContext';
+import { formatDate, formatTime } from '../i18n/format';
 
-interface AuditItem {
-  id: number;
-  time: string;
-  text: string;
-}
-
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
+function formatAuditEntry(t: (key: string, opts?: Record<string, unknown>) => string, entry: ApiAuditLogEntry): string {
+  const payload = (entry.payload ?? {}) as Record<string, unknown>;
+  return t(`admin.auditEvent.${entry.action}`, {
+    email: entry.userEmail ?? '—',
+    widgetName: payload.widgetName ?? '',
+    targetEmail: payload.targetEmail ?? '',
+    role: payload.role ?? '',
+    defaultValue: entry.action,
+  });
 }
 
 export function AdminPage() {
-  const { instances } = useAppData();
-  const reduced = useReducedMotion();
-  const [refreshCount, setRefreshCount] = useState(1204);
-  const [audit, setAudit] = useState<AuditItem[]>([]);
-  const ptrRef = useRef(0);
-  const users = useMemo(() => getUsers(), [refreshCount]);
+  const { t, i18n } = useTranslation();
+  const lng = i18n.resolvedLanguage ?? i18n.language;
+  const { toast } = useAppData();
+  const { user: me } = useAuth();
+  const [stats, setStats] = useState<ApiAdminStats | null>(null);
+  const [audit, setAudit] = useState<ApiAuditLogEntry[]>([]);
+  const [users, setUsers] = useState<ApiAdminUser[]>([]);
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const seed: AuditItem[] = [];
-    for (let i = 0; i < 3; i++) {
-      const now = new Date();
-      seed.push({
-        id: i,
-        time: now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-        text: AUDIT_EVENTS[i],
-      });
+  const loadUsers = useCallback(async () => {
+    try {
+      const rows = await apiListAdminUsers();
+      setUsers(rows);
+      setUsersError(null);
+    } catch (e) {
+      setUsersError(e instanceof AdminApiError ? t(`errors.${e.code}`, { defaultValue: t('admin.toast.loadFailed') }) : t('admin.toast.loadFailed'));
     }
-    setAudit(seed);
-    ptrRef.current = 3;
+  }, [t]);
+
+  const loadStatsAndAudit = useCallback(async () => {
+    try {
+      const [statsRow, auditRows] = await Promise.all([apiGetAdminStats(), apiGetAuditLog()]);
+      setStats(statsRow);
+      setAudit(auditRows);
+    } catch {
+      // Best-effort : la liste des utilisateurs reste l'info principale de la page.
+    }
   }, []);
 
   useEffect(() => {
-    const interval = window.setInterval(
-      () => {
-        const p = ptrRef.current;
-        ptrRef.current = p + 1;
-        const now = new Date();
-        setAudit((list) =>
-          [
-            {
-              id: Date.now(),
-              time: now.toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
-              text: AUDIT_EVENTS[p % AUDIT_EVENTS.length],
-            },
-            ...list,
-          ].slice(0, 6),
-        );
-        setRefreshCount((c) => c + Math.ceil(Math.random() * 4));
-      },
-      reduced ? 8000 : 6000,
-    );
-    return () => window.clearInterval(interval);
-  }, [reduced]);
+    void loadUsers();
+    void loadStatsAndAudit();
+  }, [loadUsers, loadStatsAndAudit]);
+
+  const toggleSuspend = useCallback(
+    async (u: ApiAdminUser) => {
+      setBusyId(u.id);
+      try {
+        const updated = await apiUpdateAdminUser(u.id, { suspended: !u.suspended });
+        setUsers((list) => list.map((x) => (x.id === u.id ? updated : x)));
+        toast(updated.suspended ? t('admin.toast.suspended') : t('admin.toast.reactivated'));
+        void loadStatsAndAudit();
+      } catch (e) {
+        toast(e instanceof AdminApiError ? t(`errors.${e.code}`, { defaultValue: t('admin.toast.actionFailed') }) : t('admin.toast.actionFailed'));
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [toast, t, loadStatsAndAudit],
+  );
+
+  const removeUser = useCallback(
+    async (u: ApiAdminUser) => {
+      if (!window.confirm(t('admin.confirmDelete', { email: u.email }))) return;
+      setBusyId(u.id);
+      try {
+        await apiDeleteAdminUser(u.id);
+        setUsers((list) => list.filter((x) => x.id !== u.id));
+        toast(t('admin.toast.deleted'));
+        void loadStatsAndAudit();
+      } catch (e) {
+        toast(e instanceof AdminApiError ? t(`errors.${e.code}`, { defaultValue: t('admin.toast.deleteFailed') }) : t('admin.toast.deleteFailed'));
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [toast, t, loadStatsAndAudit],
+  );
 
   return (
     <div className="app-pane">
       <div className="pane-head">
         <div>
-          <h1>Administration</h1>
-          <div className="pane-sub">Modération des comptes -- clique un utilisateur pour le détail</div>
+          <h1>{t('admin.title')}</h1>
+          <div className="pane-sub">{t('admin.lead')}</div>
         </div>
       </div>
       <div className="stat-grid">
         <div className="stat-card">
           <b>{users.length}</b>
-          <span>utilisateurs inscrits</span>
+          <span>{t('admin.stats.users')}</span>
         </div>
         <div className="stat-card">
-          <b>6</b>
-          <span>widgets disponibles</span>
+          <b>{stats ? stats.totalWidgets : '—'}</b>
+          <span>{t('admin.stats.widgets')}</span>
         </div>
         <div className="stat-card">
-          <b>{refreshCount}</b>
-          <span>rafraîchissements aujourd&apos;hui</span>
+          <b>{stats ? stats.activeUsers : '—'}</b>
+          <span>{t('admin.stats.activeUsers')}</span>
         </div>
       </div>
       <div className="admin-grid">
         <div className="table-scroll">
+          {usersError && (
+            <div className="form-banner error" role="alert" style={{ marginBottom: 12 }}>
+              {usersError}
+            </div>
+          )}
           <table>
             <thead>
               <tr>
-                <th>Utilisateur</th>
-                <th>Email</th>
-                <th>Statut</th>
-                <th>Rôle</th>
-                <th>Inscrit le</th>
+                <th>{t('admin.table.email')}</th>
+                <th>{t('admin.table.status')}</th>
+                <th>{t('admin.table.role')}</th>
+                <th>{t('admin.table.registered')}</th>
+                <th>{t('admin.table.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
                 <tr key={u.id}>
-                  <td>
-                    <Link to={`/admin/users/${u.id}`} className="table-link">
-                      {u.name}
-                    </Link>
-                  </td>
                   <td>{u.email}</td>
                   <td>
                     <span
-                      className={`pill-status ${
-                        u.confirmed ? 'pill-confirmed' : 'pill-pending'
-                      }`}
+                      className={`pill-status ${u.emailConfirmed ? 'pill-confirmed' : 'pill-pending'}`}
                     >
-                      {u.confirmed ? 'Confirmé' : 'En attente'}
+                      {u.emailConfirmed ? t('admin.status.confirmed') : t('admin.status.pending')}
                     </span>
+                    {u.suspended && (
+                      <span className="pill-status pill-pending" style={{ marginLeft: 6 }}>
+                        {t('admin.status.suspended')}
+                      </span>
+                    )}
                   </td>
                   <td>{u.role}</td>
-                  <td>{formatDate(u.createdAt)}</td>
+                  <td>{formatDate(u.createdAt, lng, { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        disabled={busyId === u.id || u.id === Number(me?.id)}
+                        onClick={() => void toggleSuspend(u)}
+                      >
+                        {u.suspended ? t('admin.action.reactivate') : t('admin.action.suspend')}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        disabled={busyId === u.id || u.id === Number(me?.id)}
+                        onClick={() => void removeUser(u)}
+                      >
+                        {t('admin.action.delete')}
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <div className="audit-box">
-          <h3>Journal d&apos;activité</h3>
+          <h3>{t('admin.audit.title')}</h3>
           <div>
+            {audit.length === 0 && <p className="field-hint">{t('admin.auditEmpty')}</p>}
             {audit.map((a) => (
               <div className="audit-item" key={a.id}>
-                <span>{a.time}</span>
-                <p>{a.text}</p>
+                <span>{formatTime(new Date(a.createdAt), lng)}</span>
+                <p>{formatAuditEntry(t, a)}</p>
               </div>
             ))}
           </div>
           <p className="field-hint" style={{ marginTop: 12 }}>
-            Widgets actifs sur ton dashboard : {instances.length}
+            {stats
+              ? t('admin.audit.activeWidgets', { count: stats.totalWidgets })
+              : t('admin.audit.activeWidgets', { count: '—' })}
           </p>
         </div>
       </div>
@@ -150,12 +203,24 @@ export function AdminPage() {
 }
 
 export function AdminUserPage() {
+  const { t, i18n } = useTranslation();
+  const lng = i18n.resolvedLanguage ?? i18n.language;
   const { id } = useParams<{ id: string }>();
-  const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [user, setUser] = useState<ApiAdminUser | null | undefined>(undefined);
 
   useEffect(() => {
-    const found = getUsers().find((u) => u.id === id) ?? null;
-    setUser(found);
+    let cancelled = false;
+    apiListAdminUsers()
+      .then((rows) => {
+        if (cancelled) return;
+        setUser(rows.find((u) => u.id === Number(id)) ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   if (user === undefined) {
@@ -170,10 +235,10 @@ export function AdminUserPage() {
     return (
       <div className="app-pane">
         <div className="form-banner error" role="alert">
-          Utilisateur introuvable.
+          {t('admin.userNotFound')}
         </div>
         <Link to="/admin" className="btn btn-ghost btn-sm">
-          Retour à la liste
+          {t('admin.backToList')}
         </Link>
       </div>
     );
@@ -185,58 +250,33 @@ export function AdminUserPage() {
         <div>
           <p className="eyebrow">
             <Link to="/admin" className="table-link">
-              ← Administration
+              ← {t('admin.breadcrumb')}
             </Link>
           </p>
-          <h1>{user.name}</h1>
-          <div className="pane-sub">{user.email}</div>
+          <h1>{user.email}</h1>
+          <div className="pane-sub">
+            {user.role === 'admin' ? t('admin.roleAdmin') : t('admin.roleUser')}
+            {user.suspended ? ` · ${t('admin.status.suspended')}` : ''}
+          </div>
         </div>
-        <span
-          className={`pill-status ${user.confirmed ? 'pill-confirmed' : 'pill-pending'}`}
-        >
-          {user.confirmed ? 'Confirmé' : 'En attente'}
+        <span className={`pill-status ${user.emailConfirmed ? 'pill-confirmed' : 'pill-pending'}`}>
+          {user.emailConfirmed ? t('admin.status.confirmed') : t('admin.status.pending')}
         </span>
       </div>
 
       <div className="profile-grid">
         <div className="stat-card">
-          <span>Identifiant</span>
+          <span>{t('admin.identifier')}</span>
           <b style={{ fontSize: '1rem' }}>{user.id}</b>
         </div>
         <div className="stat-card">
-          <span>Rôle</span>
+          <span>{t('admin.table.role')}</span>
           <b style={{ fontSize: '1rem' }}>{user.role}</b>
         </div>
         <div className="stat-card">
-          <span>Inscrit le</span>
-          <b style={{ fontSize: '1rem' }}>{formatDate(user.createdAt)}</b>
+          <span>{t('admin.table.registered')}</span>
+          <b style={{ fontSize: '1rem' }}>{formatDate(user.createdAt, lng, { day: 'numeric', month: 'short', year: 'numeric' })}</b>
         </div>
-      </div>
-
-      <div className="auth-card" style={{ marginTop: 24, maxWidth: 560 }}>
-        <h2 style={{ fontFamily: 'var(--font-d)', fontSize: '1.1rem', marginBottom: 14 }}>
-          Identifiants de service
-        </h2>
-        <div className="review-box">
-          <div>
-            <span>GitHub</span>
-            <b>{user.serviceCredentials.githubUsername || '--'}</b>
-          </div>
-          <div>
-            <span>Ville météo par défaut</span>
-            <b>{user.serviceCredentials.weatherDefaultCity || '--'}</b>
-          </div>
-          <div>
-            <span>Flux RSS par défaut</span>
-            <b>{user.serviceCredentials.rssDefaultFeed || '--'}</b>
-          </div>
-        </div>
-        {!user.confirmed && user.confirmToken && (
-          <p className="field-hint" style={{ marginTop: 14 }}>
-            Lien de confirmation démo :{' '}
-            <Link to={`/confirm/${user.confirmToken}`}>/confirm/{user.confirmToken}</Link>
-          </p>
-        )}
       </div>
     </div>
   );

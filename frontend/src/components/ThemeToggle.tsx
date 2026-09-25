@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme/ThemeProvider';
 import { IconMoon, IconSun } from './Icons';
 
@@ -7,12 +8,13 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ variant = 'icon' }: ThemeToggleProps) {
+  const { t } = useTranslation();
   const { theme, setTheme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
 
   if (variant === 'pill') {
     return (
-      <div className="theme-pill" role="group" aria-label="Thème">
+      <div className="theme-pill" role="group" aria-label={t('theme.label')}>
         <button
           type="button"
           className={`theme-pill-btn${isDark ? ' active' : ''}`}
@@ -20,7 +22,7 @@ export function ThemeToggle({ variant = 'icon' }: ThemeToggleProps) {
           aria-pressed={isDark}
         >
           <IconMoon />
-          <span>Dark</span>
+          <span>{t('theme.dark')}</span>
         </button>
         <button
           type="button"
@@ -29,7 +31,7 @@ export function ThemeToggle({ variant = 'icon' }: ThemeToggleProps) {
           aria-pressed={!isDark}
         >
           <IconSun />
-          <span>Light</span>
+          <span>{t('theme.light')}</span>
         </button>
       </div>
     );
@@ -40,8 +42,8 @@ export function ThemeToggle({ variant = 'icon' }: ThemeToggleProps) {
       type="button"
       className="theme-toggle"
       onClick={toggleTheme}
-      aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-      title={isDark ? 'Mode clair' : 'Mode sombre'}
+      aria-label={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
+      title={isDark ? t('theme.light') : t('theme.dark')}
     >
       {isDark ? <IconSun /> : <IconMoon />}
     </button>

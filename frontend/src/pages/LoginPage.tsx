@@ -1,21 +1,10 @@
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormField } from '../components/FormField';
-import { BrandMark, IconGithub } from '../components/Icons';
 import { useAuth } from '../auth/AuthContext';
-import { AuthError } from '../api/demo';
-
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="#EA4335"
-        d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3.2 14.7 2.2 12 2.2 6.8 2.2 2.6 6.5 2.6 12S6.8 21.8 12 21.8c6.9 0 9.6-4.9 9.6-7.4 0-.5-.1-.9-.1-1.2H12Z"
-      />
-    </svg>
-  );
-}
+import { ApiAuthError } from '../api/auth';
 
 function IconEye({ off }: { off?: boolean }) {
   if (off) {
@@ -34,6 +23,7 @@ function IconEye({ off }: { off?: boolean }) {
 }
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const { login, isAuthenticated, bootstrapping } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,8 +43,8 @@ export function LoginPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const next: typeof errors = {};
-    if (!email.trim()) next.email = 'L’email est requis.';
-    if (!password) next.password = 'Le mot de passe est requis.';
+    if (!email.trim()) next.email = t('auth.login.emailRequired');
+    if (!password) next.password = t('auth.login.passwordRequired');
     setErrors(next);
     if (Object.keys(next).length) return;
 
@@ -67,14 +57,15 @@ export function LoginPage() {
       }
       navigate(from, { replace: true });
     } catch (err) {
-      if (err instanceof AuthError) {
-        if (err.code === 'UNCONFIRMED') {
-          setErrors({ form: err.message });
+      if (err instanceof ApiAuthError) {
+        const message = t(`errors.${err.code}`, { defaultValue: t('errors.INTERNAL_ERROR') });
+        if (err.code === 'AUTH_EMAIL_NOT_CONFIRMED') {
+          setErrors({ form: message });
         } else {
-          setErrors({ form: err.message, password: 'Vérifie ton mot de passe.' });
+          setErrors({ form: message, password: t('auth.login.checkPassword') });
         }
       } else {
-        setErrors({ form: 'Une erreur est survenue. Réessaie.' });
+        setErrors({ form: t('errors.INTERNAL_ERROR') });
       }
     } finally {
       setSubmitting(false);
@@ -84,41 +75,29 @@ export function LoginPage() {
   return (
     <AuthLayout>
       <div className="auth-glass">
-        <div className="auth-glass-mark" aria-hidden="true">
-          <BrandMark size={40} />
-        </div>
-        <h1 className="auth-glass-title">Bon retour !</h1>
-        <p className="auth-glass-lead">
-          Connecte-toi pour retrouver ton dashboard, tes widgets et tes services
-          connectés.
-        </p>
+        <h1 className="auth-glass-title">{t('auth.login.title')}</h1>
+        <p className="auth-glass-lead">{t('auth.login.lead')}</p>
 
         <form className="auth-glass-form" onSubmit={onSubmit} noValidate>
           {errors.form && (
             <div className="form-banner error" role="alert">
               {errors.form}
-              {errors.form.includes('confirmé') && (
-                <>
-                  {' '}
-                  <Link to="/confirm/pending-yao-token">Confirmer le compte démo</Link>
-                </>
-              )}
             </div>
           )}
 
-          <FormField label="Email" error={errors.email} htmlFor="login-email">
+          <FormField label={t('auth.emailLabel')} error={errors.email} htmlFor="login-email">
             <input
               id="login-email"
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="toi@exemple.com"
+              placeholder={t('auth.emailPlaceholder')}
               aria-invalid={Boolean(errors.email)}
             />
           </FormField>
 
-          <FormField label="Mot de passe" error={errors.password} htmlFor="login-password">
+          <FormField label={t('auth.passwordLabel')} error={errors.password} htmlFor="login-password">
             <div className="auth-input-wrap">
               <input
                 id="login-password"
@@ -133,7 +112,7 @@ export function LoginPage() {
                 type="button"
                 className="auth-eye"
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
               >
                 <IconEye off={showPassword} />
               </button>
@@ -147,11 +126,8 @@ export function LoginPage() {
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
               />
-              <span>Se souvenir de moi</span>
+              <span>{t('auth.login.remember')}</span>
             </label>
-            <span className="auth-forgot" title="Bientôt disponible">
-              Mot de passe oublié ?
-            </span>
           </div>
 
           <button
@@ -159,27 +135,12 @@ export function LoginPage() {
             type="submit"
             disabled={submitting}
           >
-            {submitting ? 'Connexion…' : 'Se connecter'}
+            {submitting ? t('auth.login.submitting') : t('auth.login.submit')}
           </button>
         </form>
 
-        <div className="rule">ou</div>
-
-        <div className="oauth-row auth-oauth">
-          <button type="button" className="oauth-btn" disabled title="Bientôt disponible">
-            <GoogleMark /> Continuer avec Google
-          </button>
-          <button type="button" className="oauth-btn" disabled title="Bientôt disponible">
-            <IconGithub /> Continuer avec GitHub
-          </button>
-        </div>
-
-        <p className="auth-demo-hint">
-          Démo : <code>stella@epitech.eu</code> / <code>password123</code>
-        </p>
-
         <div className="switch-line">
-          Pas encore de compte ? <Link to="/register">Créer un compte</Link>
+          {t('auth.login.noAccount')} <Link to="/register">{t('auth.login.createAccount')}</Link>
         </div>
       </div>
     </AuthLayout>

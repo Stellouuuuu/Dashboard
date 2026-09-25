@@ -1,0 +1,34 @@
+import { Router } from "express";
+import * as ctrl from "./auth.controller.js";
+import { validate } from "../../middleware/validate.middleware.js";
+import { requireAuth } from "../../middleware/auth.middleware.js";
+import { authLimiter } from "../../middleware/rateLimit.middleware.js";
+import {
+  registerSchema,
+  loginSchema,
+  confirmSchema,
+  changePasswordSchema,
+  deleteAccountSchema,
+  setLanguageSchema,
+  updateProfileSchema,
+} from "./auth.schemas.js";
+
+const router = Router();
+
+// PLAN.md §11 : 10 req/min sur l'auth (en plus du rate-limit global 100 req/min).
+router.post("/register", authLimiter, validate(registerSchema), ctrl.register);
+router.post("/confirm", authLimiter, validate(confirmSchema), ctrl.confirm);
+router.post("/login", authLimiter, validate(loginSchema), ctrl.login);
+router.post("/refresh", authLimiter, ctrl.refresh);
+router.post("/logout", ctrl.logout);
+router.get("/me", requireAuth, ctrl.me);
+router.post("/change-password", requireAuth, validate(changePasswordSchema), ctrl.changePassword);
+router.patch("/language", requireAuth, validate(setLanguageSchema), ctrl.setLanguage);
+router.patch("/profile", requireAuth, validate(updateProfileSchema), ctrl.updateProfile);
+router.delete("/me", requireAuth, validate(deleteAccountSchema), ctrl.deleteAccount);
+
+router.get("/oauth/github", requireAuth, ctrl.oauthGithubStart);
+router.get("/oauth/github/callback", ctrl.oauthGithubCallback);
+router.delete("/oauth/github", requireAuth, ctrl.oauthGithubUnlink);
+
+export default router;

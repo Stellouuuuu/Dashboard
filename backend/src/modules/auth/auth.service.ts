@@ -1,0 +1,141 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { env } from "../../config/env.js";
+import { generateToken, hashToken } from "../../lib/token.js";
+import { sendMail } from "../../lib/mailer.js";
+import { confirmEmailContent } from "../../lib/emailTemplates.js";
+import { httpError } from "../../lib/httpError.js";
+import { logAudit, AUDIT_ACTIONS } from "../../lib/audit.js";
+import * as repo from "./auth.repository.js";
+import type { UserRow } from "./auth.repository.js";
+
+const EMAIL_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30j
+const ACCESS_TOKEN_TTL = "15m";
+
+export function toPublicUser(user: UserRow) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    emailConfirmed: user.emailConfirmed,
+    language: user.language,
+    createdAt: user.createdAt,
+  };
+}
+
+function signAccessToken(user: UserRow): string {
+  return jwt.sign({ sub: user.id, role: user.role }, env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
+}
+
+async function issueRefreshToken(userId: number): Promise<string> {
+  const raw = generateToken();
+  await repo.createRefreshToken(userId, hashToken(raw), new Date(Date.now() + REFRESH_TOKEN_TTL_MS));
+  return raw;
+}
+
+/** Inscription : hash bcrypt (coût 12), compte non confirmé, mail via Mailpit dans la langue du compte (PLAN.md §11). */
+export async function register(email: string, password: string, language: string = "fr"): Promise<void> {
+  const existing = await repo.findUserByEmail(email);
+  if (existing) throw httpError(409, "AUTH_EMAIL_TAKEN", "Un compte existe déjà avec cet email");
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  const user = await repo.createUser(email, passwordHash, language);
+
+  const raw = generateToken();
+  await repo.createEmailToken(user.id, hashToken(raw), new Date(Date.now() + EMAIL_TOKEN_TTL_MS));
+
+  const link = `${env.APP_URL}/confirm/${raw}`;
+  const content = confirmEmailContent(user.language);
+  await sendMail(email, content.subject, content.html(link));
+}
+
+/** Confirmation d'email : consomme le token, active le compte. */
+export async function confirmEmail(rawToken: string): Promise<void> {
+  const row = await repo.findValidEmailToken(hashToken(rawToken));
+  if (!row) throw httpError(400, "AUTH_CONFIRM_TOKEN_INVALID", "Lien de confirmation invalide ou expiré");
+  await repo.confirmUser(row.userId);
+  await repo.deleteEmailTokensForUser(row.userId);
+}
+
+/** Connexion : refuse si email non confirmé ou compte suspendu (PLAN.md §6.1). */
+export async function login(
+  email: string,
+  password: string,
+): Promise<{ user: UserRow; accessToken: string; refreshToken: string }> {
+  const user = await repo.findUserByEmail(email);
+  if (!user) throw httpError(401, "AUTH_INVALID_CREDENTIALS", "Identifiants invalides");
+
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) throw httpError(401, "AUTH_INVALID_CREDENTIALS", "Identifiants invalides");
+
+  if (!user.emailConfirmed)
+    throw httpError(403, "AUTH_EMAIL_NOT_CONFIRMED", "Confirme ton email avant de te connecter");
+  if (user.suspended) throw httpError(403, "AUTH_ACCOUNT_SUSPENDED", "Ce compte a été suspendu");
+
+  const accessToken = signAccessToken(user);
+  const refreshToken = await issueRefreshToken(user.id);
+  void logAudit(user.id, AUDIT_ACTIONS.AUTH_LOGIN);
+  return { user, accessToken, refreshToken };
+}
+
+/** Nouveau access token à partir du refresh cookie — pas de rotation (PLAN.md §6.1). */
+export async function refresh(rawRefreshToken: string): Promise<{ accessToken: string }> {
+  const row = await repo.findValidRefreshToken(hashToken(rawRefreshToken));
+  if (!row) throw httpError(401, "AUTH_SESSION_EXPIRED", "Session expirée, reconnecte-toi");
+
+  const user = await repo.findUserById(row.userId);
+  if (!user || user.suspended)
+    throw httpError(401, "AUTH_SESSION_EXPIRED", "Session expirée, reconnecte-toi");
+
+  return { accessToken: signAccessToken(user) };
+}
+
+export async function logout(rawRefreshToken: string | undefined): Promise<void> {
+  if (!rawRefreshToken) return;
+  await repo.revokeRefreshToken(hashToken(rawRefreshToken));
+}
+
+export async function getMe(userId: number): Promise<UserRow> {
+  const user = await repo.findUserById(userId);
+  if (!user) throw httpError(404, "AUTH_USER_NOT_FOUND", "Utilisateur introuvable");
+  return user;
+}
+
+/** Changement de mot de passe : exige le mot de passe actuel (PLAN.md §11). */
+export async function changePassword(
+  userId: number,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const user = await repo.findUserById(userId);
+  if (!user) throw httpError(404, "AUTH_USER_NOT_FOUND", "Utilisateur introuvable");
+
+  const ok = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!ok) throw httpError(401, "AUTH_CURRENT_PASSWORD_INCORRECT", "Mot de passe actuel incorrect");
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  await repo.updatePasswordHash(userId, passwordHash);
+}
+
+/** Mémorise la langue choisie sur le compte (PLAN.md — persistance i18n). */
+export async function setLanguage(userId: number, language: "fr" | "en"): Promise<void> {
+  await repo.updateLanguage(userId, language);
+}
+
+/** Met à jour le nom affiché du compte (PATCH /auth/profile — réellement persisté, pas simulé). */
+export async function updateName(userId: number, name: string): Promise<UserRow> {
+  return repo.updateName(userId, name);
+}
+
+/** Suppression du compte : exige le mot de passe, révoque la session en cours. */
+export async function deleteAccount(userId: number, password: string): Promise<void> {
+  const user = await repo.findUserById(userId);
+  if (!user) throw httpError(404, "AUTH_USER_NOT_FOUND", "Utilisateur introuvable");
+
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) throw httpError(401, "AUTH_CURRENT_PASSWORD_INCORRECT", "Mot de passe incorrect");
+
+  await repo.deleteUserById(userId);
+}

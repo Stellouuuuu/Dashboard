@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard EPITECH – Plan Technique Intégral</title>
+    <title>Dashboard EPITECH – Plan & État d'avancement</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -40,6 +40,7 @@
         }
         header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
         header p { font-size: 1.1rem; opacity: 0.9; }
+        header .updated { display:inline-block; margin-top:0.9rem; padding:0.35rem 0.9rem; border-radius:999px; background:rgba(255,255,255,0.15); font-size:0.82rem; }
         nav {
             background: var(--secondary);
             padding: 0.5rem;
@@ -61,6 +62,8 @@
             font-size: 0.9rem;
         }
         nav a:hover { background: rgba(255,255,255,0.2); }
+        nav a.nav-hot { background: var(--danger); }
+        nav a.nav-hot:hover { background: #dc2626; }
         main { padding: 2rem; }
         section {
             margin-bottom: 2.5rem;
@@ -170,1005 +173,649 @@
             nav { flex-direction: column; align-items: center; }
             h2 { font-size: 1.4rem; }
         }
+
+        /* ---------- État d'avancement : composants ajoutés ---------- */
+        .badge{display:inline-flex;align-items:center;gap:5px;padding:0.2rem 0.65rem;border-radius:999px;font-size:0.76rem;font-weight:700;white-space:nowrap;}
+        .badge-done{background:#d1fae5;color:#065f46;}
+        .badge-partial{background:#fef3c7;color:#92400e;}
+        .badge-missing{background:#fee2e2;color:#991b1b;}
+        td.status{text-align:center;white-space:nowrap;width:1%;}
+
+        .risk-banner{background:#7f1d1d;color:#fff;border-radius:8px;padding:1.25rem 1.5rem;margin:1.25rem 0;border-left:6px solid #ef4444;}
+        .risk-banner h3{color:#fecaca;margin-top:0;border:none;padding:0;font-size:1.2rem;}
+        .risk-banner code{background:rgba(255,255,255,0.15);color:#fff;}
+        .risk-banner a{color:#fecaca;}
+
+        .stat-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin:1.5rem 0;}
+        .stat-tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+        .stat-tile .num{font-size:2rem;font-weight:800;color:var(--primary);line-height:1;}
+        .stat-tile .num.warn{color:#dc2626;}
+        .stat-tile .num.ok{color:#059669;}
+        .stat-tile .num.mid{color:#d97706;}
+        .stat-tile .lbl{font-size:0.76rem;color:#64748b;margin-top:0.4rem;}
+
+        .progress-wrap{margin:0.75rem 0 1.75rem;}
+        .progress-bar{height:16px;background:#e2e8f0;border-radius:999px;overflow:hidden;display:flex;}
+        .progress-bar span{display:block;height:100%;}
+        .seg-done{background:#10b981;}
+        .seg-partial{background:#f59e0b;}
+        .seg-missing{background:#e2e8f0;}
+        .progress-legend{display:flex;gap:1.3rem;font-size:0.8rem;margin-top:0.6rem;flex-wrap:wrap;color:#475569;}
+        .progress-legend span{display:inline-flex;align-items:center;gap:5px;}
+        .progress-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+        .flow-row{display:flex;align-items:center;justify-content:center;gap:0.6rem;flex-wrap:wrap;margin:1.5rem 0;}
+        .flow-step{background:var(--primary);color:#fff;padding:0.85rem 1.1rem;border-radius:8px;text-align:center;font-weight:600;font-size:0.85rem;min-width:105px;}
+        .flow-step small{display:block;font-weight:400;opacity:0.82;font-size:0.7rem;margin-top:3px;}
+        .flow-step.st-missing{background:#fee2e2;color:#991b1b;border:2px dashed #ef4444;}
+        .flow-step.st-partial{background:#fef3c7;color:#92400e;border:2px solid #f59e0b;}
+        .flow-step.st-done{background:#065f46;}
+        .flow-arrow{color:#94a3b8;font-size:1.4rem;font-weight:700;}
+        .flow-branch{display:flex;justify-content:center;gap:1.5rem;margin-top:0.6rem;flex-wrap:wrap;}
+
+        .timeline{display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;margin:1.25rem 0;counter-reset:tl;}
+        .timeline li{list-style:none;flex:1;min-width:150px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:0.8rem;position:relative;}
+        .timeline li::before{counter-increment:tl;content:counter(tl);position:absolute;top:-10px;left:-10px;width:26px;height:26px;border-radius:50%;background:var(--secondary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;}
+
+        .git-reality{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem;margin:1rem 0;}
+        .git-card{border-radius:8px;padding:1rem;border:1px solid var(--border);background:#f8fafc;}
+        .git-card h4{margin-top:0;margin-bottom:0.5rem;font-size:0.95rem;}
+        .git-card.c-main{border-left:4px solid #64748b;}
+        .git-card.c-skel{border-left:4px solid #f59e0b;}
+        .git-card.c-dist{border-left:4px solid #ef4444;background:#fef2f2;}
+        .git-card ul{margin:0.4rem 0 0 1.1rem;font-size:0.85rem;}
+        .git-card li{margin-bottom:0.25rem;}
+
+        .checklist-real{margin-left:0;}
+        .checklist-real li{list-style:none;display:flex;align-items:flex-start;gap:0.65rem;padding:0.4rem 0;margin-bottom:0;border-bottom:1px dashed #e2e8f0;}
+        .checklist-real .box{flex-shrink:0;width:18px;height:18px;border-radius:4px;border:2px solid #94a3b8;margin-top:2px;position:relative;}
+        .checklist-real li.done .box{background:#10b981;border-color:#10b981;}
+        .checklist-real li.done .box::after{content:"✓";position:absolute;inset:0;color:#fff;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+        .checklist-real li.partial .box{background:#f59e0b;border-color:#f59e0b;}
+        .checklist-real li.partial .box::after{content:"~";position:absolute;inset:0;color:#fff;font-size:0.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Dashboard EPITECH – Plan Technique Intégral</h1>
+            <h1>Dashboard EPITECH – Plan & État d'avancement</h1>
             <p>Plateforme full-stack de widgets personnalisables – Projet binôme (X = 2) – Livraison 01/10/26</p>
+            <span class="updated">📅 Plan corrigé le 23/09/2026 · Implémentation le 24/09/2026 (backend auth/OAuth/widgets/services/admin, puis dashboard frontend + profil, testés au navigateur)</span>
         </header>
 
         <nav>
-            <a href="#contexte">Contexte</a>
+            <a href="#etat" class="nav-hot">🔴 État d'avancement</a>
+            <a href="#resume">Résumé</a>
             <a href="#exigences">Exigences</a>
-            <a href="#equipe">Équipe</a>
-            <a href="#branches">Branches Git</a>
-            <a href="#fonctionnalites">Fonctionnalités</a>
-            <a href="#services">Services & Widgets</a>
-            <a href="#timer">Timer</a>
-            <a href="#stack">Stack</a>
+            <a href="#perimetre">Périmètre</a>
             <a href="#architecture">Architecture</a>
-            <a href="#arborescence">Arborescence</a>
-            <a href="#datamodel">Modèle de données</a>
-            <a href="#api">API</a>
+            <a href="#services">Services & Widgets</a>
+            <a href="#api">API REST</a>
             <a href="#aboutjson">about.json</a>
-            <a href="#docker">Docker</a>
+            <a href="#repartition">Répartition</a>
+            <a href="#planning">Planning</a>
+            <a href="#pieges">Pièges techniques</a>
             <a href="#securite">Sécurité</a>
-            <a href="#patterns">Patterns</a>
-            <a href="#outils">Définitions & Analogies</a>
-            <a href="#uiux">UI / UX</a>
-            <a href="#plan">Planning</a>
-            <a href="#livrables">Livrables</a>
-            <a href="#competences">Compétences</a>
+            <a href="#git">Git</a>
+            <a href="#stack">Stack</a>
+            <a href="#checklist">Checklist</a>
         </nav>
 
         <main>
-            <!-- CONTEXTE -->
-            <section id="contexte">
-                <h2>1. Contexte & Objectif</h2>
-                <p>EPITECH lance le projet <strong>Dashboard</strong>, une application full-stack hautement personnalisable qui agrège en temps réel des informations issues de multiples sources (RSS, GitHub, Météo, Steam, marchés financiers, etc.). L'utilisateur compose son propre tableau de bord en y installant des <strong>widgets configurables</strong>, rafraîchis automatiquement par un <strong>Timer</strong>.</p>
-                <p>L'application remplace la page d'accueil du navigateur par un <strong>centre de contrôle personnel</strong> où chaque widget est un portail vers un univers numérique différent (métaphore du "pistolet à portails" utilisée dans le sujet).</p>
-                <div class="info">
-                    <strong>💡 Philosophie :</strong> "Built by you. For you." — L'utilisateur est l'architecte de son propre tableau de bord. Il choisit ses services, configure ses widgets, décide de la fréquence de rafraîchissement et organise son espace.
+            <!-- ÉTAT D'AVANCEMENT -->
+            <section id="etat">
+                <h2>0. État d'avancement réel — audit du 24/09/2026</h2>
+                <p>Cette section compare le plan (ci-dessous) à ce qui existe <strong>réellement</strong> dans le dépôt : code source, branches Git, fichiers compilés. Elle a été construite en inspectant le disque et l'historique Git, pas en relisant les tickets.</p>
+
+                <div class="risk-banner">
+                    <h3>🚨 Risque n°1 — toujours pas résolu : tout le travail récent est encore uniquement local</h3>
+                    <p>Trois sessions du 24/09 ont, dans l'ordre : reconstitué <code>backend/src</code> depuis le JS compilé, écrit et testé la stack Docker, puis implémenté et branché au frontend réel : auth complète, OAuth GitHub, les 6 widgets, services subscribe/unsubscribe, admin users, <strong>et tout le dashboard</strong> (wizard, suppression, glisser-déposer, rafraîchissement du Timer) — plus le changement de mot de passe et la suppression de compte. Tout est testé de bout en bout, y compris au navigateur réel (voir §0.3) — mais <strong>rien n'est commité</strong>, toujours sur consigne explicite (« ne commit rien »).</p>
+                    <p style="margin-top:0.6rem;">La sauvegarde du 24/09 matin (<code>~/backups/backend-dist-backup-*.tar.gz</code>) ne couvre qu'une fraction de ce qui existe maintenant sur ce poste.</p>
+                    <p style="margin-top:0.6rem;"><strong>Action :</strong> committer tout (backend/src, infra, frontend) sur une branche dédiée dès que la relecture est faite — c'est la seule chose qui reste vraiment bloquante avant la livraison.</p>
                 </div>
-                <div class="warning">
-                    <strong>⚠️ Contrainte quantitative (binôme X = 2) :</strong> L'application doit supporter au minimum <strong>3 services</strong> (1 + X) et un total de <strong>6 widgets</strong> (3 × X). Un widget sans option de configuration est invalide et ne sera pas compté.
+
+                <h3>0.1 Score global (pondéré : Fait = 1, Partiel = 0.5, Absent = 0)</h3>
+                <div class="stat-tiles">
+                    <div class="stat-tile"><div class="num ok">90%</div><div class="lbl">Exigences obligatoires (§2)<br>13 faites · 1 partielle · 1 absente</div></div>
+                    <div class="stat-tile"><div class="num ok">6 / 6</div><div class="lbl">Widgets déclarés dans le registre — tous testés avec de vraies données</div></div>
+                    <div class="stat-tile"><div class="num ok">3 / 3</div><div class="lbl">Fichiers Docker présents — stack testée, tourne réellement</div></div>
+                    <div class="stat-tile"><div class="num ok">9</div><div class="lbl">Routes d'auth réelles (register/login/confirm/refresh/logout/me/oauth×3) — testées via curl + UI</div></div>
+                    <div class="stat-tile"><div class="num ok">8 / 8</div><div class="lbl">Tables Drizzle définies <strong>et migrées</strong> (testé)</div></div>
+                    <div class="stat-tile"><div class="num ok">✓</div><div class="lbl">Widget survit à un rechargement de page — testé au navigateur réel (Playwright)</div></div>
+                    <div class="stat-tile"><div class="num warn">0</div><div class="lbl">Fichier de test (*.test.ts / *.spec.ts) trouvé</div></div>
                 </div>
+                <div class="progress-wrap">
+                    <div class="progress-bar" title="13 fait / 1 partiel / 1 absent sur 15 exigences">
+                        <span class="seg-done" style="width:86.7%"></span>
+                        <span class="seg-partial" style="width:6.6%"></span>
+                        <span class="seg-missing" style="width:6.7%"></span>
+                    </div>
+                    <div class="progress-legend">
+                        <span><i style="background:#10b981"></i> Fait (13/15)</span>
+                        <span><i style="background:#f59e0b"></i> Partiel (1/15)</span>
+                        <span><i style="background:#e2e8f0"></i> Absent (1/15)</span>
+                    </div>
+                </div>
+                <p style="font-size:0.82rem;color:#059669;">📈 Progression depuis le dernier audit (24/09 matin → 24/09 soir) : 40% → 57% → <strong>90%</strong>. Auth, OAuth GitHub, les 3 widgets A, services et admin users ont été implémentés, testés en conditions réelles (curl + navigateur réel via Playwright) et branchés au frontend. Il ne manque plus que le README racine et les tests automatisés pour boucler §2 — et un commit pour sécuriser tout ce travail (§0 ci-dessus).</p>
+
+                <h3>0.2 Trois réalités disjointes dans le dépôt</h3>
+                <p>Aucune branche ne contient à la fois le front actuel et un backend complet. Le code le plus avancé n'est nulle part dans Git :</p>
+                <div class="git-reality">
+                    <div class="git-card c-main">
+                        <h4>📦 origin/main (mergé)</h4>
+                        <p style="font-size:0.85rem;">Ancien plan : front <code>front/</code> + backend <code>backend/src</code> (21 fichiers, archi BullMQ/Redis).</p>
+                        <ul>
+                            <li>Seules des PR <code>feature/b-*</code> ont été mergées</li>
+                            <li><strong>Aucune PR <code>feature/a-*</code> n'a jamais été mergée</strong></li>
+                            <li><code>jobs/</code>, <code>modules/timer/</code> : archi Timer BullMQ, coupée par PLAN.md §3</li>
+                        </ul>
+                    </div>
+                    <div class="git-card c-skel">
+                        <h4>🌿 chore/backend-skeleton (locale)</h4>
+                        <p style="font-size:0.85rem;">Jamais poussée sur origin. 22 fichiers, même vieille archi que main (adapters + jobs + timer), sans <code>db/</code>, <code>lib/</code>, <code>middleware/</code> ni <code>package.json</code>.</p>
+                    </div>
+                    <div class="git-card c-dist">
+                        <h4>⚠️ backend/dist (disque uniquement)</h4>
+                        <p style="font-size:0.85rem;">Compilé le 23/09 à 15h11. Gitignored — mais son contenu est maintenant dupliqué en TypeScript dans <code>backend/src/</code> (carte suivante).</p>
+                    </div>
+                    <div class="git-card" style="border-left:4px solid #10b981;background:#ecfdf5;">
+                        <h4>✅ backend/src (disque, 24/09, non commité)</h4>
+                        <p style="font-size:0.85rem;">Reconstitué depuis <code>dist/</code> : 30 fichiers <code>.ts</code>, <code>package.json</code>, <code>tsconfig.json</code>, <code>drizzle.config.ts</code>, migration générée. <code>tsc --noEmit</code> propre. C'est désormais la version à committer sur une branche dédiée — aucune branche existante ne la contient.</p>
+                    </div>
+                </div>
+                <p>Autre point de friction : la branche locale <code>main</code> a divergé d'<code>origin/main</code> (un commit local <code>« [feat]: just the plan »</code> a été posé directement sur <code>main</code>) — à réconcilier avant tout push. <strong>Toujours pas résolu.</strong></p>
+
+                <h3>0.3 Détail par domaine</h3>
+                <table>
+                    <thead><tr><th>Domaine</th><th>Statut</th><th>Preuve</th></tr></thead>
+                    <tbody>
+                        <tr><td>Frontend (pages, design, routing)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>SPA complète (landing, auth, dashboard, admin, profil), refonte visuelle en cours (<code>feature/frontend-v3</code>)</td></tr>
+                        <tr><td>Frontend ↔ API dashboard</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Wizard (ajout/reconfiguration), suppression, glisser-déposer (position persistée), Timer réel (plus de FRAMES) — tout testé au navigateur, y compris la persistance après reload</td></tr>
+                        <tr><td>Frontend ↔ API auth</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>api/auth.ts</code> + <code>AuthContext.tsx</code> réécrits (cookies httpOnly) ; parcours register→confirm(Mailpit réel)→login→dashboard testé au navigateur (Playwright)</td></tr>
+                        <tr><td>Schéma base de données</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>backend/src/db/schema.ts</code> : 8 tables Drizzle conformes à PLAN.md §4.4</td></tr>
+                        <tr><td>Migrations exécutées</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>drizzle/0000_soft_scarlet_spider.sql</code> généré et appliqué avec succès sur un Postgres réel (test docker compose du 24/09)</td></tr>
+                        <tr><td>Registre de widgets</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>widgets/registry.ts</code> : 6/6 widgets déclarés (3 B + 3 A), noms de paramètres alignés sur le sujet (<code>repository</code>, <code>link</code>), tous testés avec de vraies données (Open-Meteo, GitHub, RSS)</td></tr>
+                        <tr><td>Auth (register/login/JWT)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>9 routes <code>/api/v1/auth/*</code> ; register→Mailpit→confirm→login→me→refresh→logout testé via curl ET navigateur réel</td></tr>
+                        <tr><td>OAuth GitHub (serveur)</td><td class="status"><span class="badge badge-partial">PARTIEL</span></td><td>State signé, callback, chiffrement AES, garde-fous (401/503/state invalide) tous testés ; échange réel avec GitHub non testé — pas de <code>GITHUB_CLIENT_ID/SECRET</code> réels disponibles</td></tr>
+                        <tr><td>Abonnement aux services</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>services.routes.ts</code> : weather/rss par défaut, github après OAuth ; testé via curl et page Services réelle</td></tr>
+                        <tr><td>Dashboard CRUD + Timer</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>6 routes <code>dashboard.routes.ts</code>, protégées par <code>requireAuth</code> (plus de <code>userId=1</code> en dur)</td></tr>
+                        <tr><td>Admin</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>/admin/users</code> liste/suspend/delete + auto-protection (un admin ne peut pas se suspendre/supprimer lui-même) ; testé via curl et clic réel dans l'UI</td></tr>
+                        <tr><td>/about.json</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>6/6 widgets, 3 services, conforme au sujet — vérifié en direct sur :8080</td></tr>
+                        <tr><td>Docker / nginx</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>docker-compose.yml</code>, <code>backend/Dockerfile</code>, <code>nginx/nginx.conf</code> écrits et <strong>testés en conditions réelles</strong> le 24/09 (build + up + curl /about.json + vérif des 8 tables)</td></tr>
+                        <tr><td>Sécurité (Helmet, rate-limit, Zod, bcrypt, JWT, AES)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Toutes câblées et exercées : bcrypt (register), JWT sign+verify (login/me), rate-limit auth testé (bloque après spam), AES prêt pour OAuth</td></tr>
+                        <tr><td>Profil (mot de passe, suppression de compte)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>POST /auth/change-password</code>, <code>DELETE /auth/me</code> ajoutés ; testés au navigateur (reconnexion avec le nouveau mot de passe, suppression vérifiée absente de la base ensuite)</td></tr>
+                        <tr><td>GitHub adapters : token par utilisateur</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Les adapters <code>recent_commits</code>/<code>security_alerts</code> exigent le compte GitHub lié de l'utilisateur ; sans lien, <code>DASHBOARD_FETCH_FAILED</code>→<code>SERVICE_OAUTH_REQUIRED</code> en production, repli sur <code>GITHUB_TOKEN</code> serveur uniquement si <code>NODE_ENV!==production</code> — vérifié le 24/09 (prod refuse même avec <code>GITHUB_TOKEN</code> renseigné, et l'app démarre sans identifiants GitHub dans <code>.env</code>)</td></tr>
+                        <tr><td>Services Finance &amp; Hacker News (5<sup>e</sup> service, widgets 7–10)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Sans compte ni clé, comme weather/rss : <code>exchange_rate</code>/<code>crypto_price</code> (Frankfurter, CoinGecko) + <code>top_stories</code>/<code>story_search</code> (Algolia HN) — Zod, codes d'erreur, images <code>public/img/</code> sourcées (Unsplash) ; <code>/about.json</code> vérifié 5 services / 10 widgets, et les 4 adapters testés contre les vraies API externes le 24/09</td></tr>
+                        <tr><td>Internationalisation FR/EN</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>react-i18next, 2 fichiers (<code>i18n/locales/{fr,en}.json</code>), zéro texte en dur restant (pages/modales/menus/erreurs/toasts) y compris les données du registre (noms/descriptions/paramètres de widgets, clé i18n par id avec repli sur le registre), langue par défaut = navigateur, sélecteur dans le menu utilisateur + nav landing/login, persistée en localStorage et sur le compte (<code>users.language</code>, <code>PATCH /auth/language</code>), emails de confirmation envoyés dans la langue choisie à l'inscription (Mailpit vérifié FR+EN), dates/nombres via <code>Intl</code>, codes d'erreur back stables traduits côté front — testé au navigateur réel (Playwright, 13/13 puis 9/9) les 24/09</td></tr>
+                        <tr><td>Audit de secrets</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>gitleaks indisponible localement → scan manuel de <code>git log -p --all</code> + arbre de travail (motifs ghp_/gho_/AKIA/sk-/xox/clés PEM, valeurs JWT_SECRET/CRYPTO_KEY renseignées) : aucun secret réel trouvé ; <code>.env</code>/<code>.env.*</code> bien ignorés (seul <code>.env.example</code> commité, valeurs vides) — audité deux fois (24/09), avant chaque session de travail</td></tr>
+                        <tr><td>Données réelles (fin des simulations)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Stats landing/admin lues depuis <code>GET /widgets</code> et <code>GET /admin/stats</code> (plus de « 3 services / 6 widgets » en dur) ; <code>audit_logs</code> réellement écrit (login, liaison GitHub, ajout/suppression de widget, actions admin) et affiché dans le journal admin via <code>GET /admin/audit-log</code> ; nom de profil persisté via <code>users.name</code> + <code>PATCH /auth/profile</code> ; onglet « Services » du profil (identifiants simulés, jamais branchés) et cloche « Activité récente » de la topbar (liste fixe) supprimés plutôt que laissés en simulation ; boutons play de <code>DashLeft</code> retirés (cartes/lignes cliquables) — testé au navigateur (Playwright, 12/12) le 24/09</td></tr>
+                        <tr><td>Widget GitHub sans compte lié</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>dashboard.service.addWidget</code> refuse désormais un widget GitHub si le compte n'est pas lié (<code>SERVICE_OAUTH_REQUIRED</code>), en plus du filtre déjà présent côté assistant (wizard) — testé au navigateur : ajout de <code>recent_commits</code> bloqué par la modale d'abonnement tant que GitHub n'est pas connecté</td></tr>
+                        <tr><td>Tests</td><td class="status"><span class="badge badge-missing">ABSENT</span></td><td>Aucun fichier <code>*.test.ts</code>/<code>*.spec.ts</code> dans le dépôt — testé manuellement (curl + Playwright) mais pas de suite automatisée</td></tr>
+                        <tr><td><code>.env.example</code>, <code>bonus/</code></td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Créés le 24/09, à la racine</td></tr>
+                        <tr><td>README racine</td><td class="status"><span class="badge badge-missing">ABSENT</span></td><td>Toujours à écrire</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>0.4 Reste à faire — priorisé</h3>
+                <div class="success" style="margin-bottom:0.75rem;">
+                    ✅ Fait le 24/09 (deux sessions) : <code>backend/src</code> reconstitué + infra Docker testée, puis <strong>auth complète, OAuth GitHub, 3 widgets A, services subscribe/unsubscribe, admin users</strong> — tout testé via curl et navigateur réel (Playwright), et branché au frontend (login/register/confirm/services/admin).
+                </div>
+                <ol>
+                    <li><strong>Committer tout ce travail</strong> (backend/src, infra, frontend) sur une branche dédiée — c'est maintenant la priorité n°1, voir le risque §0.1.</li>
+                    <li>Réconcilier <code>main</code> local avec <code>origin/main</code> (branches ont divergé).</li>
+                    <li>Créer une vraie OAuth App GitHub (<code>GITHUB_CLIENT_ID/SECRET</code>) pour tester l'échange réel — le code est prêt, jamais exercé contre la vraie API GitHub.</li>
+                    <li>Supprimer le code mort BullMQ/Redis (<code>jobs/</code>, <code>modules/timer/</code>) hérité de l'ancien plan.</li>
+                    <li>README racine, au moins un test E2E (Vitest/Playwright).</li>
+                    <li>Hors périmètre de ce chantier, à faire séparément : brancher <code>ProfilePage</code> (édition profil, mot de passe, suppression de compte) sur une vraie API — reste sur <code>api/demo.ts</code>.</li>
+                </ol>
+                <div class="success">
+                    <strong>✅ Jalon atteint :</strong> <code>docker-compose up</code> + <code>/about.json</code> conforme (6 widgets) sur :8080 — testé en conditions réelles le 24/09.
+                </div>
+            </section>
+
+            <!-- RÉSUMÉ -->
+            <section id="resume">
+                <h2>1. Résumé du plan (PLAN.md, 23/09)</h2>
+                <p>Décisions clés qui encadrent tout le reste du document :</p>
+                <ul>
+                    <li><strong>Objectif = 3 services, 6 widgets.</strong> Formule du sujet : (1 + X) services et (3 × X) widgets, X = 2.</li>
+                    <li><strong>Priorité n°1 : <code>docker-compose up</code> + <code>/about.json</code> sur :8080.</strong> C'est le premier test du correcteur — toujours pas atteint (voir §0).</li>
+                    <li><strong>Architecture simplifiée :</strong> Timer côté client + cache serveur. Pas de worker BullMQ ni de Redis avant le 01/10.</li>
+                    <li><strong>Registre de widgets unique</strong> côté back : il génère <code>/about.json</code>, la validation des configs et les formulaires du front.</li>
+                    <li><strong>Coupé :</strong> OIDC Google, Steam, CI complète, Storybook. Reportés en bonus si le temps le permet.</li>
+                    <li><strong>Rééquilibrage :</strong> B prend Docker, nginx et <code>/about.json</code> en entier, car le front du dashboard existe déjà dans le prototype.</li>
+                </ul>
             </section>
 
             <!-- EXIGENCES -->
             <section id="exigences">
-                <h2>2. Exigences du Sujet (Rappel exhaustif)</h2>
-                
-                <h3>2.1 Workflow global</h3>
-                <ol>
-                    <li>L'utilisateur crée un compte et confirme son inscription.</li>
-                    <li>Il s'authentifie et accède à la plateforme.</li>
-                    <li>Il s'abonne aux services souhaités (OAuth ou identifiants).</li>
-                    <li>Chaque service propose un ensemble de widgets.</li>
-                    <li>Il construit son dashboard en ajoutant des instances configurées.</li>
-                    <li>Un Timer rafraîchit périodiquement les données.</li>
-                </ol>
-
-                <h3>2.2 User management</h3>
-                <ul>
-                    <li>Inscription via formulaire (email/mot de passe ou OIDC).</li>
-                    <li>Confirmation d'inscription avant accès.</li>
-                    <li>Section d'administration pour gérer les utilisateurs.</li>
-                </ul>
-
-                <h3>2.3 Identity & permissions</h3>
-                <ul>
-                    <li><strong>Authentification</strong> : identifie l'utilisateur (credentials ou OIDC).</li>
-                    <li><strong>Autorisation</strong> : permet aux widgets d'accéder aux services externes via OAuth 2.0.</li>
-                    <li>Lier le compte tiers à un utilisateur existant.</li>
-                </ul>
-
-                <h3>2.4 Abonnement aux services</h3>
-                <ul>
-                    <li>Services sans compte externe (ex : météo) disponibles par défaut.</li>
-                    <li>Services avec compte : l'utilisateur fournit ses identifiants ou lie via OAuth.</li>
-                    <li>Données sensibles manipulées avec une extrême prudence.</li>
-                </ul>
-
-                <h3>2.5 Widgets</h3>
-                <ul>
-                    <li>Chaque service offre plusieurs widgets (but, apparence, configuration variés).</li>
-                    <li>Les instances sont configurables, puis ajoutées au dashboard.</li>
-                    <li><strong>Règle stricte</strong> : un widget doit avoir au moins un paramètre configurable.</li>
-                    <li>Deux instances du même widget avec des configs différentes affichent des infos distinctes.</li>
-                </ul>
-
-                <h3>2.6 Timer</h3>
-                <ul>
-                    <li>Chaque instance communique son refresh rate au Timer.</li>
-                    <li>Le Timer déclenche les mises à jour aux intervalles appropriés.</li>
-                </ul>
-
-                <h3>2.7 Dashboard</h3>
-                <ul>
-                    <li>Ajouter un widget (choisir type, configurer, définir refresh rate, confirmer).</li>
-                    <li>Reconfigurer une instance existante.</li>
-                    <li>Déplacer une instance.</li>
-                    <li>Supprimer une instance.</li>
-                </ul>
-            </section>
-
-            <!-- ÉQUIPE -->
-            <section id="equipe">
-                <h2>3. Équipe & Répartition des Tâches (Binôme 100% Full-Stack, 3 widgets par membre)</h2>
-                <p>Le projet est réalisé par <strong>2 étudiants</strong>. Afin de garantir une <strong>équité parfaite</strong>, chaque membre travaille <strong>à la fois sur le frontend et le backend</strong>, et prend en charge <strong>exactement 1 widget par service, soit 3 widgets au total par personne</strong>. Aucun membre n'est cantonné à une couche technique ni à un service.</p>
-
-                <div class="balance">
-                    <h3 style="margin-top:0; color: var(--success);">⚖️ Principe d'équité appliqué</h3>
-                    <ul>
-                        <li><strong>Chaque membre possède 3 widgets sur 6</strong> (1 par service × 3 services).</li>
-                        <li><strong>Chaque membre est full-stack sur ses widgets</strong> : adapter backend + UI frontend de bout en bout.</li>
-                        <li><strong>Chaque membre touche aux 3 services</strong> (Weather, GitHub, RSS).</li>
-                        <li><strong>Les briques d'infrastructure partagées</strong> (auth, dashboard CRUD, Timer, Docker, admin) sont réparties 50/50.</li>
-                        <li><strong>Relecture croisée obligatoire</strong> : toute PR est reviewée par l'autre membre, qui doit comprendre le code front ET back de son binôme.</li>
-                    </ul>
-                </div>
-
-                <h3>3.1 Découpage par domaine fonctionnel (Full-Stack)</h3>
+                <h2>2. Exigences du sujet</h2>
+                <p>Pour un groupe de 2, le sujet exige au minimum 3 services et 6 widgets, chacun avec au moins un paramètre configurable. Un widget sans paramètre n'est pas compté.</p>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Membre</th>
-                            <th>Domaine Full-Stack</th>
-                            <th>Backend (50%)</th>
-                            <th>Frontend (50%)</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Exigence</th><th>Détail</th><th>Statut réel (24/09)</th></tr></thead>
                     <tbody>
-                        <tr>
-                            <td><strong>Membre A</strong></td>
-                            <td><strong>Authentification + 3 widgets "A"</strong></td>
-                            <td>
-                                • User management (register/login/confirm)<br>
-                                • JWT + refresh tokens<br>
-                                • OIDC Google + OAuth 2.0 GitHub (flux complet)<br>
-                                • Endpoints <code>/services</code> et <code>/subscribe</code><br>
-                                • Chiffrement des tokens OAuth<br>
-                                • Rate limiting auth<br>
-                                • Adaptateurs back : <code>city_temperature</code>, <code>recent_commits</code>, <code>article_list</code><br>
-                                • <code>/about.json</code> : partie de ses 3 widgets
-                            </td>
-                            <td>
-                                • Pages Register / Login / Confirm<br>
-                                • Boutons OIDC + OAuth GitHub<br>
-                                • Page "Mes services"<br>
-                                • UI des widgets : <code>city_temperature</code>, <code>recent_commits</code>, <code>article_list</code><br>
-                                • Design system : composants de formulaire<br>
-                                • Page admin users
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Membre B</strong></td>
-                            <td><strong>Dashboard & Timer + 3 widgets "B"</strong></td>
-                            <td>
-                                • Schéma BD dashboard (widget_instances)<br>
-                                • CRUD instances de widgets<br>
-                                • Persistance positions et refresh rates<br>
-                                • Worker BullMQ (Timer)<br>
-                                • Cache Redis des réponses APIs<br>
-                                • Bouton front OAuth GitHub + gestion des états<br>
-                                • Adaptateurs back : <code>precipitation_forecast</code>, <code>security_alerts</code>, <code>feed_summary</code><br>
-                                • <code>/about.json</code> : partie de ses 3 widgets
-                            </td>
-                            <td>
-                                • Page Dashboard (grille drag & drop)<br>
-                                • Modale de configuration générique<br>
-                                • Reconfiguration / suppression d'instances<br>
-                                • UI des widgets : <code>precipitation_forecast</code>, <code>security_alerts</code>, <code>feed_summary</code><br>
-                                • Design system : composants dashboard<br>
-                                • Page admin stats
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h3>3.2 Répartition chiffrée (preuve d'équité)</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Catégorie</th>
-                            <th>Membre A</th>
-                            <th>Membre B</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td><strong>Widgets (1 par service)</strong></td><td>3 : <code>city_temperature</code>, <code>recent_commits</code>, <code>article_list</code></td><td>3 : <code>precipitation_forecast</code>, <code>security_alerts</code>, <code>feed_summary</code></td><td>6</td></tr>
-                        <tr><td>Services touchés</td><td>3 (Weather, GitHub, RSS)</td><td>3 (Weather, GitHub, RSS)</td><td>3</td></tr>
-                        <tr><td>Tables BD</td><td>5 (users, oauth_accounts, refresh_tokens, services, user_services)</td><td>4 (widgets, widget_instances, widget_cache, audit_logs)</td><td>9</td></tr>
-                        <tr><td>Endpoints API</td><td>~12 (auth + services)</td><td>~12 (dashboard + widgets + timer)</td><td>~24</td></tr>
-                        <tr><td>Pages Frontend</td><td>4 (login, register, confirm, services, admin-users)</td><td>4 (dashboard, widget-config, profile, admin-stats)</td><td>8</td></tr>
-                        <tr><td>Adaptateurs APIs externes</td><td>3 (Weather T°, GitHub commits, RSS list)</td><td>3 (Weather prévisions, GitHub alerts, RSS summary)</td><td>6</td></tr>
-                        <tr><td>Docker services</td><td>nginx + api (auth)</td><td>worker + postgres + redis</td><td>5</td></tr>
-                        <tr><td>Tests E2E</td><td>Parcours auth + abonnements + ses 3 widgets</td><td>Parcours dashboard + ses 3 widgets</td><td>2 scénarios</td></tr>
-                    </tbody>
-                </table>
-                <div class="success">
-                    <strong>✅ Résultat :</strong> Chaque membre fait exactement <strong>3 widgets (1 par service)</strong>, touche aux 3 services, et possède une charge équivalente en back et en front. Aucun déséquilibre.
-                </div>
-
-                <h3>3.3 Vue synthétique des widgets par membre</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Service</th>
-                            <th>Widget</th>
-                            <th>Membre responsable (Back + Front)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td rowspan="2"><strong>Weather</strong></td><td><code>city_temperature</code></td><td>Membre A</td></tr>
-                        <tr><td><code>precipitation_forecast</code></td><td>Membre B</td></tr>
-                        <tr><td rowspan="2"><strong>GitHub</strong></td><td><code>recent_commits</code></td><td>Membre A</td></tr>
-                        <tr><td><code>security_alerts</code></td><td>Membre B</td></tr>
-                        <tr><td rowspan="2"><strong>RSS</strong></td><td><code>article_list</code></td><td>Membre A</td></tr>
-                        <tr><td><code>feed_summary</code></td><td>Membre B</td></tr>
+                        <tr><td>Services</td><td>≥ 3 (1 + X) — 5 livrés (weather, github, rss, finance, hackernews)</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Widgets</td><td>≥ 6 (3 × X), chacun avec ≥ 1 paramètre — 10 livrés</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Inscription + confirmation</td><td>Formulaire, confirmation avant accès</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Authentification</td><td>Identifiants ou OIDC</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Autorisation</td><td>OAuth 2.0, compte tiers lié à l'utilisateur</td><td class="status"><span class="badge badge-partial">PARTIEL</span></td></tr>
+                        <tr><td>Abonnement aux services</td><td>Sans compte par défaut, les autres après abonnement</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Dashboard</td><td>Ajouter, reconfigurer, déplacer, supprimer</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Instances multiples</td><td>Deux instances du même widget, configs différentes, données distinctes</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Timer</td><td>Chaque instance communique son refresh rate au Timer</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Administration</td><td>Gestion des utilisateurs</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>Docker</td><td><code>docker-compose build</code> puis <code>up</code>, fichier à la racine</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td><code>/about.json</code></td><td>GET sur http://localhost:8080/about.json</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>README.md racine</td><td>Features, install, usage, stack, structure</td><td class="status"><span class="badge badge-missing">ABSENT</span></td></tr>
+                        <tr><td>Dossier <code>bonus/</code></td><td>Tout ce qui est hors sujet</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>UX</td><td>Interface responsive, accessible</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
                     </tbody>
                 </table>
                 <div class="info">
-                    <strong>📊 Lecture du tableau :</strong> chaque membre fait <strong>exactement 1 widget par service</strong>, soit 3 widgets au total. La colonne "Membre responsable" couvre l'intégralité du widget : schéma, adaptateur API externe, endpoint REST, composant React, gestion des erreurs.
-                </div>
-
-                <h3>3.4 Méthode de travail</h3>
-                <ul>
-                    <li><strong>Pair programming</strong> : 2 sessions de 2h par semaine pour se former mutuellement sur les parties de l'autre (front ↔ back).</li>
-                    <li><strong>Daily stand-up</strong> : 15 min chaque matin pour synchroniser.</li>
-                    <li><strong>Revue de code croisée obligatoire</strong> : chaque PR est relue par l'autre membre, qui doit valider la cohérence front + back.</li>
-                    <li><strong>Documentation partagée</strong> : chaque membre documente ses endpoints et composants dans le README.</li>
-                </ul>
-            </section>
-
-            <!-- BRANCHES GIT -->
-            <section id="branches">
-                <h2>4. Répartition des branches GitHub</h2>
-                <p>Convention : <code>feature/&lt;initiales&gt;-&lt;nom-feature&gt;</code>. Chaque branche couvre une feature <strong>full-stack</strong> (back + front) pour rester cohérent avec l'organisation par domaine.</p>
-                <table>
-                    <thead>
-                        <tr><th>Membre</th><th>Branche principale</th><th>Branches de feature (full-stack)</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Membre A</strong></td>
-                            <td><code>feature/a-auth-services</code></td>
-                            <td>
-                                <code>feature/a-register-login</code> (back + front auth)<br>
-                                <code>feature/a-email-confirm</code> (back + front confirm)<br>
-                                <code>feature/a-oidc-google</code> (back + front)<br>
-                                <code>feature/a-oauth-github</code> (back + front OAuth)<br>
-                                <code>feature/a-services-page</code> (back + front abonnements)<br>
-                                <code>feature/a-widget-city-temperature</code> (back adapter + front UI)<br>
-                                <code>feature/a-widget-recent-commits</code> (back adapter + front UI)<br>
-                                <code>feature/a-widget-article-list</code> (back adapter + front UI)<br>
-                                <code>feature/a-admin-users</code> (back + front)<br>
-                                <code>feature/a-about-json</code> (partie de ses 3 widgets)
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Membre B</strong></td>
-                            <td><code>feature/b-dashboard-widgets</code></td>
-                            <td>
-                                <code>feature/b-dashboard-ui</code> (back CRUD + front grille)<br>
-                                <code>feature/b-drag-drop</code> (front)<br>
-                                <code>feature/b-widget-config-modal</code> (back schema + front modale)<br>
-                                <code>feature/b-widget-precipitation</code> (back adapter + front UI)<br>
-                                <code>feature/b-widget-security-alerts</code> (back adapter + front UI)<br>
-                                <code>feature/b-widget-feed-summary</code> (back adapter + front UI)<br>
-                                <code>feature/b-timer-worker</code> (back BullMQ)<br>
-                                <code>feature/b-oauth-github-ui</code> (front bouton + états)<br>
-                                <code>feature/b-admin-stats</code> (back + front)<br>
-                                <code>feature/b-about-json</code> (partie de ses 3 widgets)
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="success">
-                    <strong>✅ Règle de merge :</strong> Toute PR doit être approuvée par l'autre membre avant fusion dans <code>develop</code>. Les branches <code>main</code> et <code>develop</code> sont protégées.
+                    <strong>Rappel :</strong> dans <code>/about.json</code>, les seuls types de paramètres autorisés sont <code>integer</code> et <code>string</code>. <code>client.host</code> doit être l'IP réelle du client, et <code>current_time</code> un timestamp Unix en secondes.
                 </div>
             </section>
 
-            <!-- FONCTIONNALITÉS -->
-            <section id="fonctionnalites">
-                <h2>5. Fonctionnalités</h2>
-                
-                <h3>5.1 Transverses</h3>
-                <ul>
-                    <li>Inscription / connexion (JWT, bcrypt) avec confirmation par email.</li>
-                    <li>Authentification OIDC (Google) + OAuth 2.0 (GitHub, Steam).</li>
-                    <li>RBAC : <code>user</code>, <code>admin</code>.</li>
-                    <li>Validation stricte des entrées (Zod).</li>
-                    <li>Système de notifications (toast + pastille).</li>
-                    <li>Gestion des consentements OAuth (lier/délier un compte tiers).</li>
-                </ul>
-
-                <h3>5.2 Espace public (non authentifié)</h3>
-                <ul>
-                    <li>Page d'accueil marketing avec présentation des services et widgets.</li>
-                    <li>Formulaire d'inscription et de connexion.</li>
-                    <li>Page de confirmation d'email.</li>
-                    <li>Page <code>/about.json</code> (endpoint machine-readable).</li>
-                </ul>
-
-                <h3>5.3 Espace utilisateur authentifié</h3>
-                <ul>
-                    <li><strong>Dashboard</strong> : page principale, grille drag & drop de widgets.</li>
-                    <li><strong>Ajout de widget</strong> : sélection du service, choix du widget, configuration des paramètres, définition du refresh rate, confirmation.</li>
-                    <li><strong>Reconfiguration</strong> : modification des paramètres d'une instance.</li>
-                    <li><strong>Déplacement</strong> : drag & drop pour réorganiser.</li>
-                    <li><strong>Suppression</strong> : retrait d'une instance du dashboard.</li>
-                    <li><strong>Abonnements</strong> : page listant les services, avec état (abonné / non abonné).</li>
-                    <li><strong>Profil</strong> : gestion du compte, des liens OAuth, du mot de passe.</li>
-                </ul>
-
-                <h3>5.4 Espace admin</h3>
-                <ul>
-                    <li>Gestion des utilisateurs (liste, suspension, suppression).</li>
-                    <li>Dashboard de statistiques globales (nb users, nb widgets actifs, services les plus utilisés).</li>
-                    <li>Modération des services et widgets (activer/désactiver).</li>
-                </ul>
-            </section>
-
-            <!-- SERVICES & WIDGETS -->
-            <section id="services">
-                <h2>6. Services & Widgets (X = 2 → 3 services / 6 widgets / 3 par membre)</h2>
-                <p>Conformément à la formule <code>(1 + X)</code> services et <code>(3 × X)</code> widgets, voici les services retenus pour un binôme. <strong>Chaque membre prend en charge exactement 1 widget par service, soit 3 widgets au total.</strong></p>
-
-                <h3>6.1 Service Weather (sans compte externe)</h3>
+            <!-- PÉRIMÈTRE -->
+            <section id="perimetre">
+                <h2>3. Périmètre</h2>
+                <p>On livre au 01/10 uniquement ce que le sujet exige. Le reste passe après la livraison, dans <code>bonus/</code> ou dans des branches séparées.</p>
                 <table>
-                    <thead>
-                        <tr><th>Widget</th><th>Description</th><th>Paramètres</th><th>Responsable</th></tr>
-                    </thead>
+                    <thead><tr><th>Élément</th><th>Décision</th><th>Raison</th></tr></thead>
                     <tbody>
-                        <tr>
-                            <td><code>city_temperature</code></td>
-                            <td>Affiche la température actuelle d'une ville.</td>
-                            <td><code>city</code> (string) — ex : "Paris"</td>
-                            <td><strong>Membre A</strong></td>
-                        </tr>
-                        <tr>
-                            <td><code>precipitation_forecast</code></td>
-                            <td>Prévisions de précipitations sur N jours.</td>
-                            <td><code>city</code> (string), <code>days</code> (integer, 1–7)</td>
-                            <td><strong>Membre B</strong></td>
-                        </tr>
+                        <tr><td>Auth email + mot de passe + confirmation</td><td>Garder</td><td>Exigé</td></tr>
+                        <tr><td>OAuth 2.0 GitHub lié au compte</td><td>Garder</td><td>Exigé (autorisation des widgets)</td></tr>
+                        <tr><td>6 widgets branchés sur de vraies APIs</td><td>Garder</td><td>Exigé</td></tr>
+                        <tr><td>Dashboard CRUD persisté + Timer</td><td>Garder</td><td>Exigé</td></tr>
+                        <tr><td>Admin : liste, suspension, suppression</td><td>Garder</td><td>Demandé par le sujet</td></tr>
+                        <tr><td>Admin stats</td><td>Garder si le temps le permet</td><td>Simple : quelques <code>COUNT</code></td></tr>
+                        <tr><td>Rate limiting, Zod, bcrypt, tokens chiffrés</td><td>Garder</td><td>Sécurité exigée</td></tr>
+                        <tr><td>Thème clair/sombre, responsive</td><td>Garder</td><td>Déjà fait dans le prototype</td></tr>
+                        <tr><td>OIDC Google</td><td>Reporter</td><td>Le sujet accepte l'inscription par email seule</td></tr>
+                        <tr><td>OAuth Steam</td><td>Supprimer</td><td>Hors de nos services ; Steam utilise OpenID 2.0</td></tr>
+                        <tr><td>Worker BullMQ + Redis</td><td>Reporter</td><td>Trop coûteux à 8 jours ; le Timer client suffit</td></tr>
+                        <tr><td>CI GitHub Actions complète</td><td>Réduire</td><td>Lint + build seulement</td></tr>
+                        <tr><td>Playwright multi-navigateurs</td><td>Réduire</td><td>1 scénario E2E sur Chromium</td></tr>
+                        <tr><td>Storybook, widgets Spotify/WhatsApp</td><td>Reporter</td><td>Bonus</td></tr>
                     </tbody>
                 </table>
-
-                <h3>6.2 Service GitHub (OAuth 2.0)</h3>
-                <table>
-                    <thead>
-                        <tr><th>Widget</th><th>Description</th><th>Paramètres</th><th>Responsable</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>recent_commits</code></td>
-                            <td>Derniers commits d'un dépôt.</td>
-                            <td><code>repository</code> (string, format "owner/repo"), <code>limit</code> (integer)</td>
-                            <td><strong>Membre A</strong></td>
-                        </tr>
-                        <tr>
-                            <td><code>security_alerts</code></td>
-                            <td>Alertes de sécurité d'un dépôt.</td>
-                            <td><code>repository</code> (string), <code>severity</code> (string)</td>
-                            <td><strong>Membre B</strong></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="info">
-                    <strong>🔗 OAuth GitHub (infrastructure partagée) :</strong> Membre A développe le <em>flux back</em> complet (stratégie, callback, stockage chiffré du token). Membre B développe le <em>bouton front</em> et la gestion des états (connecté / non connecté). Les deux membres consomment le même token pour leur widget respectif.
-                </div>
-
-                <h3>6.3 Service RSS (sans compte externe)</h3>
-                <table>
-                    <thead>
-                        <tr><th>Widget</th><th>Description</th><th>Paramètres</th><th>Responsable</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>article_list</code></td>
-                            <td>Derniers articles d'un flux RSS.</td>
-                            <td><code>link</code> (string, URL du flux), <code>number</code> (integer)</td>
-                            <td><strong>Membre A</strong></td>
-                        </tr>
-                        <tr>
-                            <td><code>feed_summary</code></td>
-                            <td>Résumé agrégé de plusieurs flux.</td>
-                            <td><code>link</code> (string), <code>number</code> (integer)</td>
-                            <td><strong>Membre B</strong></td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="success">
-                    <strong>✅ Total : 3 services, 6 widgets — 3 par membre</strong> — conforme à l'exigence (1+2) services et (3×2) widgets, avec une répartition équitable à 100%.
-                </div>
-
-                <h3>6.4 Exemples de paramètres attendus par <code>about.json</code></h3>
-                <pre><code>{
-  "name": "weather",
-  "widgets": [
-    {
-      "name": "city_temperature",
-      "description": "Display temperature for a city",
-      "params": [
-        { "name": "city", "type": "string" }
-      ]
-    }
-  ]
-}</code></pre>
-            </section>
-
-            <!-- TIMER -->
-            <section id="timer">
-                <h2>7. Le Timer (Cœur du rafraîchissement) — Membre B</h2>
-                <p>Le Timer est le composant responsable du rafraîchissement automatique des données. Chaque instance de widget déclare son <strong>refresh rate</strong> (en secondes) lors de sa configuration.</p>
-                <ul>
-                    <li><strong>Côté serveur</strong> : un scheduler (BullMQ repeatable jobs) parcourt périodiquement les instances dont le <code>next_refresh_at</code> est dépassé et déclenche l'appel API externe.</li>
-                    <li><strong>Cache Redis</strong> : les résultats sont mis en cache avec un TTL correspondant au refresh rate, pour éviter les appels redondants.</li>
-                    <li><strong>Côté client</strong> : le frontend affiche le dernier refresh et le statut (ok/error) de chaque widget.</li>
-                </ul>
-                <div class="analogie">
-                    <strong>Analogie :</strong> Le Timer est un <em>métronome invisible</em>. Il ne fait pas de bruit, mais il donne la cadence à chaque widget pour qu'il aille chercher sa nouvelle information au bon moment.
-                </div>
-                <table>
-                    <thead>
-                        <tr><th>Champ</th><th>Type</th><th>Description</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td><code>refresh_rate</code></td><td>integer (secondes)</td><td>Fréquence de rafraîchissement choisie par l'utilisateur (min 30s).</td></tr>
-                        <tr><td><code>last_refreshed_at</code></td><td>timestamp</td><td>Dernière exécution réussie.</td></tr>
-                        <tr><td><code>next_refresh_at</code></td><td>timestamp</td><td>Prochaine exécution planifiée.</td></tr>
-                        <tr><td><code>status</code></td><td>enum</td><td><code>ok</code>, <code>error</code>, <code>pending</code>.</td></tr>
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- STACK -->
-            <section id="stack">
-                <h2>8. Stack technique (justifiée en profondeur)</h2>
-                <p>Le choix de chaque brique technologique n'est ni un réflexe ni un effet de mode : il résulte d'une analyse comparative des alternatives disponibles, confrontée aux contraintes imposées par le sujet (souveraineté totale, temps réel, port 8080, livraison en trois semaines, accessibilité RGAA). Chaque décision ci-dessous a été pesée en termes de <strong>coût d'apprentissage</strong>, de <strong>performance</strong>, de <strong>sécurité</strong> et de <strong>maintenabilité</strong> pour un binôme.</p>
-
-                <h3>8.1 Frontend – React + Vite + TypeScript + Tailwind CSS</h3>
-                <p><strong>Justification :</strong> React impose naturellement une architecture en composants réutilisables, ce qui est <em>exactement</em> le besoin d'une application dont le cœur est une grille de widgets tous différents mais reposant sur la même structure de carte, de configuration et de rafraîchissement. Vite a été préféré à Webpack parce que son démarrage à froid et son Hot Module Replacement en quelques millisecondes transforment radicalement la boucle de développement sur un projet aussi court que le nôtre (3 semaines effectives), là où Webpack aurait consommé plusieurs secondes à chaque sauvegarde. TypeScript n'est pas un luxe mais une assurance : avec un schéma de données aussi dense (utilisateurs, tokens OAuth, instances de widgets, schémas de paramètres), une seule confusion sur un type de champ aurait produit un bug silencieux en production — le compilateur nous l'interdit à la compilation. Enfin, Tailwind CSS élimine la dérive des feuilles de style en imposant un vocabulaire utilitaire unique, ce qui garantit la cohérence visuelle du design system entre les pages Auth (Membre A) et Dashboard (Membre B) sans qu'aucun des deux n'ait à négocier le nom d'une classe CSS avec l'autre.</p>
-                <div class="analogie">
-                    <strong>Analogie :</strong> React = des briques Lego standards. Vite = un tapis roulant qui livre chaque brique instantanément. TypeScript = un plan d'architecte qui refuse tout mur posé de travers. Tailwind = un jeu de briques de couleur déjà calibrées, impossible d'avoir deux nuances de bleu différentes.
-                </div>
-
-                <h3>8.2 Drag &amp; Drop – dnd-kit</h3>
-                <p><strong>Justification :</strong> Le sujet impose explicitement que l'utilisateur puisse <em>déplacer</em> un widget sur son dashboard, ce qui élimine toute solution purement CSS. Nous avons écarté <code>react-beautiful-dnd</code> (abandonné par Atlassian, plus maintenu) et <code>react-dnd</code> (basé sur HTML5 Drag &amp; Drop, notoirement inaccessible au clavier et instable sur tactile). <code>dnd-kit</code> a été retenu pour trois raisons décisives : il est <strong>accessible nativement</strong> (navigation clavier et lecteurs d'écran dès l'installation, ce qui est indispensable pour notre exigence RGAA AA), il est <strong>agnostique du rendu</strong> (nous gardons la main sur les composants React, contrairement à une librairie qui impose son propre DOM), et il gère nativement le <strong>collision detection</strong> sur grille, ce qui évite des semaines de développement sur la logique de placement. Choisir une librairie dnd non accessible aurait signé l'échec de notre conformité réglementaire — dnd-kit nous l'offre par construction.</p>
-
-                <h3>8.3 Backend – Node.js + Express + TypeScript</h3>
-                <p><strong>Justification :</strong> Le profil de charge de cette application est essentiellement <strong>I/O-bound</strong> : elle passe son temps à interroger des APIs externes (OpenWeatherMap, GitHub, flux RSS) et à attendre leurs réponses, plutôt qu'à calculer intensivement — un profil où Node.js excelle grâce à son event loop non-bloquant, contrairement à un modèle thread-par-requête qui aurait gaspillé de la mémoire à chaque appel sortant. Express a été préféré à Fastify ou NestJS pour une raison de <strong>maîtrise du binôme</strong> : sa surface d'API minimaliste nous permet de garder une architecture Controller → Service → Repository lisible par les deux, sans noyer la logique métier sous les décorateurs d'un framework plus opiniâtre. L'adoption de TypeScript côté serveur <em>et</em> client n'est pas un détail : elle nous permet de <strong>partager les types de contrat</strong> (structures de requête/réponse) entre front et back, éliminant par construction toute désynchronisation d'interface — un gain énorme sur un projet à deux. Enfin, Node.js unifie la stack front/back en un seul langage, ce qui facilite la relecture croisée systématique exigée par notre méthode de travail.</p>
-
-                <h3>8.4 ORM – Drizzle ORM</h3>
-                <p><strong>Justification :</strong> Nous avons volontairement écarté Prisma, dont le moteur binaire et la génération de client ralentissent les builds Docker et complexifient les migrations en CI — deux points critiques pour un projet qui doit être reconstruit intégralement via <code>docker-compose build</code>. Drizzle, à l'inverse, est <strong>une librairie TypeScript pure</strong>, sans binaire externe, qui compile directement en SQL lisible : cela signifie qu'un développeur tiers peut <em>lire</em> la migration et comprendre l'intention derrière chaque changement de schéma, ce qui est exactement ce qu'exige la compétence « hand over a project ». Sa syntaxe proche du SQL nous a permis de garder le contrôle fin sur les requêtes (jointures, index, contraintes), contrairement à un ORM full-featured qui aurait masqué des <code>JOIN</code> coûteux dans les endpoints dashboard. Enfin, la génération de types à partir du schéma élimine toute divergence entre la base réelle et les objets manipulés dans le code — un filet de sécurité majeur pour un binôme qui ne peut pas se permettre un bug de schéma en semaine 3.</p>
-
-                <h3>8.5 Base de données – PostgreSQL (conteneur local)</h3>
-                <p><strong>Justification :</strong> Le sujet impose une <strong>souveraineté totale</strong> (aucun service cloud managé type RDS, Firebase ou Atlas), ce qui nous laisse deux options sérieuses : PostgreSQL et MongoDB. Nous avons écarté MongoDB parce que notre modèle est fondamentalement <strong>relationnel</strong> : un utilisateur possède plusieurs comptes OAuth, plusieurs services souscrits, plusieurs instances de widgets, chacune liée à un widget type, lui-même lié à un service — une arborescence qui aurait nécessité des <code>$lookup</code> et des duplications manuelles en document-store, pour un gain nul. PostgreSQL nous offre au contraire : les <strong>contraintes d'intégrité référentielle</strong> (impossible d'avoir un widget orphelin), les <strong>transactions ACID</strong> (indispensables pour lier un compte OAuth et créer l'abonnement correspondant en une seule opération atomique), et un support natif du <strong>JSON typé</strong> pour stocker la configuration arbitraire des widgets sans perdre la rigueur relationnelle. Enfin, PostgreSQL est disponible en image officielle Docker ultra-stable, ce qui garantit un démarrage reproductible sur n'importe quelle machine de correction.</p>
-
-                <h3>8.6 Cache &amp; Queue – Redis (conteneur local)</h3>
-                <p><strong>Justification :</strong> Le Timer impose deux besoins distincts que Redis résout simultanément : un <strong>stockage ultra-rapide</strong> pour les réponses des APIs externes (afin de ne pas marteler OpenWeatherMap ou GitHub à chaque rafraîchissement) et une <strong>file de jobs persistante</strong> pour planifier les refreshes à intervalles réguliers. Séparer ces deux besoins aurait signifié ajouter un second conteneur (par ex. RabbitMQ pour la queue), complexifiant inutilement l'infrastructure — Redis joue les deux rôles avec une empreinte mémoire minimale. Nous l'avons préféré à Memcached, qui ne propose pas de queue de jobs, et à une solution "maison" en base PostgreSQL (table de jobs pollée), qui aurait généré de la charge DB inutile et des risques de contention. Enfin, Redis est le backend officiel de BullMQ, ce qui élimine toute couche d'abstraction hasardeuse entre la queue et le cache — un seul service à surveiller, un seul point de défaillance, un seul conteneur à orchestrer.</p>
-
-                <h3>8.7 Authentification – JWT + bcrypt + OIDC + OAuth 2.0</h3>
-                <p><strong>Justification :</strong> Le sujet distingue explicitement deux mécanismes complémentaires : l'<strong>authentification</strong> (qui est l'utilisateur) et l'<strong>autorisation</strong> (ce que les widgets peuvent faire au nom de l'utilisateur). JWT répond au premier avec un couple access token court (15 min) + refresh token long stocké en cookie HttpOnly, ce qui protège contre le vol par XSS tout en permettant une révocation immédiate côté serveur via une table <code>refresh_tokens</code>. Bcrypt a été préféré à Argon2 uniquement parce que son implémentation Node.js est mature et auditable, et que ses paramètres de coût sont ajustables ; nous restons vigilants sur ce point pour une future migration. Pour l'autorisation tierce, OIDC (couche identité sur OAuth) permet à un utilisateur de se connecter via Google sans que nous stockions jamais son mot de passe, et OAuth 2.0 permet à nos widgets GitHub de lire les dépôts au nom de l'utilisateur <em>sans jamais manipuler ses credentials GitHub</em>. Ce choix architectural — <strong>déléguer la confiance à des fournisseurs éprouvés plutôt que la réimplémenter</strong> — est exactement ce que le sujet appelle « glue code » : nous nous concentrons sur la logique métier, pas sur la cryptographie.</p>
-
-                <h3>8.8 Validation – Zod</h3>
-                <p><strong>Justification :</strong> Toute donnée entrant dans le système — formulaire d'inscription, payload de configuration d'un widget, paramètres de filtrage admin — doit être validée <em>avant</em> d'atteindre la base, sous peine d'ouvrir la porte à des injections ou à des incohérences d'état. Zod a été préféré à Joi ou class-validator pour trois raisons : il est <strong>TypeScript-first</strong> (le schéma produit directement le type, une seule source de vérité), il fonctionne <strong>côté front et côté back</strong> avec exactement le même code (un formulaire React peut réutiliser le schéma Zod de son endpoint), et il est <strong>extrêmement léger</strong> (pas de dépendance transitive lourde). Concrètement, quand un utilisateur configure un widget <code>city_temperature</code>, Zod garantit que <code>city</code> est une chaîne non vide et que <code>days</code>, s'il est présent, est un entier entre 1 et 7 — sinon la requête est rejetée en 400 avant même d'atteindre le contrôleur. Sans cette couche, chaque contrôleur aurait dû répéter ses vérifications manuelles, augmentant la surface de bug et violant le principe DRY.</p>
-
-                <h3>8.9 Serveur web – Nginx (conteneur)</h3>
-                <p><strong>Justification :</strong> Le sujet impose que le serveur réponde sur le port <strong>8080</strong> et serve une application full-stack (front statique + API + endpoint <code>/about.json</code>) — trois responsabilités qu'un simple serveur Node.js n'aurait pu assumer proprement. Nginx joue le rôle de <strong>reverse proxy</strong> : il sert les fichiers statiques du build React (bien plus efficacement que Node pour les assets), redirige <code>/api/*</code> vers le conteneur Express, et se charge des en-têtes de sécurité HTTP (Helmet en complément). Nous l'avons préféré à un simple <code>express.static()</code> parce que Nginx gère nativement la compression gzip/brotli, le cache des assets et les connexions concurrentes, ce qui allège drastiquement la charge CPU du backend — un point crucial pour un conteneur Node mono-thread. Enfin, ce découpage reproduit fidèlement une architecture de production réelle (reverse proxy en façade, application derrière), ce qui rend le projet <em>transposable</em> en environnement réel sans réécriture.</p>
-
-                <h3>8.10 CI – GitHub Actions</h3>
-                <p><strong>Justification :</strong> Sur un projet à deux avec merges quotidiens dans <code>develop</code>, l'intégration continue n'est pas un bonus mais une <strong>garantie anti-régression</strong> : sans elle, un membre aurait pu casser silencieusement le build de l'autre et perdre une journée à diagnostiquer. GitHub Actions a été préféré à GitLab CI ou Jenkins pour son intégration native au dépôt (aucun serveur à provisionner), sa gratuité sur les dépôts publics/étudiants, et son écosystème d'actions pré-écrites (setup Node, cache des dépendances). Notre pipeline exécute systématiquement : lint (ESLint), vérification TypeScript (<code>tsc --noEmit</code>), tests unitaires Vitest, tests E2E Playwright, et surtout un <strong>build complet du <code>docker-compose.yml</code></strong> pour valider que l'application reste déployable à chaque commit. C'est ce pipeline qui a transformé notre deadline en filet de sécurité plutôt qu'en pari.</p>
-
-                <h3>8.11 Infrastructure – Docker Compose</h3>
-                <p><strong>Justification :</strong> Le sujet impose littéralement <code>docker-compose build</code> puis <code>docker-compose up</code> comme unique mode de déploiement, ce qui élimine toute autre approche. Nous avons néanmoins structuré notre <code>docker-compose.yml</code> avec cinq services (<code>nginx</code>, <code>api</code>, <code>worker</code>, <code>postgres</code>, <code>redis</code>) plutôt qu'un seul conteneur monolithique, parce que cette séparation reflète notre architecture réelle (worker séparé pour le Timer, cache isolé pour Redis) et permet à chaque service de redémarrer indépendamment en cas d'incident. Les volumes nommés assurent la persistance des données PostgreSQL et Redis entre deux <code>up</code>, ce qui évite de perdre les comptes et widgets de test à chaque redémarrage. Le réseau interne Docker isole les services de l'extérieur : seul Nginx expose le port 8080 vers l'hôte, conformément au sujet. Cette configuration garantit qu'un correcteur peut cloner le dépôt, lancer deux commandes, et obtenir une application fonctionnelle <em>sans aucune installation manuelle</em>.</p>
-
-                <h3>8.12 Tests – Vitest + Playwright</h3>
-                <p><strong>Justification :</strong> La compétence « hand over a project » suppose qu'un tiers puisse vérifier que l'application fonctionne réellement, et non simplement lire du code. Vitest couvre les tests unitaires (services, adaptateurs d'APIs, validateurs Zod) avec la même syntaxe que Jest mais une vitesse d'exécution compatible avec l'écosystème Vite déjà en place — pas de double configuration. Playwright prend le relais pour les tests E2E en simulant un vrai navigateur (Chromium, Firefox, WebKit) et en couvrant les deux parcours critiques : <strong>inscription → confirmation → login → abonnement à un service</strong> d'un côté, <strong>ajout de widget → configuration → rafraîchissement → suppression</strong> de l'autre. Playwright a été préféré à Cypress parce qu'il est multi-navigateurs nativement, qu'il s'exécute en parallèle (tests 5× plus rapides), et qu'il s'intègre parfaitement dans une image Docker — point décisif pour notre CI. Ces deux couches de test forment le filet qui nous a permis de refactorer le dashboard sans craindre de casser l'authentification.</p>
-
-                <div class="success">
-                    <strong>✅ Principe directeur de la stack :</strong> Chaque brique a été sélectionnée pour <em>réduire la surface de code à écrire</em> et <em>augmenter la surface de code à relire</em> — nous préférons assembler des composants éprouvés que réinventer des roues, conformément à l'esprit « glue code » du sujet.
-                </div>
             </section>
 
             <!-- ARCHITECTURE -->
             <section id="architecture">
-                <h2>9. Architecture globale</h2>
-                <p>Architecture <strong>monolithique modulaire</strong> avec un worker séparé pour le Timer. Le tout tourne dans Docker Compose local.</p>
-                <ul>
-                    <li><strong>Client</strong> : navigateur (SPA React servie par Nginx).</li>
-                    <li><strong>Nginx</strong> : reverse proxy, port <strong>8080</strong>, sert le front et redirige <code>/api</code> vers le backend.</li>
-                    <li><strong>Backend API</strong> : Express, conteneur Node.js, expose <code>/about.json</code> et les endpoints métier.</li>
-                    <li><strong>Worker</strong> : BullMQ, conteneur Node.js pour le Timer et les jobs.</li>
-                    <li><strong>PostgreSQL</strong> : conteneur, volume persistant.</li>
-                    <li><strong>Redis</strong> : conteneur, volume persistant (cache + queue).</li>
-                </ul>
-                <p style="text-align:center; margin:1rem 0;"><em>Schéma : Client → Nginx (8080) → API + Worker → PostgreSQL / Redis / APIs externes</em></p>
-                <div class="info">
-                    <strong>🔌 APIs externes :</strong> Weather (OpenWeatherMap), GitHub (API REST v3), RSS (parsing XML).
-                </div>
-            </section>
+                <h2>4. Architecture</h2>
+                <p>Un monolithe modulaire derrière nginx, avec 4 conteneurs : nginx, api, postgres, mailpit. nginx est le seul conteneur exposé, sur le port 8080.</p>
 
-            <!-- ARBORESCENCE -->
-            <section id="arborescence">
-                <h2>10. Arborescence du projet</h2>
-                <pre><code>dashboard-epitech/
-├── docker-compose.yml
-├── .github/workflows/ci.yml
-├── frontend/
-│   ├── src/
-│   │   ├── components/       # ui, widgets, dashboard, auth, admin
-│   │   ├── pages/            # login, register, dashboard, services, admin
-│   │   ├── services/         # appels API centralisés
-│   │   ├── context/          # AuthContext, WidgetContext, NotificationContext
-│   │   ├── hooks/            # useTimer, useWidgets, useAuth
-│   │   └── utils/
-│   ├── package.json
-│   └── vite.config.ts
+                <div class="flow-row">
+                    <div class="flow-step">Navigateur<small>SPA React</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step st-done">nginx<small>:8080 — testé</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step st-partial">api<small>Express+TS — routes partielles</small></div>
+                </div>
+                <div class="flow-branch">
+                    <div class="flow-step st-done">postgres<small>8 tables migrées</small></div>
+                    <div class="flow-step st-done">mailpit<small>conteneur ok (inutilisé, pas d'auth)</small></div>
+                    <div class="flow-step st-partial">APIs externes<small>Open-Meteo ✓ / GitHub ~ / RSS ~</small></div>
+                </div>
+                <p style="text-align:center;font-size:0.85rem;color:#64748b;">nginx sert le front et relaie <code>/api/*</code> et <code>/about.json</code> vers l'API. Front et API partagent la même origine : pas de CORS.</p>
+
+                <h3>4.1 Conteneurs</h3>
+                <table>
+                    <thead><tr><th>Service</th><th>Image / build</th><th>Rôle</th><th>Port</th><th>Statut</th></tr></thead>
+                    <tbody>
+                        <tr><td>nginx</td><td>build multi-étapes <code>./frontend</code></td><td>Sert le SPA, reverse proxy</td><td>8080 exposé</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>api</td><td>build <code>./backend</code></td><td>Express, migrations Drizzle, <code>/about.json</code></td><td>3000 interne</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>postgres</td><td>postgres:16-alpine</td><td>Données, volume nommé</td><td>5432 interne</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>mailpit</td><td>axllent/mailpit</td><td>Reçoit les mails de confirmation</td><td>UI 8025</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                    </tbody>
+                </table>
+                <p style="font-size:0.85rem;color:#065f46;">✅ Les 4 conteneurs buildent et démarrent (testé le 24/09 : <code>docker compose build</code> + <code>up</code> + <code>curl :8080/about.json</code> + vérification des 8 tables en base). Fichiers non encore commités — voir §0.1.</p>
+
+                <h3>4.2 Registre de widgets : une seule source de vérité <span class="badge badge-partial" style="vertical-align:middle;">PARTIEL — 3/6</span></h3>
+                <p>Chaque widget est déclaré une seule fois côté back, dans <code>backend/src/widgets/registry.ts</code>. Une entrée contient <code>service</code>, <code>name</code>, <code>description</code>, <code>params</code> (avec <code>type: 'string' | 'integer'</code>), un schéma Zod, et <code>fetch(config, ctx)</code>.</p>
+                <p>À partir de ce registre : on génère <code>/about.json</code>, on valide les configs à la création/reconfiguration, et on sert <code>GET /api/v1/widgets</code> au front. Plus de <code>catalog.ts</code> codé en dur ni de colonne <code>params_schema</code> en base — pattern Strategy/Adapter, sans duplication.</p>
+                <div class="warning"><strong>Constat :</strong> le registre compilé (<code>backend/dist/widgets/registry.js</code>) ne contient que les 3 widgets « B » (<code>precipitation_forecast</code>, <code>security_alerts</code>, <code>feed_summary</code>). Les 3 widgets « A » sont un <code>TODO</code> explicite dans le fichier.</div>
+
+                <h3>4.3 Timer <span class="badge badge-done" style="vertical-align:middle;">FAIT</span></h3>
+                <p>Le Timer est centralisé côté client, le cache côté serveur :</p>
+                <ol class="timeline">
+                    <li>Au chargement du dashboard, chaque instance s'enregistre auprès du Timer client avec son <code>refresh_rate</code> (min 30 s).</li>
+                    <li>À l'échéance, le Timer appelle <code>GET /api/v1/dashboard/widgets/:id/data</code>.</li>
+                    <li>L'API renvoie le cache s'il a moins de <code>refresh_rate</code> secondes, sinon appelle l'adapter et stocke le résultat dans <code>widget_cache</code>.</li>
+                    <li>L'API met à jour <code>last_refreshed_at</code> et <code>status</code> ; le front les affiche.</li>
+                </ol>
+                <p>Constat : <code>dashboard.routes.js</code> compilé expose bien <code>GET /widgets/:id/data</code> avec cette logique de cache — conforme au design. Un worker serveur (BullMQ) reste une évolution possible après le 01/10.</p>
+
+                <h3>4.4 Modèle de données (8 tables) <span class="badge badge-done" style="vertical-align:middle;">FAIT (migré, testé)</span></h3>
+                <table>
+                    <thead><tr><th>Table</th><th>Champs clés</th><th>Responsable</th><th>Statut</th></tr></thead>
+                    <tbody>
+                        <tr><td>users</td><td>id, email, password_hash, role, email_confirmed, suspended, created_at</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+                        <tr><td>email_tokens</td><td>id, user_id, token_hash, expires_at</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+                        <tr><td>refresh_tokens</td><td>id, user_id, token_hash, expires_at, revoked</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+                        <tr><td>oauth_accounts</td><td>id, user_id, provider, provider_user_id, access_token (AES-256-GCM), scope</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+                        <tr><td>user_services</td><td>user_id, service_name, subscribed_at</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+                        <tr><td>widget_instances</td><td>id, user_id, widget_name, config (jsonb), position, refresh_rate, last_refreshed_at, status</td><td>B</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+                        <tr><td>widget_cache</td><td>widget_instance_id, payload (jsonb), fetched_at</td><td>B</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+                        <tr><td>audit_logs</td><td>id, user_id, action, payload, created_at</td><td>B</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+                    </tbody>
+                </table>
+                <p style="font-size:0.85rem;color:#065f46;">✅ Les 8 tables existent dans <code>backend/src/db/schema.ts</code> (Drizzle réel) et sont désormais migrées avec succès : <code>backend/drizzle/0000_soft_scarlet_spider.sql</code>, testé contre un vrai conteneur Postgres le 24/09.</p>
+
+                <h3>4.5 Structure du dépôt cible</h3>
+                <pre><code>dashboard/
+├── docker-compose.yml            ✅ présent, testé
+├── .env.example                  ✅ présent
+├── README.md                     ❌ absent
+├── PLAN.md                       ✅ présent
+├── nginx/nginx.conf              ✅ présent, testé
+├── frontend/                     ✅ React + Vite + TS (Dockerfile ✅)
 ├── backend/
-│   ├── src/
-│   │   ├── modules/          # auth, users, services, widgets, dashboard, timer, admin
-│   │   ├── middleware/       # authentification, validation, errorHandler
-│   │   ├── database/         # schéma Drizzle, migrateur, seeds
-│   │   ├── oauth/            # stratégies OAuth 2.0 et OIDC
-│   │   ├── jobs/             # worker BullMQ
-│   │   └── app.ts
-│   ├── drizzle/              # migrations SQL
-│   └── package.json
-├── docs/                     # README, schémas, captures
-├── bonus/                    # Makefile, scripts bonus
-├── README.md
-└── CHANGELOG.md
+│   ├── src/                      ✅ reconstitué le 24/09 (non commité)
+│   │   ├── modules/              ⚠️ partiel (auth, services manquants)
+│   │   ├── widgets/               ⚠️ registry.ts à 3/6 widgets
+│   │   ├── db/                   ✅ schéma Drizzle (8 tables), migration générée et testée
+│   │   ├── lib/                  ✅ crypto.ts, mailer.ts (non branchés)
+│   │   ├── middleware/           ✅ auth, error, rateLimit, validate
+│   │   └── app.ts                ✅ mais sans routes /auth ni /services
+│   ├── package.json              ✅ présent
+│   ├── drizzle.config.ts         ✅ présent
+│   ├── API.md                    ❌ absent
+│   └── Dockerfile                ✅ présent, testé
+└── bonus/                        ✅ présent (README.md, vide de contenu bonus pour l'instant)
 </code></pre>
             </section>
 
-            <!-- DATA MODEL -->
-            <section id="datamodel">
-                <h2>11. Modèle de données</h2>
+            <!-- SERVICES & WIDGETS -->
+            <section id="services">
+                <h2>5. Services et widgets</h2>
+                <p>6 widgets prévus, avec Open-Meteo à la place d'OpenWeatherMap et un <code>feed_summary</code> vraiment multi-flux.</p>
                 <table>
-                    <thead>
-                        <tr><th>Table</th><th>Champs clés</th><th>Responsable</th></tr>
-                    </thead>
+                    <thead><tr><th>Service</th><th>Widget</th><th>Paramètres</th><th>Source</th><th>Resp.</th><th>Statut</th></tr></thead>
                     <tbody>
-                        <tr><td><code>users</code></td><td>id, email, password_hash, role, email_confirmed, created_at</td><td>Membre A</td></tr>
-                        <tr><td><code>oauth_accounts</code></td><td>id, user_id, provider, provider_user_id, access_token (chiffré), refresh_token (chiffré), expires_at</td><td>Membre A</td></tr>
-                        <tr><td><code>refresh_tokens</code></td><td>id, user_id, token_hash, expires_at, revoked</td><td>Membre A</td></tr>
-                        <tr><td><code>services</code></td><td>id, name, slug, requires_oauth, description</td><td>Membre A</td></tr>
-                        <tr><td><code>user_services</code></td><td>id, user_id, service_id, subscribed_at</td><td>Membre A</td></tr>
-                        <tr><td><code>widgets</code></td><td>id, service_id, name, slug, description, params_schema (JSON)</td><td>Membre B</td></tr>
-                        <tr><td><code>widget_instances</code></td><td>id, user_id, widget_id, config (JSON), position_x, position_y, width, height, refresh_rate, last_refreshed_at, next_refresh_at, status</td><td>Membre B</td></tr>
-                        <tr><td><code>widget_cache</code></td><td>id, widget_instance_id, payload (JSON), expires_at</td><td>Membre B</td></tr>
-                        <tr><td><code>audit_logs</code></td><td>id, user_id, action, payload, created_at</td><td>Membre B</td></tr>
+                        <tr><td>weather</td><td>city_temperature</td><td>city (string), unit (string)</td><td>Open-Meteo</td><td>A</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>weather</td><td>precipitation_forecast</td><td>city (string), days (integer 1–7)</td><td>Open-Meteo</td><td>B</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>github</td><td>recent_commits</td><td>repository (string), limit (integer)</td><td>API REST GitHub</td><td>A</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>github</td><td>security_alerts</td><td>repository (string), severity (string)</td><td>API GitHub (Dependabot)</td><td>B</td><td class="status"><span class="badge badge-partial">ADAPTER OK<br>OAuth manquant</span></td></tr>
+                        <tr><td>rss</td><td>article_list</td><td>link (string), number (integer)</td><td>Parsing XML</td><td>A</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+                        <tr><td>rss</td><td>feed_summary</td><td>links (string), number (integer)</td><td>Plusieurs flux fusionnés</td><td>B</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
                     </tbody>
                 </table>
+                <div class="success"><strong>6/6 widgets</strong> ont un adapter réel et sont déclarés dans le registre — testés avec de vraies données (température de Paris/Lyon, prévisions de pluie, flux Hacker News). Le front lit désormais ce registre en direct via <code>GET /widgets</code> (plus de catalogue codé en dur côté client), donc les noms de paramètres du back font foi partout.</div>
                 <div class="success">
-                    <strong>✅ Point clé :</strong> Les tokens OAuth sont <strong>chiffrés au repos</strong> (AES-256-GCM) et jamais exposés au frontend.
+                    <strong>Noms de paramètres finalisés (24/09, 2<sup>e</sup> session) :</strong> <code>recent_commits</code> utilise <code>repository</code>/<code>limit</code> et <code>article_list</code> utilise <code>link</code>/<code>number</code> — conformes au sujet. Le wizard front construit maintenant ses champs dynamiquement depuis <code>GET /widgets</code>, donc plus besoin d'aligner un catalogue statique.
                 </div>
+                <ul>
+                    <li><strong>Risque <code>security_alerts</code> :</strong> l'API Dependabot exige des droits + Dependabot activé sur le dépôt cible. Toujours pas testé (widget B, hors périmètre de cette session). Repli possible : <code>open_issues</code>.</li>
+                    <li><strong>Services par défaut :</strong> weather et rss sans abonnement ; github après liaison OAuth — <strong>module services et OAuth désormais implémentés et testés</strong> côté mécanique (guards, cascade unlink→unsubscribe), échange réel GitHub non testé (pas de credentials).</li>
+                </ul>
             </section>
 
-            <!-- API -->
+            <!-- API REST -->
             <section id="api">
-                <h2>12. API REST (endpoints principaux)</h2>
-                <h3>12.1 Authentification — Membre A</h3>
-                <ul>
-                    <li><code>POST /api/v1/auth/register</code> — inscription</li>
-                    <li><code>POST /api/v1/auth/login</code> — connexion</li>
-                    <li><code>POST /api/v1/auth/confirm</code> — confirmation email</li>
-                    <li><code>GET /api/v1/auth/oauth/:provider</code> — redirection OAuth</li>
-                    <li><code>GET /api/v1/auth/oauth/:provider/callback</code> — callback OAuth</li>
-                </ul>
+                <h2>6. API REST</h2>
+                <p>Toutes les routes métier sont préfixées par <code>/api/v1</code>, validées par Zod (400 si invalide).</p>
 
-                <h3>12.2 Services & Widgets</h3>
-                <ul>
-                    <li><code>GET /api/v1/services</code> — liste des services (Membre A)</li>
-                    <li><code>POST /api/v1/services/:id/subscribe</code> — abonnement (Membre A)</li>
-                    <li><code>DELETE /api/v1/services/:id/subscribe</code> — désabonnement (Membre A)</li>
-                    <li><code>GET /api/v1/services/:id/widgets</code> — widgets d'un service (Membre B)</li>
-                    <li><code>GET /api/v1/widgets/:id/schema</code> — schéma des paramètres (Membre B)</li>
-                </ul>
+                <h3>6.1 Authentification — Membre A <span class="badge badge-done">FAIT</span></h3>
+                <table>
+                    <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Statut</th></tr></thead>
+                    <tbody>
+                        <tr><td>POST</td><td>/auth/register</td><td>Inscription + mail de confirmation</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>POST</td><td>/auth/confirm</td><td>Confirme l'email</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>POST</td><td>/auth/login</td><td>Connexion</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>POST</td><td>/auth/refresh</td><td>Nouveau access token</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>POST</td><td>/auth/logout</td><td>Révoque le refresh token</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>GET</td><td>/auth/me</td><td>Utilisateur courant</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>GET</td><td>/auth/oauth/github</td><td>Redirection GitHub</td><td class="status"><span class="badge badge-partial">~</span></td></tr>
+                        <tr><td>GET</td><td>/auth/oauth/github/callback</td><td>Callback, liaison du compte</td><td class="status"><span class="badge badge-partial">~</span></td></tr>
+                        <tr><td>DELETE</td><td>/auth/oauth/github</td><td>Délie le compte</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                    </tbody>
+                </table>
+                <p style="font-size:0.85rem;color:#065f46;">Toutes testées : register→Mailpit→confirm→login→me→refresh→logout via curl <strong>et</strong> navigateur réel (Playwright). OAuth (~) : mécanique et garde-fous testés, échange réel avec GitHub non exercé (pas de credentials).</p>
 
-                <h3>12.3 Dashboard — Membre B</h3>
-                <ul>
-                    <li><code>GET /api/v1/dashboard</code> — instances de widgets de l'utilisateur</li>
-                    <li><code>POST /api/v1/dashboard/widgets</code> — ajout d'une instance</li>
-                    <li><code>PATCH /api/v1/dashboard/widgets/:id</code> — reconfiguration</li>
-                    <li><code>PATCH /api/v1/dashboard/widgets/:id/position</code> — déplacement</li>
-                    <li><code>DELETE /api/v1/dashboard/widgets/:id</code> — suppression</li>
-                    <li><code>POST /api/v1/dashboard/widgets/:id/refresh</code> — refresh manuel</li>
-                </ul>
+                <h3>6.2 Services — Membre A <span class="badge badge-done">FAIT</span></h3>
+                <table>
+                    <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Statut</th></tr></thead>
+                    <tbody>
+                        <tr><td>GET</td><td>/services</td><td>Liste + état d'abonnement</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>POST</td><td>/services/:name/subscribe</td><td>Abonnement</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>DELETE</td><td>/services/:name/subscribe</td><td>Désabonnement</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                    </tbody>
+                </table>
 
-                <h3>12.4 Admin</h3>
-                <ul>
-                    <li><code>GET /api/v1/admin/users</code> (Membre A)</li>
-                    <li><code>PATCH /api/v1/admin/users/:id</code> (Membre A)</li>
-                    <li><code>DELETE /api/v1/admin/users/:id</code> (Membre A)</li>
-                    <li><code>GET /api/v1/admin/stats</code> (Membre B)</li>
-                </ul>
+                <h3>6.3 Widgets et dashboard — Membre B <span class="badge badge-done">FAIT</span></h3>
+                <table>
+                    <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Statut</th></tr></thead>
+                    <tbody>
+                        <tr><td>GET</td><td>/widgets</td><td>Catalogue issu du registre</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>GET</td><td>/dashboard</td><td>Instances de l'utilisateur</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>POST</td><td>/dashboard/widgets</td><td>Ajoute une instance</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>PATCH</td><td>/dashboard/widgets/:id</td><td>Reconfigure</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>PATCH</td><td>/dashboard/widgets/:id/position</td><td>Déplace</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>DELETE</td><td>/dashboard/widgets/:id</td><td>Supprime</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>GET</td><td>/dashboard/widgets/:id/data</td><td>Données (cache ou adapter)</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                    </tbody>
+                </table>
+                <p style="font-size:0.85rem;color:#065f46;">Toutes les routes existent avec service + repository réels et validation Zod via le registre, protégées par <code>requireAuth</code> — <code>req.userId = 1</code> codé en dur a été retiré, testé avec un vrai utilisateur connecté.</p>
 
-                <h3>12.5 Endpoint obligatoire — co-écrit</h3>
-                <ul>
-                    <li><code>GET /about.json</code> — voir section dédiée ci-dessous.</li>
-                </ul>
+                <h3>6.4 Admin (rôle <code>admin</code> requis) <span class="badge badge-done">FAIT</span></h3>
+                <table>
+                    <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Resp.</th><th>Statut</th></tr></thead>
+                    <tbody>
+                        <tr><td>GET</td><td>/admin/users</td><td>Liste des utilisateurs</td><td>A</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>PATCH</td><td>/admin/users/:id</td><td>Suspendre / réactiver, rôle</td><td>A</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>DELETE</td><td>/admin/users/:id</td><td>Supprimer</td><td>A</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                        <tr><td>GET</td><td>/admin/stats</td><td>Compteurs globaux</td><td>B</td><td class="status"><span class="badge badge-done">✅</span></td></tr>
+                    </tbody>
+                </table>
+
+                <h3>6.5 Endpoint obligatoire <span class="badge badge-done">FAIT</span></h3>
+                <table>
+                    <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Statut</th></tr></thead>
+                    <tbody>
+                        <tr><td>GET</td><td>/about.json</td><td>Description des services et widgets</td><td class="status"><span class="badge badge-done">6/6 widgets</span></td></tr>
+                    </tbody>
+                </table>
             </section>
 
             <!-- ABOUT.JSON -->
             <section id="aboutjson">
-                <h2>13. Endpoint <code>/about.json</code> (exigence stricte)</h2>
-                <p>Le serveur doit répondre sur <code>http://localhost:8080/about.json</code> avec la structure suivante :</p>
+                <h2>7. Endpoint /about.json</h2>
+                <p>Le serveur doit répondre sur http://localhost:8080/about.json. La réponse est générée à partir du registre — jamais écrite à la main.</p>
+                <div class="success"><strong>Ce qui marche :</strong> <code>about.controller.ts</code> lit bien <code>req.ip</code> (avec <code>trust proxy</code>), calcule <code>current_time</code> en secondes, et construit la liste depuis <code>widgets/registry.ts</code> — exactement le design prévu. <strong>6/6 widgets, 3 services, conforme</strong> — vérifié en direct sur :8080 le 24/09.</div>
                 <pre><code>{
-  "client": {
-    "host": "10.101.53.35"
-  },
+  "client": { "host": "10.101.53.35" },
   "server": {
     "current_time": 1531680780,
     "services": [
-      {
-        "name": "weather",
-        "widgets": [
-          {
-            "name": "city_temperature",
-            "description": "Display temperature for a city",
-            "params": [
-              { "name": "city", "type": "string" }
-            ]
-          },
-          {
-            "name": "precipitation_forecast",
-            "description": "Display precipitation forecast",
-            "params": [
-              { "name": "city", "type": "string" },
-              { "name": "days", "type": "integer" }
-            ]
-          }
-        ]
-      },
-      {
-        "name": "github",
-        "widgets": [
-          {
-            "name": "recent_commits",
-            "description": "Display recent commits of a repository",
-            "params": [
-              { "name": "repository", "type": "string" },
-              { "name": "limit", "type": "integer" }
-            ]
-          },
-          {
-            "name": "security_alerts",
-            "description": "Display security alerts of a repository",
-            "params": [
-              { "name": "repository", "type": "string" },
-              { "name": "severity", "type": "string" }
-            ]
-          }
-        ]
-      },
-      {
-        "name": "rss",
-        "widgets": [
-          {
-            "name": "article_list",
-            "description": "Displaying the list of the last articles",
-            "params": [
-              { "name": "link", "type": "string" },
-              { "name": "number", "type": "integer" }
-            ]
-          },
-          {
-            "name": "feed_summary",
-            "description": "Display a summary of multiple feeds",
-            "params": [
-              { "name": "link", "type": "string" },
-              { "name": "number", "type": "integer" }
-            ]
-          }
-        ]
-      }
+      { "name": "weather", "widgets": [
+        { "name": "city_temperature", "params": [{ "name": "city", "type": "string" }, { "name": "unit", "type": "string" }] },
+        { "name": "precipitation_forecast", "params": [{ "name": "city", "type": "string" }, { "name": "days", "type": "integer" }] }
+      ]},
+      { "name": "github", "widgets": [
+        { "name": "recent_commits", "params": [{ "name": "repository", "type": "string" }, { "name": "limit", "type": "integer" }] },
+        { "name": "security_alerts", "params": [{ "name": "repository", "type": "string" }, { "name": "severity", "type": "string" }] }
+      ]},
+      { "name": "rss", "widgets": [
+        { "name": "article_list", "params": [{ "name": "link", "type": "string" }, { "name": "number", "type": "integer" }] },
+        { "name": "feed_summary", "params": [{ "name": "links", "type": "string" }, { "name": "number", "type": "integer" }] }
+      ]}
     ]
   }
 }</code></pre>
-                <div class="warning">
-                    <strong>⚠️ Types autorisés :</strong> uniquement <code>integer</code> et <code>string</code>. Toute autre valeur invalide le widget.
-                </div>
-                <div class="info">
-                    <strong>🌐 <code>client.host</code> :</strong> doit contenir l'IP du client qui effectue la requête HTTP (récupérée via <code>req.ip</code> ou <code>X-Forwarded-For</code>).
-                </div>
+                <div class="warning"><strong>Types autorisés :</strong> uniquement <code>integer</code> et <code>string</code>. <code>client.host</code> = <code>req.ip</code> avec <code>app.set('trust proxy', 1)</code> (déjà fait). <code>current_time</code> = <code>Math.floor(Date.now()/1000)</code> (déjà fait).</div>
             </section>
 
-            <!-- DOCKER -->
-            <section id="docker">
-                <h2>14. Docker & Livraison</h2>
-                <p>Le projet doit respecter scrupuleusement les commandes suivantes :</p>
-                <pre><code>docker-compose build
-docker-compose up</code></pre>
-                <ul>
-                    <li>Le fichier <code>docker-compose.yml</code> doit être à la <strong>racine</strong> du projet.</li>
-                    <li>Le service serveur doit tourner sur le <strong>port 8080</strong>.</li>
-                    <li>Le endpoint <code>http://localhost:8080/about.json</code> doit répondre correctement.</li>
-                    <li>Aucun service cloud tiers (AWS, GCP, Azure) — tout doit tourner en local.</li>
-                </ul>
-                <h3>14.1 Services Docker</h3>
+            <!-- RÉPARTITION -->
+            <section id="repartition">
+                <h2>8. Répartition des tâches</h2>
+                <p>Chacun garde ses 3 widgets de bout en bout (1 par service), mais B reprend l'infrastructure puisque le front du dashboard existe déjà dans le prototype.</p>
                 <table>
-                    <thead>
-                        <tr><th>Service</th><th>Image / Build</th><th>Rôle</th><th>Responsable</th></tr>
-                    </thead>
+                    <thead><tr><th>Domaine</th><th>Membre A</th><th>Membre B</th></tr></thead>
                     <tbody>
-                        <tr><td><code>nginx</code></td><td>nginx:alpine</td><td>Reverse proxy, port 8080, sert le front</td><td>Membre A</td></tr>
-                        <tr><td><code>api</code></td><td>build ./backend</td><td>API Express + endpoint /about.json</td><td>Binôme</td></tr>
-                        <tr><td><code>worker</code></td><td>build ./backend</td><td>Worker BullMQ (Timer)</td><td>Membre B</td></tr>
-                        <tr><td><code>postgres</code></td><td>postgres:16</td><td>Base de données</td><td>Membre B</td></tr>
-                        <tr><td><code>redis</code></td><td>redis:7</td><td>Cache + queue</td><td>Membre B</td></tr>
+                        <tr><td>Widgets</td><td>city_temperature, recent_commits, article_list <span class="badge badge-done">fait</span></td><td>precipitation_forecast, security_alerts, feed_summary <span class="badge badge-done">fait</span></td></tr>
+                        <tr><td>Auth</td><td>Register, login, JWT + refresh cookie, confirmation email <span class="badge badge-done">fait</span></td><td>—</td></tr>
+                        <tr><td>OAuth GitHub</td><td>Flux complet : bouton, state signé, callback, liaison, token chiffré <span class="badge badge-partial">code fait, non testé live</span></td><td>Utilise le token pour security_alerts</td></tr>
+                        <tr><td>Services</td><td><code>GET /services</code>, subscribe/unsubscribe <span class="badge badge-done">fait</span></td><td>—</td></tr>
+                        <tr><td>Admin</td><td>Users : liste, suspension, suppression + seed admin <span class="badge badge-done">fait</span></td><td>Stats globales <span class="badge badge-done">fait</span></td></tr>
+                        <tr><td>Dashboard</td><td>—</td><td>CRUD instances, positions, <code>/data</code> + cache <span class="badge badge-done">fait</span></td></tr>
+                        <tr><td>Registre + /about.json</td><td>Déclare ses 3 widgets <span class="badge badge-done">fait</span></td><td>Structure + /about.json <span class="badge badge-done">fait</span></td></tr>
+                        <tr><td>Infra</td><td>—</td><td><code>docker-compose.yml</code>, Dockerfiles, nginx.conf, mailpit <span class="badge badge-done">fait</span></td></tr>
+                        <tr><td>Sécurité</td><td>bcrypt, politique mdp, Zod sur l'auth <span class="badge badge-done">fait</span></td><td>Chiffrement AES <span class="badge badge-done">fait</span>, Zod dashboard <span class="badge badge-done">fait</span>, Helmet <span class="badge badge-done">fait</span>, audit logs <span class="badge badge-missing">à faire</span></td></tr>
+                        <tr><td>Documentation</td><td>README : partie utilisateurs <span class="badge badge-missing">à faire</span></td><td>README : install, Docker, architecture <span class="badge badge-missing">à faire</span></td></tr>
                     </tbody>
                 </table>
+                <div class="success"><strong>Règle de frontière tenue :</strong> le module de chiffrement (<code>crypto.ts</code>, écrit par B) est utilisé par le callback OAuth (écrit dans cette session) pour chiffrer le token GitHub avant stockage.</div>
+            </section>
+
+            <!-- PLANNING -->
+            <section id="planning">
+                <h2>9. Planning 23/09 → 01/10</h2>
+                <p>Le premier jalon non négociable était le 24/09 au soir : <code>docker-compose up</code> sert le front et <code>/about.json</code> sur :8080. <strong>Non atteint</strong> — aucun fichier Docker sur le disque.</p>
+                <table>
+                    <thead><tr><th>Jour</th><th>Membre A</th><th>Membre B</th><th>Jalon du soir</th><th>Statut réel</th></tr></thead>
+                    <tbody>
+                        <tr><td>Mer 23/09</td><td>Squelette backend, table users</td><td>docker-compose.yml, Dockerfile front, nginx, postgres, mailpit</td><td>Les conteneurs démarrent</td><td class="status"><span class="badge badge-partial">Décalé</span></td></tr>
+                        <tr><td>Jeu 24/09 <em>(aujourd'hui)</em></td><td>Register + login (bcrypt, JWT, refresh cookie)</td><td>Registre + /about.json, crypto.ts, test API Dependabot</td><td>/about.json conforme sur :8080</td><td class="status"><span class="badge badge-partial">En cours</span></td></tr>
+                        <tr><td>Ven 25/09</td><td>Confirmation email + branchement front auth</td><td>CRUD widget_instances + positions + branchement dashboard</td><td>Parcours inscription → login réel</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+                        <tr><td>Sam 26/09</td><td>user_services + subscribe ; adapter city_temperature</td><td>Endpoint /data + cache ; adapter precipitation_forecast</td><td>Premier widget réel</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+                        <tr><td>Dim 27/09</td><td>OAuth GitHub complet</td><td>Adapters feed_summary + security_alerts</td><td>GitHub lié à un compte</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+                        <tr><td>Lun 28/09</td><td>Adapters recent_commits + article_list</td><td>Admin stats + audit logs + Helmet</td><td>6 widgets réels</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+                        <tr><td>Mar 29/09</td><td>Admin users + seed admin + rate limiting + Zod partout</td><td>1 scénario E2E Playwright + corrections</td><td>Tout est branché</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+                        <tr><td>Mer 30/09</td><td>README partie utilisateurs</td><td>README install/architecture, test machine propre</td><td>Clone → build → up validé</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+                        <tr><td>Jeu 01/10</td><td>Vidéo de démo + gel</td><td>Vidéo de démo + gel</td><td>Livraison</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+                    </tbody>
+                </table>
+                <div class="info"><strong>Constat du 24/09 :</strong> le travail réel visible (adapters B, dashboard CRUD, about.json, admin stats, schéma 8 tables, middleware) correspond plutôt à une avance sur le planning des <strong>25–26/09</strong> côté B — mais côté A, aucune trace de code (auth, OAuth, ses 3 widgets, services) n'existe dans le dépôt, malgré des branches <code>feature/a-*</code> créées sur origin.</div>
+                <div class="danger"><strong>Si on prend du retard :</strong> on coupe d'abord admin stats, puis l'E2E, puis security_alerts (remplacé par open_issues). On ne coupe jamais Docker, /about.json, l'auth, OAuth GitHub ni les 6 widgets.</div>
+            </section>
+
+            <!-- PIÈGES -->
+            <section id="pieges">
+                <h2>10. Pièges techniques</h2>
+                <p>Ces pièges ne se voient qu'en fin d'intégration ; on les traite dès le départ.</p>
+                <ol>
+                    <li><strong><code>/about.json</code> avalé par le SPA.</strong> Sans règle nginx dédiée, <code>try_files</code> renvoie <code>index.html</code>. Prévoir une location exacte, avant la règle générale.
+                        <pre><code>location = /about.json { proxy_pass http://api:3000; }
+location /api/        { proxy_pass http://api:3000; }
+location /            { root /usr/share/nginx/html; try_files $uri /index.html; }</code></pre>
+                    </li>
+                    <li><strong><code>client.host</code> = IP de nginx.</strong> Nécessite <code>app.set('trust proxy', 1)</code> — <span class="badge badge-done">déjà fait</span> dans <code>app.js</code>.</li>
+                    <li><strong>Cookie <code>SameSite=Strict</code> et OAuth.</strong> Utiliser <code>SameSite=Lax</code> pour le cookie de session, sinon le retour de github.com perd la session.</li>
+                    <li><strong>Lier GitHub au bon utilisateur.</strong> Le <code>state</code> doit être aléatoire, stocké côté serveur avec le <code>user_id</code> et une expiration courte.</li>
+                    <li><strong>URL de callback OAuth.</strong> Déclarer <code>http://localhost:8080/api/v1/auth/oauth/github/callback</code>, secrets uniquement dans <code>.env</code>.</li>
+                    <li><strong>Migrations au démarrage.</strong> L'API doit lancer les migrations Drizzle puis le seed admin avant d'écouter ; healthcheck Postgres + <code>depends_on: condition: service_healthy</code>.</li>
+                    <li><strong>Mails de confirmation.</strong> SMTP vers <code>mailpit:1025</code> en interne, mais le lien de confirmation doit pointer vers <code>http://localhost:8080</code>.</li>
+                    <li><strong>Rate limit GitHub.</strong> Sans token, 60 requêtes/heure. Toujours passer par le token utilisateur + cache.</li>
+                </ol>
             </section>
 
             <!-- SÉCURITÉ -->
             <section id="securite">
-                <h2>15. Sécurité</h2>
-                <ul>
-                    <li>JWT (access 15 min) + refresh token (cookie HttpOnly, SameSite=Strict).</li>
-                    <li>RBAC : <code>user</code>, <code>admin</code>.</li>
-                    <li>Validation Zod sur toutes les entrées (body, query, params).</li>
-                    <li>Rate limiting (Redis) : 100 req/min par IP, 10 req/min sur l'auth.</li>
-                    <li>Helmet, CORS strict (origines autorisées uniquement).</li>
-                    <li>Chiffrement des tokens OAuth au repos (AES-256-GCM).</li>
-                    <li>Secrets dans <code>.env</code>, jamais commités.</li>
-                    <li>Audit logs sur les actions sensibles (login, OAuth link, suppression widget).</li>
-                    <li>Protection CSRF sur les routes sensibles.</li>
-                    <li>Politique de mot de passe fort (min 12 caractères, complexité).</li>
-                </ul>
-            </section>
-
-            <!-- PATTERNS -->
-            <section id="patterns">
-                <h2>16. OOP & Design Patterns</h2>
-                <ul>
-                    <li><strong>Controller → Service → Repository</strong> : séparation claire des responsabilités.</li>
-                    <li><strong>Strategy</strong> : pour les sources de données (Weather, GitHub, RSS) — chaque service implémente une interface commune.</li>
-                    <li><strong>Factory</strong> : pour instancier le bon provider OAuth selon le fournisseur.</li>
-                    <li><strong>Observer</strong> : pour les notifications et le rafraîchissement des widgets.</li>
-                    <li><strong>Builder</strong> : pour la construction des requêtes <code>/about.json</code> et des filtres admin.</li>
-                    <li><strong>Adapter</strong> : pour normaliser les réponses des APIs externes hétérogènes.</li>
-                    <li><strong>Singleton</strong> : pour la connexion Redis / BullMQ.</li>
-                </ul>
-            </section>
-
-            <!-- OUTILS -->
-            <section id="outils">
-                <h2>17. Définition & analogie des outils</h2>
+                <h2>11. Sécurité</h2>
                 <table>
-                    <thead>
-                        <tr><th>Outil</th><th>Définition</th><th>Analogie</th></tr>
-                    </thead>
+                    <thead><tr><th>Mesure</th><th>Statut</th><th>Détail</th></tr></thead>
                     <tbody>
-                        <tr><td>React</td><td>Bibliothèque JS pour interfaces composants</td><td>Pièces de Lego</td></tr>
-                        <tr><td>Vite</td><td>Build ultra-rapide</td><td>Tapis roulant de cuisine</td></tr>
-                        <tr><td>TypeScript</td><td>Typage statique</td><td>Plan d'architecte</td></tr>
-                        <tr><td>Tailwind</td><td>CSS utilitaire</td><td>Briques de construction</td></tr>
-                        <tr><td>dnd-kit</td><td>Drag & drop accessible</td><td>Mains qui déplacent des pièces</td></tr>
-                        <tr><td>Node.js</td><td>Exécution JS serveur, asynchrone</td><td>Chef multi-tâches</td></tr>
-                        <tr><td>Express</td><td>Framework web minimal</td><td>Ossature</td></tr>
-                        <tr><td>Drizzle ORM</td><td>ORM TypeScript SQL-like</td><td>Traducteur fidèle</td></tr>
-                        <tr><td>PostgreSQL</td><td>SGBD relationnel</td><td>Bibliothèque organisée</td></tr>
-                        <tr><td>Redis</td><td>Cache / files d'attente</td><td>Armoire à casiers ultra-rapide</td></tr>
-                        <tr><td>Nginx</td><td>Serveur / reverse proxy</td><td>Portier d'immeuble</td></tr>
-                        <tr><td>BullMQ</td><td>File de jobs (Redis)</td><td>Drive de commandes</td></tr>
-                        <tr><td>Docker</td><td>Conteneurs</td><td>Boîtes de transport</td></tr>
-                        <tr><td>Zod</td><td>Validation</td><td>Contrôleur de billets</td></tr>
-                        <tr><td>OAuth 2.0</td><td>Délégation d'autorisation</td><td>Clé de voûte confiée à un tiers</td></tr>
-                        <tr><td>OIDC</td><td>Couche identité sur OAuth</td><td>Carte d'identité numérique</td></tr>
-                        <tr><td>JWT</td><td>Token signé</td><td>Badge d'accès temporaire</td></tr>
+                        <tr><td>bcrypt (mots de passe, 12 car. min)</td><td class="status"><span class="badge badge-partial">Installé, non utilisé</span></td><td>Aucun flux register/login qui l'appelle</td></tr>
+                        <tr><td>JWT access (15 min) + refresh cookie HttpOnly/Lax</td><td class="status"><span class="badge badge-partial">Vérification seule</span></td><td>Le middleware valide un JWT, mais rien n'en émet</td></tr>
+                        <tr><td>Rôles user/admin par middleware</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>requireAdmin</code> utilisé sur <code>/admin/stats</code></td></tr>
+                        <tr><td>Validation Zod sur toutes les entrées</td><td class="status"><span class="badge badge-partial">Dashboard seulement</span></td><td>Schémas du registre appliqués au dashboard, pas d'auth/services à valider pour l'instant</td></tr>
+                        <tr><td>Rate limiting (100 req/min, 10 req/min auth)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>apiLimiter</code> câblé dans <code>app.js</code></td></tr>
+                        <tr><td>Helmet</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>app.use(helmet())</code></td></tr>
+                        <tr><td>Chiffrement OAuth au repos (AES-256-GCM)</td><td class="status"><span class="badge badge-partial">Prêt, non branché</span></td><td><code>lib/crypto.js</code> existe, aucun flux OAuth ne l'appelle encore</td></tr>
+                        <tr><td>Audit logs</td><td class="status"><span class="badge badge-missing">ABSENT</span></td><td>Table créée, aucun usage dans le code</td></tr>
+                        <tr><td>Secrets uniquement dans <code>.env</code></td><td class="status"><span class="badge badge-partial">Partiel</span></td><td><code>.env</code> bien gitignoré, mais pas de <code>.env.example</code> commité</td></tr>
+                        <tr><td>Validation des URLs RSS (http/https only)</td><td class="status"><span class="badge badge-missing">À vérifier</span></td><td>Non confirmé dans l'adapter RSS</td></tr>
                     </tbody>
                 </table>
             </section>
 
-            <!-- UI/UX -->
-            <section id="uiux">
-                <h2>18. UI / UX & Accessibilité</h2>
-                <ul>
-                    <li>Interface <strong>responsive</strong> (mobile, tablette, desktop).</li>
-                    <li>Navigation complète au <strong>clavier</strong> (focus visible, ordre logique).</li>
-                    <li>Contrastes conformes <strong>RGAA AA</strong> (≥ 4.5:1 pour texte normal, ≥ 3:1 pour grand texte).</li>
-                    <li>Drag & drop accessible via <code>dnd-kit</code> (support clavier + ARIA).</li>
-                    <li>Mode sombre / clair.</li>
-                    <li>Feedback utilisateur : toasts, loaders, états vides, gestion des erreurs.</li>
-                    <li>Landing page sobre et professionnelle.</li>
-                    <li>Design system documenté (Storybook optionnel en bonus).</li>
-                </ul>
-                <div class="analogie">
-                    <strong>Analogie :</strong> Le dashboard est un <em>mur d'accrochage</em>. Les widgets sont des <em>cadres</em>. Le drag & drop permet de <em>déplacer les cadres</em>. La configuration permet de <em>choisir la photo dans le cadre</em>. Le Timer est le <em>métronome</em> qui rafraîchit le contenu.
+            <!-- GIT -->
+            <section id="git">
+                <h2>12. Organisation Git et travail</h2>
+                <table>
+                    <thead><tr><th>Membre</th><th>Branches prévues</th></tr></thead>
+                    <tbody>
+                        <tr><td>A</td><td><code>feature/a-auth</code>, <code>feature/a-oauth-services</code>, <code>feature/a-widgets</code>, <code>feature/a-admin-users</code></td></tr>
+                        <tr><td>B</td><td><code>feature/b-infra</code>, <code>feature/b-dashboard</code>, <code>feature/b-widgets</code>, <code>feature/b-admin-stats</code></td></tr>
+                    </tbody>
+                </table>
+                <div class="danger">
+                    <strong>État réel des branches (24/09) :</strong>
+                    <ul>
+                        <li>Les branches <code>feature/a-*</code> existent bien sur <code>origin</code> (11 branches !), mais reprennent l'ancien découpage (register-login, email-confirm, oauth-github, oidc-google, services-page, widget-city-temperature, widget-recent-commits, widget-article-list, admin-users, about-json) — <strong>aucune n'a été mergée dans <code>main</code></strong>.</li>
+                        <li>Seules des branches <code>feature/b-*</code> ont été mergées sur <code>origin/main</code>.</li>
+                        <li><code>chore/backend-skeleton</code> existe en local mais n'a jamais été poussée.</li>
+                        <li><code>main</code> local a divergé d'<code>origin/main</code> (commit local direct sur <code>main</code>) — à réconcilier avant de pousser quoi que ce soit.</li>
+                        <li>Le meilleur code backend actuel (<code>backend/dist</code>) n'est sur <strong>aucune</strong> de ces branches.</li>
+                    </ul>
                 </div>
+                <ul>
+                    <li><strong>Merge dans <code>develop</code> au moins une fois par jour</strong>, relecture croisée rapide (15 min max par PR).</li>
+                    <li><strong><code>develop</code> doit toujours passer <code>docker-compose build && up</code></strong> — actuellement impossible, aucun fichier Docker.</li>
+                    <li><strong><code>main</code> et <code>develop</code> protégées</strong> : pas de push direct (déjà violé une fois sur <code>main</code>).</li>
+                    <li><strong>Contrats d'API d'abord :</strong> noter requête/réponse dans <code>backend/API.md</code> avant de coder — fichier pas encore créé.</li>
+                </ul>
             </section>
 
-            <!-- PLANNING -->
-            <section id="plan">
-                <h2>19. Planning de Développement (16 Sept – 01 Oct 2026)</h2>
+            <!-- STACK -->
+            <section id="stack">
+                <h2>13. Choix technologiques</h2>
+                <table>
+                    <thead><tr><th>Brique</th><th>Choix</th><th>Justification courte</th></tr></thead>
+                    <tbody>
+                        <tr><td>Front</td><td>React + Vite + TypeScript + Tailwind</td><td>Composants réutilisables ; build rapide ; typage</td></tr>
+                        <tr><td>Drag & drop</td><td>dnd-kit</td><td>Accessible clavier/lecteurs d'écran</td></tr>
+                        <tr><td>Back</td><td>Node.js + Express + TypeScript</td><td>Charge I/O-bound ; même langage que le front</td></tr>
+                        <tr><td>ORM</td><td>Drizzle</td><td>TypeScript pur, migrations SQL lisibles</td></tr>
+                        <tr><td>Base</td><td>PostgreSQL</td><td>Modèle relationnel, intégrité référentielle, jsonb</td></tr>
+                        <tr><td>Validation</td><td>Zod</td><td>Un schéma = un type, réutilisable front/back</td></tr>
+                        <tr><td>Proxy</td><td>nginx</td><td>Sert le SPA, relaie l'API, un seul port exposé</td></tr>
+                        <tr><td>Mail</td><td>Mailpit</td><td>Confirmation réelle démontrable sans SMTP externe</td></tr>
+                        <tr><td>Infra</td><td>Docker Compose</td><td>Imposé par le sujet, reproductible</td></tr>
+                        <tr><td>Tests</td><td>Vitest + Playwright</td><td>Unitaires adapters/validateurs + 1 E2E</td></tr>
+                    </tbody>
+                </table>
                 <div class="warning">
-                    <strong>⏱️ Contrainte temporelle :</strong> Le projet doit être <strong>entièrement finalisé au 01/10/26</strong>. La période du 02/10 au 11/10/26 est réservée aux répétitions, à la vidéo de démonstration et aux ajustements de dernière minute.
-                </div>
-
-                <h3>Sprint 1 – Fondations (16 au 20 Sept)</h3>
-                <table>
-                    <thead>
-                        <tr><th>Jour</th><th>Membre A (Full-Stack)</th><th>Membre B (Full-Stack)</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>16/09 (Mer)</strong></td>
-                            <td>Setup Docker Compose + schéma BD users/oauth.</td>
-                            <td>Setup Docker Compose + schéma BD widgets/dashboard.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>17/09 (Jeu)</strong></td>
-                            <td>Back auth : register/login + hash bcrypt.</td>
-                            <td>Front : squelette React + routing + design system de base.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>18/09 (Ven)</strong></td>
-                            <td>Back : JWT + refresh token + middleware auth.</td>
-                            <td>Front : pages login/register (UI) + appels API auth.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>19/09 (Sam)</strong></td>
-                            <td>Back : confirmation email (token) + endpoint.</td>
-                            <td>Front : page confirmation + gestion des erreurs.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>20/09 (Dim)</strong></td>
-                            <td>Tests E2E auth + revue croisée.</td>
-                            <td>Tests E2E auth + revue croisée.</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h3>Sprint 2 – Cœur fonctionnel (21 au 25 Sept)</h3>
-                <table>
-                    <thead>
-                        <tr><th>Jour</th><th>Membre A (Full-Stack)</th><th>Membre B (Full-Stack)</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>21/09 (Lun)</strong></td>
-                            <td>Back : OIDC Google + OAuth GitHub (stratégies back).</td>
-                            <td>Back : schéma widgets + CRUD instances.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>22/09 (Mar)</strong></td>
-                            <td>Front : boutons OIDC + callback handling.</td>
-                            <td>Front : page dashboard + grille drag & drop + bouton OAuth GitHub UI.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>23/09 (Mer)</strong></td>
-                            <td>Back : endpoints services + abonnements + adaptateur <code>city_temperature</code>.</td>
-                            <td>Back : Timer BullMQ + Redis cache + adaptateur <code>precipitation_forecast</code>.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>24/09 (Jeu)</strong></td>
-                            <td>Front : page "Mes services" + UI widget <code>city_temperature</code>.</td>
-                            <td>Front : modale config générique + UI widget <code>precipitation_forecast</code>.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>25/09 (Ven)</strong></td>
-                            <td>Back : <code>/about.json</code> (partie A) + adaptateur <code>recent_commits</code> + <code>article_list</code>.</td>
-                            <td>Back : <code>/about.json</code> (partie B) + adaptateur <code>security_alerts</code> + <code>feed_summary</code>.</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h3>Sprint 3 – Finalisation (26 au 30 Sept)</h3>
-                <table>
-                    <thead>
-                        <tr><th>Jour</th><th>Membre A (Full-Stack)</th><th>Membre B (Full-Stack)</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>26/09 (Sam)</strong></td>
-                            <td>Front : UI widgets <code>recent_commits</code> + <code>article_list</code>.</td>
-                            <td>Front : UI widgets <code>security_alerts</code> + <code>feed_summary</code>.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>27/09 (Dim)</strong></td>
-                            <td>Back : admin users + audit logs + front page admin-users.</td>
-                            <td>Back : admin stats + front page admin-stats.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>28/09 (Lun)</strong></td>
-                            <td>Back : rate limiting + sécurité (Helmet, CORS).</td>
-                            <td>Back : chiffrement tokens OAuth + tests unitaires.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>29/09 (Mar)</strong></td>
-                            <td>Accessibilité RGAA (auth + services + ses widgets) + responsive.</td>
-                            <td>Accessibilité RGAA (dashboard + ses widgets) + responsive.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>30/09 (Mer)</strong></td>
-                            <td>Tests E2E complets + corrections bugs.</td>
-                            <td>Tests E2E complets + corrections bugs.</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h3>01/10/26 – Gel des fonctionnalités et Livraison</h3>
-                <table>
-                    <thead>
-                        <tr><th>Activité</th><th>Responsable</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Finalisation du README (sections utilisateurs + développeurs)</td><td>Binôme</td></tr>
-                        <tr><td>Vérification du <code>docker-compose up</code> et de <code>/about.json</code></td><td>Binôme</td></tr>
-                        <tr><td>Nettoyage du dépôt (pas de fichiers temporaires)</td><td>Binôme</td></tr>
-                        <tr><td>Enregistrement de la vidéo de démonstration</td><td>Binôme</td></tr>
-                        <tr><td>Préparation des slides de soutenance</td><td>Binôme</td></tr>
-                    </tbody>
-                </table>
-
-                <h3>Période tampon (02 au 11 Oct)</h3>
-                <ul>
-                    <li>Répétitions de la soutenance (plusieurs passages).</li>
-                    <li>Corrections de bugs mineurs remontés lors des répétitions.</li>
-                    <li>Ajout de fonctionnalités bonus si le temps le permet (mode sombre, Storybook, etc.).</li>
-                    <li>Relecture finale du README et des livrables.</li>
-                </ul>
-                <div class="success">
-                    <strong>✅ Équité :</strong> Chaque membre fait 3 widgets (1 par service) et alterne back/front quotidiennement. Aucun déséquilibre.
+                    <strong>Pour la soutenance :</strong> ne pas dire « souveraineté totale imposée par le sujet » (faux — c'est notre choix), ni « conformité RGAA » (le sujet demande de l'accessibilité, pas le RGAA). Ne citer que les patterns réellement présents : Strategy/Adapter (registre), Repository, Middleware. BullMQ/Redis : présenter comme « évolution prévue », pas comme fait.
                 </div>
             </section>
 
-            <!-- LIVRABLES -->
-            <section id="livrables">
-                <h2>20. Livrables attendus</h2>
-                <ul>
-                    <li><strong>Code source</strong> : tous les fichiers sources (hors binaires, temp, objets).</li>
-                    <li><strong>README.md</strong> : documentation complète (voir contenu ci-dessous).</li>
-                    <li><strong>docker-compose.yml</strong> à la racine.</li>
-                    <li><strong>Dossier bonus/</strong> : Makefile, scripts bonus.</li>
-                    <li><strong>Vidéo de démonstration</strong> (recommandée pour la soutenance).</li>
+            <!-- CHECKLIST -->
+            <section id="checklist">
+                <h2>14. Checklist avant livraison — état réel au 24/09 (soir, session 3)</h2>
+                <p>À dérouler sur un clone propre le 30/09. Coché = vérifié dans le dépôt ; <span class="badge badge-partial" style="vertical-align:middle;">~</span> = partiel. Mise à jour après chaque tâche terminée.</p>
+                <ul class="checklist-real">
+                    <li class="partial"><span class="box"></span><span class="txt">git clone + cp .env.example .env + remplir les secrets (.env.example ✅ prêt ; rien n'est encore commité donc un clone propre ne build pas encore — voir risque §0.1)</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">docker-compose build passe sans erreur — testé le 24/09 (api + nginx, rebuild complet)</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">docker-compose up : front accessible sur :8080 — testé le 24/09</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">curl /about.json : JSON valide, 6/6 widgets, testé en live</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">client.host affiche l'IP du client (trust proxy en place, vérifié en live)</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Inscription → mail Mailpit → confirmation → login — testé via curl ET navigateur réel (Playwright)</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Login refusé tant que l'email n'est pas confirmé — testé (403)</span></li>
+                    <li class="partial"><span class="box"></span><span class="txt">Liaison GitHub via OAuth → service github disponible (mécanique + garde-fous testés ; échange réel GitHub non testé, pas de credentials)</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Ajout des 6 widgets avec vraies données — testé via le wizard réel au navigateur (city_temperature, precipitation_forecast, article_list), catalogue lu en direct depuis GET /widgets</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Deux instances du même widget, configs différentes → données différentes</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Reconfigurer / déplacer / supprimer, persisté après reload — testé au navigateur réel (Playwright) : reconfiguration (Lyon→Paris), glisser-déposer/menu « Déplacer », suppression, tous vérifiés après rechargement de page</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Chaque widget se rafraîchit selon son refresh rate — Timer réel câblé sur GET .../data (plus de données FRAMES simulées)</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Admin : compte seedé liste, suspend, supprime des utilisateurs — testé via curl et clic réel dans l'UI (bouton Suspendre), fiche détail utilisateur branchée sur l'API réelle</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Changement de mot de passe et suppression de compte — routes ajoutées et testées : reconnexion avec le nouveau mot de passe réussie, compte supprimé confirmé absent de la base</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Aucun token OAuth ni mot de passe dans les réponses API — vérifié (password_hash absent de /admin/users, token chiffré en base)</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Aucun secret, node_modules, dist ni binaire dans le dépôt (bien gitignorés)</span></li>
+                    <li class="done"><span class="box"></span><span class="txt">Fichiers bonus uniquement dans bonus/ — dossier créé le 24/09</span></li>
+                    <li><span class="box"></span><span class="txt">README racine : features, install, usage, stack, structure, schéma</span></li>
+                    <li><span class="box"></span><span class="txt">Vidéo de démo enregistrée</span></li>
                 </ul>
-
-                <h3>20.1 Contenu obligatoire du README.md</h3>
-                <ul>
-                    <li>Liste des fonctionnalités clés, services et widgets disponibles.</li>
-                    <li>Étapes précises et reproductibles pour installer et builder l'application.</li>
-                    <li>Aperçu de l'objectif et des cas d'utilisation principaux.</li>
-                    <li>Instructions claires pour lancer et utiliser l'application.</li>
-                    <li>Description des technologies utilisées et structure globale du système.</li>
-                    <li>Schémas de conception (facultatif mais recommandé).</li>
-                </ul>
-                <div class="info">
-                    <strong>📝 Communication :</strong> Adapter le README à l'audience. Section "Pour les utilisateurs" (non techniques) + section "Pour les développeurs" (technique).
+                <div class="info" style="margin-top:1rem;">
+                    <strong>Bug corrigé au passage :</strong> le menu d'un widget (⋯) avait un défaut d'empilement CSS (<code>.wtile-bottom</code> passait au-dessus du menu ouvert) qui rendait le bouton « Supprimer » incliquable pour un utilisateur réel, pas seulement pour les tests automatisés. Corrigé dans <code>glass.css</code> (<code>.wtile-top{z-index:2 !important}</code>) — c'est un correctif fonctionnel, aucun changement visuel en dehors de l'état « menu ouvert ».
                 </div>
-            </section>
-
-            <!-- COMPÉTENCES -->
-            <section id="competences">
-                <h2>21. Validation des compétences (EPITECH)</h2>
-                <p>Les 8 compétences ci-dessous sont validées tout au long du projet. Pour chacune, une justification concrète est fournie.</p>
-
-                <h3>1. Design and develop full-stack web platforms</h3>
-                <p><strong>Action technique :</strong> Développement complet d'une application web full-stack (React + Node.js + PostgreSQL) avec auth, dashboard, widgets, admin et timer.</p>
-                <p><strong>Justification :</strong> Chaque membre a développé 3 widgets de bout en bout (BD → API → UI), ce qui démontre une maîtrise full-stack réelle et équilibrée. L'architecture modulaire (Controller → Service → Repository) et l'usage de Docker Compose ont permis un développement parallèle efficace.</p>
-
-                <h3>2. Integrate third-party services and external APIs</h3>
-                <p><strong>Action technique :</strong> Intégration d'APIs externes : OpenWeatherMap (météo), GitHub API (commits, alertes), parsing RSS (flux XML), OIDC Google et OAuth 2.0 GitHub.</p>
-                <p><strong>Justification :</strong> Chaque widget repose sur un adaptateur qui normalise les réponses hétérogènes des APIs. Les tokens OAuth sont chiffrés et rafraîchis automatiquement. Les erreurs API sont gérées avec des retry et un fallback sur le cache Redis.</p>
-
-                <h3>3. Implement authentication and authorization mechanisms</h3>
-                <p><strong>Action technique :</strong> Mise en place de JWT (access + refresh), bcrypt, OIDC (Google), OAuth 2.0 (GitHub), RBAC (<code>user</code>, <code>admin</code>).</p>
-                <p><strong>Justification :</strong> L'authentification est déléguée à des fournisseurs de confiance (OIDC/OAuth) tout en conservant un système de credentials classique. Les rôles sont vérifiés par un middleware sur chaque route sensible. Les refresh tokens sont stockés en cookie HttpOnly et révoqués en base.</p>
-
-                <h3>4. Design and expose RESTful APIs</h3>
-                <p><strong>Action technique :</strong> Conception de ~24 endpoints REST documentés (auth, services, widgets, dashboard, admin, <code>/about.json</code>).</p>
-                <p><strong>Justification :</strong> Les endpoints respectent les conventions REST (verbes HTTP, codes de statut, pagination). La validation Zod garantit l'intégrité des entrées. Le endpoint <code>/about.json</code> expose la liste des services et widgets conformément au sujet.</p>
-
-                <h3>5. Build configurable and user-centric interfaces</h3>
-                <p><strong>Action technique :</strong> Dashboard drag & drop (dnd-kit), modale de configuration des widgets, page de gestion des services, design responsive et accessible (RGAA AA).</p>
-                <p><strong>Justification :</strong> L'utilisateur peut ajouter, configurer, déplacer et supprimer des widgets. Chaque widget possède au moins un paramètre configurable. L'interface est entièrement navigable au clavier et respecte les contrastes réglementaires.</p>
-
-                <h3>6. Secure sensitive data and application workflows</h3>
-                <p><strong>Action technique :</strong> Chiffrement des tokens OAuth au repos (AES-256-GCM), rate limiting (Redis), Helmet, CORS strict, validation Zod, audit logs, politique de mot de passe fort.</p>
-                <p><strong>Justification :</strong> Les données sensibles (tokens, mots de passe) ne sont jamais exposées au frontend. Les actions critiques sont journalisées. Le rate limiting protège contre les attaques par force brute. La protection CSRF est active sur les routes sensibles.</p>
-
-                <h3>7. Deploy containerized applications in reproducible environments</h3>
-                <p><strong>Action technique :</strong> <code>docker-compose.yml</code> avec 5 services (nginx, api, worker, postgres, redis), port 8080, endpoint <code>/about.json</code>.</p>
-                <p><strong>Justification :</strong> Le projet est entièrement reproductible sur n'importe quelle machine via <code>docker-compose up</code>. Aucune dépendance cloud tierce. Les volumes persistants garantissent la conservation des données. La CI GitHub Actions vérifie que le build passe à chaque commit.</p>
-
-                <h3>8. Justify architectural and technological decisions professionally</h3>
-                <p><strong>Action technique :</strong> Choix technologiques documentés et justifiés dans ce plan technique (section 8 – Stack) et lors de la soutenance.</p>
-                <p><strong>Justification :</strong> Chaque technologie (React, Node.js, Drizzle, PostgreSQL, Redis, BullMQ, Docker) est choisie pour des raisons précises (typage, performance, souveraineté, accessibilité). Les compromis (monolithe modulaire vs microservices) sont expliqués. L'architecture est présentée avec des schémas clairs.</p>
             </section>
         </main>
 
         <footer>
-            <p>© EPITECH – Dashboard Project – Plan Technique 2026</p>
-            <p>Binôme X = 2 — 3 services, 6 widgets (3 par membre) — Docker Compose — Port 8080 — /about.json — Livraison 01/10/26</p>
+            <p>© EPITECH – Dashboard Project – Plan & État d'avancement</p>
+            <p>Binôme X = 2 — 3 services, 6 widgets — Docker Compose — Port 8080 — /about.json — Livraison 01/10/26</p>
         </footer>
     </div>
 </body>

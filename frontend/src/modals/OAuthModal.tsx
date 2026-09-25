@@ -1,23 +1,23 @@
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../components/Modal';
 import { IconCheck } from '../components/Icons';
 import { useAppData } from '../context/AppDataContext';
 
 export function OAuthModal() {
+  const { t } = useTranslation();
   const { modal, closeModal, connectGithub, githubLoading, githubError } =
     useAppData();
   const open = modal === 'oauth';
 
   return (
-    <Modal open={open} onClose={closeModal} title="Autoriser Threshold">
-      <p className="oauth-intro">
-        Threshold souhaite accéder à ton compte GitHub pour :
-      </p>
+    <Modal open={open} onClose={closeModal} title={t('oauthModal.title')}>
+      <p className="oauth-intro">{t('oauthModal.intro')}</p>
       <ul className="oauth-perms">
         <li>
-          <IconCheck /> Lire la liste de tes dépôts
+          <IconCheck /> {t('oauthModal.perm1')}
         </li>
         <li>
-          <IconCheck /> Lire les commits et alertes de sécurité
+          <IconCheck /> {t('oauthModal.perm2')}
         </li>
       </ul>
       {githubError && (
@@ -32,7 +32,7 @@ export function OAuthModal() {
         disabled={githubLoading}
         onClick={() => void connectGithub()}
       >
-        {githubLoading ? 'Autorisation…' : 'Autoriser'}
+        {githubLoading ? t('oauthModal.authorizing') : t('oauthModal.authorize')}
       </button>
     </Modal>
   );
