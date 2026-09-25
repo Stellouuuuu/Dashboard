@@ -614,7 +614,9 @@ table td,table th{border-color:var(--border-soft) !important;}
 .auth-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#fff;}
 .auth-eye:hover{background:rgba(255,255,255,.14);}
 .auth-eye svg{width:18px;height:18px;}
-.auth-row{display:flex;align-items:center;justify-content:space-between;margin:4px 0 22px;}
+.auth-row{display:flex;align-items:center;justify-content:space-between;margin:4px 0 22px;gap:12px;flex-wrap:wrap;}
+.auth-forgot{font-size:0.9rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px;}
+.auth-forgot:hover{color:var(--text);}
 .auth-check{display:inline-flex;align-items:center;gap:10px;font-size:.86rem;color:var(--text-dim);cursor:pointer;}
 .auth-check input{appearance:none;-webkit-appearance:none;width:16px;height:16px;border-radius:4px;background:#fff;position:relative;cursor:pointer;}
 .auth-check input:checked{background:var(--accent);}

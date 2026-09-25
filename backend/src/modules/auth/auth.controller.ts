@@ -39,20 +39,50 @@ function clearAuthCookies(res: Response) {
 }
 
 export async function register(req: Request, res: Response) {
-  const { email, password, language } = req.body;
+  const { name, email, password, language } = req.body;
   try {
-    await service.register(email, password, language);
-    res.status(201).json({ message: "Compte créé, vérifie ta boîte mail pour confirmer." });
+    await service.register(email, password, language, name);
+    res.status(201).json({ message: "Compte créé, vérifie ta boîte mail pour le code." });
   } catch (err: any) {
     sendError(res, err);
   }
 }
 
 export async function confirm(req: Request, res: Response) {
-  const { token } = req.body;
+  const { email, code } = req.body;
   try {
-    await service.confirmEmail(token);
+    await service.confirmEmail(email, code);
     res.json({ message: "Email confirmé, tu peux te connecter." });
+  } catch (err: any) {
+    sendError(res, err);
+  }
+}
+
+export async function resendConfirm(req: Request, res: Response) {
+  const { email } = req.body;
+  try {
+    await service.resendConfirmCode(email);
+    res.json({ message: "Si un compte non confirmé existe, un nouveau code a été envoyé." });
+  } catch (err: any) {
+    sendError(res, err);
+  }
+}
+
+export async function forgotPassword(req: Request, res: Response) {
+  const { email } = req.body;
+  try {
+    await service.forgotPassword(email);
+    res.json({ message: "Si un compte existe, un code a été envoyé." });
+  } catch (err: any) {
+    sendError(res, err);
+  }
+}
+
+export async function resetPassword(req: Request, res: Response) {
+  const { email, code, newPassword } = req.body;
+  try {
+    await service.resetPassword(email, code, newPassword);
+    res.json({ message: "Mot de passe mis à jour, tu peux te connecter." });
   } catch (err: any) {
     sendError(res, err);
   }

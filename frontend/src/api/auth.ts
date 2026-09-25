@@ -36,15 +36,39 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function apiRegister(
+  name: string,
   email: string,
   password: string,
+  confirmPassword: string,
   language: 'fr' | 'en',
 ): Promise<{ message: string }> {
-  return request('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, language }) });
+  return request('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, password, confirmPassword, language }),
+  });
 }
 
-export function apiConfirm(token: string): Promise<{ message: string }> {
-  return request('/auth/confirm', { method: 'POST', body: JSON.stringify({ token }) });
+export function apiConfirm(email: string, code: string): Promise<{ message: string }> {
+  return request('/auth/confirm', { method: 'POST', body: JSON.stringify({ email, code }) });
+}
+
+export function apiResendConfirm(email: string): Promise<{ message: string }> {
+  return request('/auth/resend-confirm', { method: 'POST', body: JSON.stringify({ email }) });
+}
+
+export function apiForgotPassword(email: string): Promise<{ message: string }> {
+  return request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+}
+
+export function apiResetPassword(
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<{ message: string }> {
+  return request('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ email, code, newPassword }),
+  });
 }
 
 export function apiLogin(email: string, password: string): Promise<{ user: RealUser }> {

@@ -14,8 +14,13 @@ export async function findUserById(id: number): Promise<UserRow | null> {
   return row ?? null;
 }
 
-export async function createUser(email: string, passwordHash: string, language: string): Promise<UserRow> {
-  const [row] = await db.insert(users).values({ email, passwordHash, language }).returning();
+export async function createUser(
+  email: string,
+  passwordHash: string,
+  language: string,
+  name: string,
+): Promise<UserRow> {
+  const [row] = await db.insert(users).values({ email, passwordHash, language, name }).returning();
   return row;
 }
 
@@ -40,23 +45,42 @@ export async function deleteUserById(userId: number): Promise<void> {
   await db.delete(users).where(eq(users.id, userId));
 }
 
+export type EmailTokenPurpose = "confirm" | "reset";
+
 export async function createEmailToken(
   userId: number,
+  purpose: EmailTokenPurpose,
   tokenHash: string,
   expiresAt: Date,
 ): Promise<void> {
-  await db.insert(emailTokens).values({ userId, tokenHash, expiresAt });
+  await db.delete(emailTokens).where(and(eq(emailTokens.userId, userId), eq(emailTokens.purpose, purpose)));
+  await db.insert(emailTokens).values({ userId, purpose, tokenHash, expiresAt });
 }
 
-export async function findValidEmailToken(tokenHash: string) {
+export async function findValidEmailToken(tokenHash: string, purpose: EmailTokenPurpose) {
   const [row] = await db
     .select()
     .from(emailTokens)
-    .where(and(eq(emailTokens.tokenHash, tokenHash), gt(emailTokens.expiresAt, new Date())));
+    .where(
+      and(
+        eq(emailTokens.tokenHash, tokenHash),
+        eq(emailTokens.purpose, purpose),
+        gt(emailTokens.expiresAt, new Date()),
+      ),
+    );
   return row ?? null;
 }
 
-export async function deleteEmailTokensForUser(userId: number): Promise<void> {
+export async function deleteEmailTokensForUser(
+  userId: number,
+  purpose?: EmailTokenPurpose,
+): Promise<void> {
+  if (purpose) {
+    await db
+      .delete(emailTokens)
+      .where(and(eq(emailTokens.userId, userId), eq(emailTokens.purpose, purpose)));
+    return;
+  }
   await db.delete(emailTokens).where(eq(emailTokens.userId, userId));
 }
 

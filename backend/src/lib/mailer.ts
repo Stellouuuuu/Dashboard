@@ -4,13 +4,17 @@ import { env } from "../config/env.js";
 const transporter = nodemailer.createTransport({
   host: env.SMTP_HOST,
   port: env.SMTP_PORT,
-  secure: false,
+  secure: env.SMTP_SECURE,
+  auth:
+    env.SMTP_USER && env.SMTP_PASS
+      ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
+      : undefined,
 });
 
-/** Envoie un email via Mailpit (dev/démo). Le lien doit toujours pointer vers APP_URL. */
+/** Envoie un email (Mailpit en local, ou SMTP réel type Gmail si SMTP_USER/PASS sont définis). */
 export async function sendMail(to: string, subject: string, html: string): Promise<void> {
   await transporter.sendMail({
-    from: "no-reply@dashboard.local",
+    from: env.SMTP_FROM,
     to,
     subject,
     html,

@@ -1,15 +1,15 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env.js";
-import { generateToken, hashToken } from "../../lib/token.js";
+import { generateToken, generateOtpCode, hashToken } from "../../lib/token.js";
 import { sendMail } from "../../lib/mailer.js";
-import { confirmEmailContent } from "../../lib/emailTemplates.js";
+import { confirmEmailContent, resetEmailContent } from "../../lib/emailTemplates.js";
 import { httpError } from "../../lib/httpError.js";
 import { logAudit, AUDIT_ACTIONS } from "../../lib/audit.js";
 import * as repo from "./auth.repository.js";
 import type { UserRow } from "./auth.repository.js";
 
-const EMAIL_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+const OTP_TTL_MS = 15 * 60 * 1000; // 15 min
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30j
 const ACCESS_TOKEN_TTL = "15m";
 
@@ -35,28 +35,76 @@ async function issueRefreshToken(userId: number): Promise<string> {
   return raw;
 }
 
-/** Inscription : hash bcrypt (coût 12), compte non confirmé, mail via Mailpit dans la langue du compte (PLAN.md §11). */
-export async function register(email: string, password: string, language: string = "fr"): Promise<void> {
+async function issueAndSendOtp(
+  user: UserRow,
+  purpose: "confirm" | "reset",
+): Promise<void> {
+  const code = generateOtpCode();
+  await repo.createEmailToken(user.id, purpose, hashToken(code), new Date(Date.now() + OTP_TTL_MS));
+  const content = purpose === "confirm" ? confirmEmailContent(user.language) : resetEmailContent(user.language);
+  await sendMail(user.email, content.subject, content.html(code));
+}
+
+/** Inscription : hash bcrypt (coût 12), compte non confirmé, code OTP 6 chiffres par email. */
+export async function register(
+  email: string,
+  password: string,
+  language: string = "fr",
+  name: string,
+): Promise<void> {
   const existing = await repo.findUserByEmail(email);
   if (existing) throw httpError(409, "AUTH_EMAIL_TAKEN", "Un compte existe déjà avec cet email");
 
   const passwordHash = await bcrypt.hash(password, 12);
-  const user = await repo.createUser(email, passwordHash, language);
-
-  const raw = generateToken();
-  await repo.createEmailToken(user.id, hashToken(raw), new Date(Date.now() + EMAIL_TOKEN_TTL_MS));
-
-  const link = `${env.APP_URL}/confirm/${raw}`;
-  const content = confirmEmailContent(user.language);
-  await sendMail(email, content.subject, content.html(link));
+  const user = await repo.createUser(email, passwordHash, language, name);
+  await issueAndSendOtp(user, "confirm");
 }
 
-/** Confirmation d'email : consomme le token, active le compte. */
-export async function confirmEmail(rawToken: string): Promise<void> {
-  const row = await repo.findValidEmailToken(hashToken(rawToken));
-  if (!row) throw httpError(400, "AUTH_CONFIRM_TOKEN_INVALID", "Lien de confirmation invalide ou expiré");
-  await repo.confirmUser(row.userId);
-  await repo.deleteEmailTokensForUser(row.userId);
+/** Renvoie un nouveau code de confirmation (compte existant non confirmé). */
+export async function resendConfirmCode(email: string): Promise<void> {
+  const user = await repo.findUserByEmail(email);
+  // Réponse neutre : on ne révèle pas si l'email existe.
+  if (!user || user.emailConfirmed) return;
+  await issueAndSendOtp(user, "confirm");
+}
+
+/** Confirmation d'email : consomme le code OTP, active le compte. */
+export async function confirmEmail(email: string, code: string): Promise<void> {
+  const user = await repo.findUserByEmail(email);
+  if (!user) throw httpError(400, "AUTH_CONFIRM_TOKEN_INVALID", "Code invalide ou expiré");
+
+  const row = await repo.findValidEmailToken(hashToken(code), "confirm");
+  if (!row || row.userId !== user.id) {
+    throw httpError(400, "AUTH_CONFIRM_TOKEN_INVALID", "Code invalide ou expiré");
+  }
+
+  await repo.confirmUser(user.id);
+  await repo.deleteEmailTokensForUser(user.id, "confirm");
+}
+
+/**
+ * Mot de passe oublié : envoie un code OTP si le compte existe et est confirmé.
+ * Toujours silencieux (pas d'énumération d'emails).
+ */
+export async function forgotPassword(email: string): Promise<void> {
+  const user = await repo.findUserByEmail(email);
+  if (!user || !user.emailConfirmed || user.suspended) return;
+  await issueAndSendOtp(user, "reset");
+}
+
+/** Réinitialisation avec le code OTP reçu par email. */
+export async function resetPassword(email: string, code: string, newPassword: string): Promise<void> {
+  const user = await repo.findUserByEmail(email);
+  if (!user) throw httpError(400, "AUTH_RESET_TOKEN_INVALID", "Code invalide ou expiré");
+
+  const row = await repo.findValidEmailToken(hashToken(code), "reset");
+  if (!row || row.userId !== user.id) {
+    throw httpError(400, "AUTH_RESET_TOKEN_INVALID", "Code invalide ou expiré");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  await repo.updatePasswordHash(user.id, passwordHash);
+  await repo.deleteEmailTokensForUser(user.id, "reset");
 }
 
 /** Connexion : refuse si email non confirmé ou compte suspendu (PLAN.md §6.1). */

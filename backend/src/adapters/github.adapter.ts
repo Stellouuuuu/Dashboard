@@ -67,7 +67,16 @@ export async function fetchRecentCommits(
   const url = `https://api.github.com/repos/${config.repository}/commits?per_page=${limit}`;
   const res = await fetch(url, { headers: githubHeaders(token) });
 
-  if (res.status === 404) throw new Error(`Dépôt introuvable: ${config.repository}`);
+  if (res.status === 404) {
+    throw new Error(
+      `Dépôt introuvable ou accès refusé: ${config.repository}. Vérifie le nom owner/repo et que GitHub est bien reconnecté avec les droits repo.`,
+    );
+  }
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(
+      `Accès GitHub refusé (${res.status}). Déconnecte puis reconnecte GitHub dans Services pour mettre à jour les permissions.`,
+    );
+  }
   if (!res.ok) throw new Error(`GitHub API error ${res.status}: ${await res.text()}`);
 
   const commits = (await res.json()) as GithubCommit[];

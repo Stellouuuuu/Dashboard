@@ -24,6 +24,12 @@ const envSchema = z.object({
     ),
   SMTP_HOST: z.string().default("localhost"),
   SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_SECURE: z
+    .preprocess((v) => v === true || v === "true" || v === "1", z.boolean())
+    .default(false),
+  SMTP_USER: z.preprocess(emptyToUndefined, z.string().optional()),
+  SMTP_PASS: z.preprocess(emptyToUndefined, z.string().optional()),
+  SMTP_FROM: z.string().default("Threshold <no-reply@dashboard.local>"),
   APP_URL: z.string().url().default("http://localhost:8080"),
   SECRETS_DIR: z.preprocess(emptyToUndefined, z.string().optional()),
   ADMIN_EMAIL: z.preprocess(

@@ -82,6 +82,14 @@ export function LoginPage() {
           {errors.form && (
             <div className="form-banner error" role="alert">
               {errors.form}
+              {errors.form === t('errors.AUTH_EMAIL_NOT_CONFIRMED') && (
+                <>
+                  {' '}
+                  <Link to={`/confirm?email=${encodeURIComponent(email.trim())}`}>
+                    {t('auth.register.enterCode')}
+                  </Link>
+                </>
+              )}
             </div>
           )}
 
@@ -128,6 +136,9 @@ export function LoginPage() {
               />
               <span>{t('auth.login.remember')}</span>
             </label>
+            <Link to="/forgot-password" className="auth-forgot">
+              {t('auth.login.forgot')}
+            </Link>
           </div>
 
           <button

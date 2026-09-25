@@ -9,8 +9,10 @@ import { ApiAuthError } from '../api/auth';
 export function RegisterPage() {
   const { t } = useTranslation();
   const { register } = useAuth();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ email: string } | null>(null);
@@ -18,14 +20,16 @@ export function RegisterPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const next: Record<string, string> = {};
+    if (!name.trim()) next.name = t('auth.register.nameRequired');
     if (!email.trim()) next.email = t('auth.login.emailRequired');
     if (password.length < 12) next.password = t('auth.register.passwordMin');
+    if (password !== confirmPassword) next.confirmPassword = t('auth.register.passwordMismatch');
     setErrors(next);
     if (Object.keys(next).length) return;
 
     setSubmitting(true);
     try {
-      const res = await register(email.trim(), password);
+      const res = await register(name.trim(), email.trim(), password, confirmPassword);
       setDone(res);
     } catch (err) {
       if (err instanceof ApiAuthError && err.code === 'AUTH_EMAIL_TAKEN') {
@@ -53,10 +57,21 @@ export function RegisterPage() {
                   {errors.form}
                 </div>
               )}
+              <FormField label={t('auth.nameLabel')} error={errors.name} htmlFor="reg-name">
+                <input
+                  id="reg-name"
+                  type="text"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t('auth.namePlaceholder')}
+                />
+              </FormField>
               <FormField label={t('auth.emailLabel')} error={errors.email} htmlFor="reg-email">
                 <input
                   id="reg-email"
                   type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('auth.emailPlaceholder')}
@@ -66,8 +81,23 @@ export function RegisterPage() {
                 <input
                   id="reg-password"
                   type="password"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </FormField>
+              <FormField
+                label={t('auth.confirmPasswordLabel')}
+                error={errors.confirmPassword}
+                htmlFor="reg-confirm"
+              >
+                <input
+                  id="reg-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                 />
               </FormField>
@@ -100,8 +130,11 @@ export function RegisterPage() {
                 </a>
               </p>
             )}
-            <Link className="btn btn-primary auth-submit" to="/login">
-              {t('auth.register.goToLogin')}
+            <Link
+              className="btn btn-primary auth-submit"
+              to={`/confirm?email=${encodeURIComponent(done.email)}`}
+            >
+              {t('auth.register.enterCode')}
             </Link>
           </div>
         )}

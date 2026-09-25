@@ -4,7 +4,8 @@
 
 ### What you can do
 
-- Register with email + password (confirmation via Mailpit in local Docker)
+- Register with email + password (6-digit confirmation code by email)
+- Reset a forgotten password with the same OTP flow
 - Build a dashboard with multiple instances of the same widget and different configs
 - Reconfigure, drag-reorder, and delete widgets — all persisted server-side
 - Link a GitHub account (optional) to unlock repository widgets
@@ -69,6 +70,10 @@ Copy `.env.example` to `.env` only if you need overrides. Everything has a safe 
 | `JWT_SECRET` | *(auto)* | Generated + persisted if empty |
 | `CRYPTO_KEY` | *(auto)* | 64 hex chars; generated if empty |
 | `APP_URL` | `http://localhost:8080` | Must match the URL you browse |
+| `SMTP_HOST` / `PORT` | `mailpit` / `1025` | Override with `smtp.gmail.com` / `587` for Gmail |
+| `SMTP_USER` / `PASS` | empty | Required for Gmail (App Password) |
+| `SMTP_FROM` | `Threshold <no-reply@…>` | From address (use your Gmail when sending via Google) |
+| `SMTP_SECURE` | `false` | `true` only for port 465 |
 | `ADMIN_EMAIL` | `admin@threshold.local` | Demo admin |
 | `ADMIN_PASSWORD` | *(random, logged once)* | Set to pin a known password |
 | `GITHUB_CLIENT_ID` / `SECRET` | empty | OAuth disabled when omitted |
@@ -96,17 +101,32 @@ Without these variables, GitHub widgets stay locked behind `SERVICE_OAUTH_REQUIR
 | http://localhost:8080 | Web app |
 | http://localhost:8080/about.json | Subject endpoint (services + widgets) |
 | http://localhost:8080/api/v1/… | REST API |
-| http://localhost:8025 | Mailpit UI (confirmation emails) |
+| http://localhost:8025 | Mailpit UI (OTP emails when SMTP points to Mailpit) |
 
 ---
 
 ## Usage
 
 1. Open the app → **Create account**
-2. Open Mailpit → click the confirmation link
-3. Log in → add widgets from the dashboard wizard
-4. (Optional) **Services → Connect GitHub** to unlock commit / alert widgets
-5. Log in as admin (see first-boot logs) → **Admin** to manage users
+2. Check your inbox (or Mailpit at :8025) for a **6-digit code**
+3. Open **Confirm** → enter email + code → log in
+4. Forgot password? Use **Forgot password** → code → new password
+5. (Optional) **Services → Connect GitHub** to unlock commit / alert widgets
+6. Log in as admin (see first-boot logs) → **Admin** to manage users
+
+### Send codes to a real Gmail inbox
+
+Create a Google [App Password](https://myaccount.google.com/apppasswords), put it in `.env`:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=you@gmail.com
+SMTP_PASS=your-16-char-app-password
+SMTP_FROM=Threshold <you@gmail.com>
+```
+
+Then recreate the API: `docker compose up -d --force-recreate api`.
 
 Minimum refresh rate per widget: **30 seconds** (enforced server-side).
 
@@ -119,7 +139,7 @@ Minimum refresh rate per widget: **30 seconds** (enforced server-side).
 | Frontend | React 19, TypeScript, Vite, React Router, i18next (fr/en) |
 | Backend | Node 22, Express, Zod, Drizzle ORM, JWT cookies, bcrypt |
 | Data | PostgreSQL 16 |
-| Mail | Mailpit (dev) |
+| Mail | Mailpit (dev) or Gmail SMTP |
 | Edge | nginx (static SPA + `/api` + `/about.json` proxy) |
 | Ops | Docker Compose |
 
