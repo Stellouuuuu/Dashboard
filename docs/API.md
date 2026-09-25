@@ -11,8 +11,11 @@ Base path: `/api/v1` (via nginx). JSON bodies. Auth uses httpOnly cookies unless
 | `GET` | `/about.json` | Subject endpoint — client host, server time, services & widgets |
 | `GET` | `/api/v1/widgets` | Widget catalogue from the registry |
 | `GET` | `/api/v1/widgets/:name` | One widget definition |
-| `POST` | `/api/v1/auth/register` | Create account |
-| `POST` | `/api/v1/auth/confirm` | Confirm email (`{ token }`) |
+| `POST` | `/api/v1/auth/register` | Create account (sends 6-digit code) |
+| `POST` | `/api/v1/auth/confirm` | Confirm email (`{ email, code }`) |
+| `POST` | `/api/v1/auth/resend-confirm` | Resend confirmation code (`{ email }`) |
+| `POST` | `/api/v1/auth/forgot-password` | Send reset code (`{ email }`) |
+| `POST` | `/api/v1/auth/reset-password` | Reset with code (`{ email, code, newPassword }`) |
 | `POST` | `/api/v1/auth/login` | Login → sets cookies |
 | `POST` | `/api/v1/auth/refresh` | Refresh access cookie |
 | `POST` | `/api/v1/auth/logout` | Clear cookies |

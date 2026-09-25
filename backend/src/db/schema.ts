@@ -24,9 +24,11 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** purpose: 'confirm' (inscription) | 'reset' (mot de passe oublié) — code OTP 6 chiffres hashé. */
 export const emailTokens = pgTable("email_tokens", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  purpose: text("purpose").notNull().default("confirm"),
   tokenHash: text("token_hash").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 });

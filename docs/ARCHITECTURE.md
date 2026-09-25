@@ -13,12 +13,13 @@ Threshold is a Dockerized SPA + API. The browser only talks to nginx on port **8
 | **nginx** | Static assets + reverse proxy |
 | **api** | Express REST API, Zod validation, Drizzle ORM |
 | **postgres** | Persistent state (users, widgets, cache, audit) |
-| **mailpit** | Local SMTP catcher for confirmation emails |
+| **mailpit** | Local SMTP catcher for OTP emails (optional if using Gmail SMTP) |
 | **api_secrets** | Volume holding auto-generated `JWT_SECRET` / `CRYPTO_KEY` |
 
 ## Authentication
 
-- Email + password registration → confirmation token emailed via SMTP
+- Email + password registration → **6-digit OTP** emailed via SMTP (Mailpit or Gmail)
+- Forgot password → same OTP pattern, then set a new password
 - Session: httpOnly cookies (`access_token`, `refresh_token`)
 - Passwords hashed with bcrypt; OAuth tokens encrypted with AES-256-GCM (`CRYPTO_KEY`)
 - Roles: `user` | `admin`

@@ -49,8 +49,13 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<{ message: string; email: string }>;
-  confirm: (token: string) => Promise<void>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    confirmPassword: string,
+  ) => Promise<{ message: string; email: string }>;
+  confirm: (email: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
@@ -119,17 +124,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applyUser],
   );
 
-  const register = useCallback(async (email: string, password: string) => {
-    const language = ((i18n.resolvedLanguage ?? i18n.language ?? 'fr').split('-')[0] as 'fr' | 'en') || 'fr';
-    const { message } = await apiRegister(email, password, language);
-    return { message, email };
-  }, []);
+  const register = useCallback(
+    async (name: string, email: string, password: string, confirmPassword: string) => {
+      const language =
+        ((i18n.resolvedLanguage ?? i18n.language ?? 'fr').split('-')[0] as 'fr' | 'en') || 'fr';
+      const { message } = await apiRegister(name, email, password, confirmPassword, language);
+      return { message, email };
+    },
+    [],
+  );
 
   // Ne connecte pas automatiquement (le backend n'émet pas de session à la
   // confirmation) : l'utilisateur se connecte ensuite via /login, comme prévu
   // par le parcours PLAN.md §2.1 (confirmation puis authentification).
-  const confirm = useCallback(async (token: string) => {
-    await apiConfirm(token);
+  const confirm = useCallback(async (email: string, code: string) => {
+    await apiConfirm(email, code);
   }, []);
 
   const logout = useCallback(async () => {

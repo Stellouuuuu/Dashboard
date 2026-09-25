@@ -48,7 +48,10 @@
   "auth": {
     "emailLabel": "Email",
     "emailPlaceholder": "you@example.com",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your first name or nickname",
     "passwordLabel": "Password",
+    "confirmPasswordLabel": "Confirm password",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "layout": { "quote": "One dashboard for the weather, your repos and your feeds." },
@@ -59,6 +62,7 @@
       "passwordRequired": "Password is required.",
       "checkPassword": "Check your password.",
       "remember": "Remember me",
+      "forgot": "Forgot password?",
       "submitting": "Signing in…",
       "submit": "Sign in",
       "noAccount": "Don’t have an account yet?",
@@ -67,23 +71,51 @@
     "register": {
       "title": "Create an account",
       "lead": "Open your first door to a dashboard that gathers weather, GitHub and RSS feeds.",
+      "nameRequired": "Name is required.",
       "passwordMin": "At least 12 characters.",
+      "passwordMismatch": "Passwords do not match.",
       "failed": "Sign up failed. Try again.",
       "checkInbox": "Check your inbox",
       "submitting": "Creating…",
       "submit": "Create my account",
       "hasAccount": "Already have an account?",
-      "confirmSent": "A confirmation email was sent to <b>{{email}}</b>.",
-      "devMailHint": "In dev, the email lands in Mailpit:",
+      "confirmSent": "A 6-digit code was sent to <b>{{email}}</b>.",
+      "devMailHint": "Locally without Gmail SMTP, the email lands in Mailpit:",
+      "enterCode": "Enter my code",
       "goToLogin": "Go to sign in"
     },
     "confirm": {
-      "title": "Email confirmation",
-      "missingToken": "Missing token.",
-      "checking": "Verifying the link…",
+      "title": "Confirm your account",
+      "successTitle": "Account confirmed",
+      "lead": "Enter the 6-digit code you received by email.",
+      "codeLabel": "Code",
+      "codeInvalid": "The code must be 6 digits.",
+      "submitting": "Verifying…",
+      "submit": "Confirm",
+      "resend": "Resend code",
+      "resending": "Sending…",
+      "resent": "A new code was sent if the account exists.",
       "success": "Account confirmed — you can now sign in.",
       "failed": "Confirmation failed.",
       "newAccount": "Create a new account"
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "lead": "Enter your email — you’ll get a 6-digit code.",
+      "submit": "Send code",
+      "submitting": "Sending…",
+      "failed": "Could not send the code. Try again."
+    },
+    "reset": {
+      "title": "New password",
+      "successTitle": "Password updated",
+      "lead": "Enter the code you received and your new password.",
+      "newPassword": "New password",
+      "submit": "Reset password",
+      "submitting": "Updating…",
+      "success": "Password updated — you can sign in.",
+      "failed": "Reset failed.",
+      "resend": "Send a new code"
     }
   },
   "landing": {
@@ -433,12 +465,12 @@
     "recent_commits": {
       "name": "Recent commits",
       "description": "Recent commits of a GitHub repository.",
-      "params": { "repository": "Repository (owner/repo)", "limit": "Limit" }
+      "params": { "repository": "Repository (owner/repo or GitHub URL)", "limit": "Limit" }
     },
     "security_alerts": {
       "name": "Security alerts",
       "description": "Security alerts of a GitHub repository.",
-      "params": { "repository": "Repository (owner/repo)", "severity": "Severity" }
+      "params": { "repository": "Repository (owner/repo or GitHub URL)", "severity": "Severity" }
     },
     "article_list": {
       "name": "Latest articles",
@@ -479,7 +511,8 @@
     "AUTH_INVALID_CREDENTIALS": "Invalid credentials.",
     "AUTH_EMAIL_NOT_CONFIRMED": "Confirm your email before signing in.",
     "AUTH_ACCOUNT_SUSPENDED": "This account has been suspended.",
-    "AUTH_CONFIRM_TOKEN_INVALID": "Invalid or expired confirmation link.",
+    "AUTH_CONFIRM_TOKEN_INVALID": "Invalid or expired confirmation code.",
+    "AUTH_RESET_TOKEN_INVALID": "Invalid or expired reset code.",
     "AUTH_SESSION_EXPIRED": "Session expired, please sign in again.",
     "AUTH_UNAUTHENTICATED": "You need to be signed in to continue.",
     "AUTH_TOKEN_INVALID": "Invalid session, please sign in again.",

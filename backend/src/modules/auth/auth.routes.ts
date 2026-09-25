@@ -7,6 +7,9 @@ import {
   registerSchema,
   loginSchema,
   confirmSchema,
+  resendConfirmSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   changePasswordSchema,
   deleteAccountSchema,
   setLanguageSchema,
@@ -18,6 +21,9 @@ const router = Router();
 // PLAN.md §11 : 10 req/min sur l'auth (en plus du rate-limit global 100 req/min).
 router.post("/register", authLimiter, validate(registerSchema), ctrl.register);
 router.post("/confirm", authLimiter, validate(confirmSchema), ctrl.confirm);
+router.post("/resend-confirm", authLimiter, validate(resendConfirmSchema), ctrl.resendConfirm);
+router.post("/forgot-password", authLimiter, validate(forgotPasswordSchema), ctrl.forgotPassword);
+router.post("/reset-password", authLimiter, validate(resetPasswordSchema), ctrl.resetPassword);
 router.post("/login", authLimiter, validate(loginSchema), ctrl.login);
 router.post("/refresh", authLimiter, ctrl.refresh);
 router.post("/logout", ctrl.logout);

@@ -24,6 +24,20 @@ export interface WidgetDefinition<C = any> {
   fetch: (config: C, ctx: WidgetContext) => Promise<unknown>;
 }
 
+/** Accepte `owner/repo` ou une URL github.com/... et normalise en owner/repo. */
+function githubRepositoryField() {
+  return z
+    .string()
+    .trim()
+    .transform((raw) => {
+      const cleaned = raw.replace(/\.git$/i, "").replace(/\/+$/, "");
+      const fromUrl = cleaned.match(/github\.com[/:]([^/\s]+)\/([^/\s?#]+)/i);
+      if (fromUrl) return `${fromUrl[1]}/${fromUrl[2]}`;
+      return cleaned;
+    })
+    .pipe(z.string().regex(/^[^/\s]+\/[^/\s]+$/, "Format attendu: owner/repo ou URL GitHub"));
+}
+
 /**
  * Registre unique des widgets (PLAN.md §4.2) : à partir d'ici on génère /about.json,
  * on valide les configs (create/reconfigure) et on sert GET /api/v1/widgets.
@@ -68,7 +82,7 @@ export const WIDGET_REGISTRY = {
       { name: "severity", type: "string", label: "Sévérité" },
     ],
     schema: z.object({
-      repository: z.string().regex(/^[^/\s]+\/[^/\s]+$/, "Format attendu: owner/repo"),
+      repository: githubRepositoryField(),
       severity: z.string().optional(),
     }),
     fetch: (config, ctx) => fetchSecurityAlerts(config, ctx),
@@ -82,7 +96,7 @@ export const WIDGET_REGISTRY = {
       { name: "limit", type: "integer", label: "Limite" },
     ],
     schema: z.object({
-      repository: z.string().regex(/^[^/\s]+\/[^/\s]+$/, "Format attendu: owner/repo"),
+      repository: githubRepositoryField(),
       limit: z.number().int().min(1).max(20),
     }),
     fetch: (config, ctx) => fetchRecentCommits(config, ctx),

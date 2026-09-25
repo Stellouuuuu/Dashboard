@@ -7,7 +7,8 @@ import * as repo from "./auth.repository.js";
 
 const STATE_TTL = "10m";
 const CALLBACK_PATH = "/api/v1/auth/oauth/github/callback";
-const SCOPE = "read:user";
+// read:user = identité ; repo = commits (dépôts privés inclus) ; security_events = alertes Dependabot
+const SCOPE = "read:user repo security_events";
 
 interface GithubStatePayload {
   sub: number;

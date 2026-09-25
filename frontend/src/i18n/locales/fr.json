@@ -48,7 +48,10 @@
   "auth": {
     "emailLabel": "Email",
     "emailPlaceholder": "toi@exemple.com",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Ton prénom ou pseudo",
     "passwordLabel": "Mot de passe",
+    "confirmPasswordLabel": "Confirmer le mot de passe",
     "showPassword": "Afficher le mot de passe",
     "hidePassword": "Masquer le mot de passe",
     "layout": { "quote": "Un seul tableau de bord pour la météo, tes dépôts et tes flux." },
@@ -59,6 +62,7 @@
       "passwordRequired": "Le mot de passe est requis.",
       "checkPassword": "Vérifie ton mot de passe.",
       "remember": "Se souvenir de moi",
+      "forgot": "Mot de passe oublié ?",
       "submitting": "Connexion…",
       "submit": "Se connecter",
       "noAccount": "Pas encore de compte ?",
@@ -67,23 +71,51 @@
     "register": {
       "title": "Créer un compte",
       "lead": "Ouvre ta première porte vers un dashboard qui rassemble météo, GitHub et flux RSS.",
+      "nameRequired": "Le nom est requis.",
       "passwordMin": "Au moins 12 caractères.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
       "failed": "Inscription impossible. Réessaie.",
       "checkInbox": "Vérifie ta boîte mail",
       "submitting": "Création…",
       "submit": "Créer mon compte",
       "hasAccount": "Déjà un compte ?",
-      "confirmSent": "Un email de confirmation a été envoyé à <b>{{email}}</b>.",
-      "devMailHint": "En dev, l’email arrive dans Mailpit :",
+      "confirmSent": "Un code à 6 chiffres a été envoyé à <b>{{email}}</b>.",
+      "devMailHint": "En local sans Gmail SMTP, le mail arrive dans Mailpit :",
+      "enterCode": "Entrer mon code",
       "goToLogin": "Aller à la connexion"
     },
     "confirm": {
-      "title": "Confirmation d’email",
-      "missingToken": "Token manquant.",
-      "checking": "Vérification du lien…",
+      "title": "Confirme ton compte",
+      "successTitle": "Compte confirmé",
+      "lead": "Saisis le code à 6 chiffres reçu par email.",
+      "codeLabel": "Code",
+      "codeInvalid": "Le code doit contenir 6 chiffres.",
+      "submitting": "Vérification…",
+      "submit": "Confirmer",
+      "resend": "Renvoyer le code",
+      "resending": "Envoi…",
+      "resent": "Un nouveau code a été envoyé si le compte existe.",
       "success": "Compte confirmé — tu peux maintenant te connecter.",
       "failed": "La confirmation a échoué.",
       "newAccount": "Créer un nouveau compte"
+    },
+    "forgot": {
+      "title": "Mot de passe oublié",
+      "lead": "Entre ton email : tu recevras un code à 6 chiffres.",
+      "submit": "Envoyer le code",
+      "submitting": "Envoi…",
+      "failed": "Impossible d’envoyer le code. Réessaie."
+    },
+    "reset": {
+      "title": "Nouveau mot de passe",
+      "successTitle": "Mot de passe mis à jour",
+      "lead": "Saisis le code reçu et ton nouveau mot de passe.",
+      "newPassword": "Nouveau mot de passe",
+      "submit": "Réinitialiser",
+      "submitting": "Mise à jour…",
+      "success": "Mot de passe mis à jour — tu peux te connecter.",
+      "failed": "Réinitialisation impossible.",
+      "resend": "Renvoyer un code"
     }
   },
   "landing": {
@@ -433,12 +465,12 @@
     "recent_commits": {
       "name": "Commits récents",
       "description": "Derniers commits d'un dépôt GitHub.",
-      "params": { "repository": "Dépôt (owner/repo)", "limit": "Limite" }
+      "params": { "repository": "Dépôt (owner/repo ou URL GitHub)", "limit": "Limite" }
     },
     "security_alerts": {
       "name": "Alertes de sécurité",
       "description": "Alertes de sécurité d'un dépôt GitHub.",
-      "params": { "repository": "Dépôt (owner/repo)", "severity": "Sévérité" }
+      "params": { "repository": "Dépôt (owner/repo ou URL GitHub)", "severity": "Sévérité" }
     },
     "article_list": {
       "name": "Derniers articles",
@@ -479,7 +511,8 @@
     "AUTH_INVALID_CREDENTIALS": "Identifiants invalides.",
     "AUTH_EMAIL_NOT_CONFIRMED": "Confirme ton email avant de te connecter.",
     "AUTH_ACCOUNT_SUSPENDED": "Ce compte a été suspendu.",
-    "AUTH_CONFIRM_TOKEN_INVALID": "Lien de confirmation invalide ou expiré.",
+    "AUTH_CONFIRM_TOKEN_INVALID": "Code de confirmation invalide ou expiré.",
+    "AUTH_RESET_TOKEN_INVALID": "Code de réinitialisation invalide ou expiré.",
     "AUTH_SESSION_EXPIRED": "Session expirée, reconnecte-toi.",
     "AUTH_UNAUTHENTICATED": "Tu dois être connecté(e) pour continuer.",
     "AUTH_TOKEN_INVALID": "Session invalide, reconnecte-toi.",
