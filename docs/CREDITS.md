@@ -1,12 +1,20 @@
-# Credits
+# Credits / Crédits
 
-← [Back to README](../README.md)
+← [Back to README](../README.md) · [Retour au README](../README.md)
 
-## Photography
+[English](#english) · [Français](#français)
+
+---
+
+<a id="english"></a>
+
+## English
+
+### Photography
 
 UI photographs live under `frontend/public/img/`. Sources and licenses are tracked in [`frontend/IMAGES.md`](../frontend/IMAGES.md) (Unsplash / Pexels unless noted). Replace assets by keeping the same filenames.
 
-## Open-source libraries
+### Open-source libraries
 
 Notable runtime dependencies:
 
@@ -23,7 +31,7 @@ Notable runtime dependencies:
 
 See each package’s license in `node_modules` / npm for redistribution terms.
 
-## External APIs
+### External APIs
 
 | Provider | Used by |
 | --- | --- |
@@ -33,6 +41,47 @@ See each package’s license in `node_modules` / npm for redistribution terms.
 | Frankfurter / CoinGecko | Finance widgets |
 | Algolia HN Search | Hacker News widgets |
 
-## Project
+### Project
 
 Epitech **G-WEB-500** dashboard module — student work.
+
+---
+
+<a id="français"></a>
+
+## Français
+
+### Photographie
+
+Les photos d’UI sont dans `frontend/public/img/`. Sources et licences sont suivies dans [`frontend/IMAGES.md`](../frontend/IMAGES.md) (Unsplash / Pexels sauf mention). Remplacer les assets en gardant les mêmes noms de fichiers.
+
+### Bibliothèques open-source
+
+Dépendances runtime notables :
+
+| Package | Usage |
+| --- | --- |
+| React / Vite | SPA |
+| Express | API |
+| Drizzle ORM + `pg` | Base de données |
+| Zod | Validation |
+| jsonwebtoken / bcrypt | Auth |
+| nodemailer | Envoi d’emails |
+| i18next | Traductions |
+| Helmet / express-rate-limit | Durcissement |
+
+Voir la licence de chaque package dans `node_modules` / npm pour les conditions de redistribution.
+
+### APIs externes
+
+| Fournisseur | Utilisé par |
+| --- | --- |
+| Open-Meteo | Widgets météo |
+| GitHub REST API | Commits & alertes Dependabot |
+| URLs RSS/Atom arbitraires | Widgets RSS |
+| Frankfurter / CoinGecko | Widgets finance |
+| Algolia HN Search | Widgets Hacker News |
+
+### Projet
+
+Module dashboard Epitech **G-WEB-500** — travail étudiant.

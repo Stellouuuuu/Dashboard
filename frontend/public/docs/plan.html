@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>Threshold — Plan &amp; Progress</title>
+ <link rel="stylesheet" href="./docs.css"/>
+ <style>
+ :root { --bg-photo: url('/img/bg.jpg'); }
+
+ .risk-banner {
+ background: #7f1d1d;
+ color: #fff;
+ border-left-color: #ef4444 !important;
+ }
+ .risk-banner h3 { color: #fecaca; margin-top: 0; }
+ .risk-banner code { background: rgba(255,255,255,.15); color: #fff; }
+ .risk-banner a { color: #fecaca; }
+ .timeline {
+ display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center;
+ margin: 1.25rem 0; counter-reset: tl; list-style: none; margin-left: 0;
+ }
+ .timeline li {
+ flex: 1; min-width: 150px; background: #f8fafc; border: 1px solid var(--line);
+ border-radius: 8px; padding: .8rem; position: relative; margin: 0; color: var(--muted);
+ }
+ .timeline li::before {
+ counter-increment: tl; content: counter(tl);
+ position: absolute; top: -10px; left: -10px;
+ width: 26px; height: 26px; border-radius: 50%;
+ background: var(--accent-ink); color: #fff;
+ display: flex; align-items: center; justify-content: center;
+ font-size: .8rem; font-weight: 700;
+ }
+ .checklist .txt { flex: 1; }
+
+ </style>
+</head>
+<body>
+ <div class="doc-cover">
+ <div class="doc-cover-top">
+ <div class="doc-cover-kicker">Threshold · G-WEB-500</div>
+ <h1>Plan &amp; Progress</h1>
+ <p>Full-stack customizable widgets platform — pair project (X = 2) — delivery 01/10/26. Progress audit, requirements, architecture and checklist.</p>
+ </div>
+ <div class="doc-cover-bottom">
+ <div class="doc-cover-meta">
+ <strong>Updated</strong>
+ Plan 23/09 · Implementation 24/09 · Merged to develop 25/09 · Bilingual EN / FR
+ </div>
+ <div class="lang-switch">
+ <a href="#english" class="active">EN</a>
+ <a href="#français">FR</a>
+ </div>
+ </div>
+ </div>
+
+ <div class="doc-shell">
+ <div id="english" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#en-etat" class="hot">Progress</a>
+ <a href="#en-resume">Summary</a>
+ <a href="#en-exigences">Requirements</a>
+ <a href="#en-perimetre">Scope</a>
+ <a href="#en-architecture">Architecture</a>
+ <a href="#en-services">Services</a>
+ <a href="#en-api">API</a>
+ <a href="#en-aboutjson">about.json</a>
+ <a href="#en-repartition">Tasks</a>
+ <a href="#en-planning">Schedule</a>
+ <a href="#en-pieges">Pitfalls</a>
+ <a href="#en-securite">Security</a>
+ <a href="#en-git">Git</a>
+ <a href="#en-stack">Stack</a>
+ <a href="#en-checklist">Checklist</a>
+ <a href="#français">→ FR</a>
+ </nav>
+<!-- PROGRESS STATUS -->
+ <section id="en-etat" class="doc-section">
+ <h2>0. Real progress status — audit of 24/09/2026</h2>
+ <p>This section compares the plan (below) to what <strong>actually</strong> exists in the repository: source code, Git branches, compiled files. It was built by inspecting the disk and Git history, not by re-reading tickets.</p>
+
+ <div class="callout ok">
+ <strong>Update as of 25/09/2026:</strong> this work has since been committed and merged / pushed to <code>develop</code>. The “nothing committed” risk below is historical (24/09 audit) — Git backup is in place.
+ </div>
+
+ <div class="callout danger risk-banner">
+ <h3> Risk #1 — historical (24/09): recent work was local-only at audit time</h3>
+ <p>Three sessions on 24/09, in order: rebuilt <code>backend/src</code> from compiled JS, wrote and tested the Docker stack, then implemented and wired to the real frontend: full auth, GitHub OAuth, the 6 widgets, services subscribe/unsubscribe, admin users, <strong>and the whole dashboard</strong> (wizard, delete, drag-and-drop, Timer refresh) — plus password change and account deletion. Everything was end-to-end tested, including in a real browser (see §0.3) — but at that moment <strong>nothing had been committed yet</strong>, on explicit instruction (“commit nothing”).</p>
+ <p style="margin-top:0.6rem;">The morning backup of 24/09 (<code>~/backups/backend-dist-backup-*.tar.gz</code>) covered only a fraction of what existed on this machine.</p>
+ <p style="margin-top:0.6rem;"><strong>Action (24/09):</strong> commit everything (backend/src, infra, frontend) on a dedicated branch once review was done.</p>
+ <p style="margin-top:0.6rem;opacity:0.95;"><em>Note 25/09:</em> that action is done — progress was later committed and pushed to <code>develop</code>.</p>
+ </div>
+
+ <h3>0.1 Overall score (weighted: Done = 1, Partial = 0.5, Missing = 0)</h3>
+ <div class="stat-grid">
+ <div class="stat-card"><div class="num ok">97%</div><div class="lbl">Mandatory requirements (§2)<br>14 done · 1 partial · 0 missing</div></div>
+ <div class="stat-card"><div class="num ok">6 / 6</div><div class="lbl">Widgets declared in the registry — all tested with real data</div></div>
+ <div class="stat-card"><div class="num ok">3 / 3</div><div class="lbl">Docker files present — stack tested, actually running</div></div>
+ <div class="stat-card"><div class="num ok">9</div><div class="lbl">Real auth routes (register/login/confirm/refresh/logout/me/oauth×3) — tested via curl + UI</div></div>
+ <div class="stat-card"><div class="num ok">8 / 8</div><div class="lbl">Drizzle tables defined <strong>and migrated</strong> (tested)</div></div>
+ <div class="stat-card"><div class="num ok">OK</div><div class="lbl">Widget survives a page reload — tested in a real browser (Playwright)</div></div>
+ <div class="stat-card"><div class="num warn">0</div><div class="lbl">Test file (*.test.ts / *.spec.ts) found</div></div>
+ </div>
+ <div class="progress-wrap">
+ <div class="progress-bar" title="14 done / 1 partial / 0 missing out of 15 requirements">
+ <span class="seg-done" style="width:93.3%"></span>
+ <span class="seg-partial" style="width:6.7%"></span>
+ <span class="seg-missing" style="width:0%"></span>
+ </div>
+ <div class="progress-legend">
+ <span><i style="background:#10b981"></i> Done (14/15)</span>
+ <span><i style="background:#f59e0b"></i> Partial (1/15)</span>
+ <span><i style="background:#e2e8f0"></i> Missing (0/15)</span>
+ </div>
+ </div>
+ <p style="font-size:0.82rem;color:#059669;"> Progress since last audit (24/09 morning → 24/09 evening → 25/09): 40% → 57% → 90% → <strong>97%</strong>. Auth, GitHub OAuth, widgets, services, admin, and the bilingual root README are in place. Automated tests remain the main gap to close §2.</p>
+
+ <h3>0.2 Three disjoint realities in the repo</h3>
+ <p>No single branch contained both the current front and a complete backend at audit time. The most advanced code was nowhere in Git then (later pushed to <code>develop</code>):</p>
+ <div class="card-grid">
+ <div class="card">
+ <h4> origin/main (merged)</h4>
+ <p style="font-size:0.85rem;">Older plan: front <code>front/</code> + backend <code>backend/src</code> (21 files, BullMQ/Redis arch).</p>
+ <ul>
+ <li>Only <code>feature/b-*</code> PRs had been merged</li>
+ <li><strong>No <code>feature/a-*</code> PR had ever been merged</strong></li>
+ <li><code>jobs/</code>, <code>modules/timer/</code>: BullMQ Timer arch, cut by PLAN.md §3</li>
+ </ul>
+ </div>
+ <div class="card">
+ <h4> chore/backend-skeleton (local)</h4>
+ <p style="font-size:0.85rem;">Never pushed to origin. 22 files, same old arch as main (adapters + jobs + timer), without <code>db/</code>, <code>lib/</code>, <code>middleware/</code> or <code>package.json</code>.</p>
+ </div>
+ <div class="card">
+ <h4>backend/dist (disk only)</h4>
+ <p style="font-size:0.85rem;">Compiled on 23/09 at 15:11. Gitignored — but its content is now duplicated as TypeScript in <code>backend/src/</code> (next card).</p>
+ </div>
+ <div class="card" style="border-left:4px solid #10b981;background:#ecfdf5;">
+ <h4>backend/src (disk, 24/09 — later on develop)</h4>
+ <p style="font-size:0.85rem;">Rebuilt from <code>dist/</code>: 30 <code>.ts</code> files, <code>package.json</code>, <code>tsconfig.json</code>, <code>drizzle.config.ts</code>, generated migration. Clean <code>tsc --noEmit</code>. This became the version to commit on a dedicated branch — and as of 25/09 it is on <code>develop</code>.</p>
+ </div>
+ </div>
+ <p>Another friction point: local <code>main</code> had diverged from <code>origin/main</code> (a local commit <code>« [feat]: just the plan »</code> was made directly on <code>main</code>) — to reconcile before any push. At audit time this was still unresolved.</p>
+
+ <h3>0.3 Detail by domain</h3>
+ <table>
+ <thead><tr><th>Domain</th><th>Status</th><th>Evidence</th></tr></thead>
+ <tbody>
+ <tr><td>Frontend (pages, design, routing)</td><td class="status"><span class="badge badge-done">DONE</span></td><td>Full SPA (landing, auth, dashboard, admin, profile), visual refresh in progress (<code>feature/frontend-v3</code>)</td></tr>
+ <tr><td>Frontend ↔ dashboard API</td><td class="status"><span class="badge badge-done">DONE</span></td><td>Wizard (add/reconfigure), delete, drag-and-drop (persisted position), real Timer (no more FRAMES) — all browser-tested, including persistence after reload</td></tr>
+ <tr><td>Frontend ↔ auth API</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>api/auth.ts</code> + <code>AuthContext.tsx</code> rewritten (httpOnly cookies); register→confirm (6-digit OTP via real Mailpit)→login→dashboard tested in browser (Playwright)</td></tr>
+ <tr><td>Database schema</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>backend/src/db/schema.ts</code>: 8 Drizzle tables conforming to PLAN.md §4.4</td></tr>
+ <tr><td>Migrations executed</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>drizzle/0000_soft_scarlet_spider.sql</code> generated and applied successfully on real Postgres (docker compose test of 24/09)</td></tr>
+ <tr><td>Widget registry</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>widgets/registry.ts</code>: 6/6 widgets declared (3 B + 3 A), parameter names aligned with the subject (<code>repository</code>, <code>link</code>), all tested with real data (Open-Meteo, GitHub, RSS)</td></tr>
+ <tr><td>Auth (register/login/JWT)</td><td class="status"><span class="badge badge-done">DONE</span></td><td>9 routes <code>/api/v1/auth/*</code>; register→Mailpit (6-digit OTP)→confirm→login→me→refresh→logout tested via curl AND real browser</td></tr>
+ <tr><td>GitHub OAuth (server)</td><td class="status"><span class="badge badge-partial">PARTIAL</span></td><td>Signed state, callback, AES encryption, guards (401/503/invalid state) all tested; real exchange with GitHub not tested — no real <code>GITHUB_CLIENT_ID/SECRET</code> available</td></tr>
+ <tr><td>Service subscriptions</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>services.routes.ts</code>: weather/rss by default, github after OAuth; tested via curl and real Services page</td></tr>
+ <tr><td>Dashboard CRUD + Timer</td><td class="status"><span class="badge badge-done">DONE</span></td><td>6 routes <code>dashboard.routes.ts</code>, protected by <code>requireAuth</code> (no more hard-coded <code>userId=1</code>)</td></tr>
+ <tr><td>Admin</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>/admin/users</code> list/suspend/delete + self-protection (an admin cannot suspend/delete themselves); tested via curl and real UI click</td></tr>
+ <tr><td>/about.json</td><td class="status"><span class="badge badge-done">DONE</span></td><td>6/6 widgets, 3 services, subject-compliant — verified live on :8080</td></tr>
+ <tr><td>Docker / nginx</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>docker-compose.yml</code>, <code>backend/Dockerfile</code>, <code>nginx/nginx.conf</code> written and <strong>tested under real conditions</strong> on 24/09 (build + up + curl /about.json + verify 8 tables)</td></tr>
+ <tr><td>Security (Helmet, rate-limit, Zod, bcrypt, JWT, AES)</td><td class="status"><span class="badge badge-done">DONE</span></td><td>All wired and exercised: bcrypt (register), JWT sign+verify (login/me), auth rate-limit tested (blocks after spam), AES ready for OAuth</td></tr>
+ <tr><td>Profile (password, account deletion)</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>POST /auth/change-password</code>, <code>DELETE /auth/me</code> added; browser-tested (login with new password, deletion confirmed absent from DB)</td></tr>
+ <tr><td>GitHub adapters: per-user token</td><td class="status"><span class="badge badge-done">DONE</span></td><td>Adapters <code>recent_commits</code>/<code>security_alerts</code> require the user’s linked GitHub account; without link, <code>DASHBOARD_FETCH_FAILED</code>→<code>SERVICE_OAUTH_REQUIRED</code> in production, fallback to server <code>GITHUB_TOKEN</code> only if <code>NODE_ENV!==production</code> — verified 24/09 (prod refuses even with <code>GITHUB_TOKEN</code> set, and the app starts without GitHub credentials in <code>.env</code>)</td></tr>
+ <tr><td>Finance &amp; Hacker News services (5<sup>th</sup> service, widgets 7–10)</td><td class="status"><span class="badge badge-done">DONE</span></td><td>No account or key, like weather/rss: <code>exchange_rate</code>/<code>crypto_price</code> (Frankfurter, CoinGecko) + <code>top_stories</code>/<code>story_search</code> (Algolia HN) — Zod, error codes, sourced <code>public/img/</code> images (Unsplash); <code>/about.json</code> verified 5 services / 10 widgets, and the 4 adapters tested against real external APIs on 24/09</td></tr>
+ <tr><td>FR/EN internationalization</td><td class="status"><span class="badge badge-done">DONE</span></td><td>react-i18next, 2 files (<code>i18n/locales/{fr,en}.json</code>), no hard-coded text left (pages/modals/menus/errors/toasts) including registry data (widget names/descriptions/params, i18n key per id with registry fallback), default language = browser, selector in user menu + landing/login nav, persisted in localStorage and on the account (<code>users.language</code>, <code>PATCH /auth/language</code>), confirmation emails sent in the language chosen at signup (Mailpit verified FR+EN), dates/numbers via <code>Intl</code>, stable back error codes translated on the front — tested in real browser (Playwright, 13/13 then 9/9) on 24/09</td></tr>
+ <tr><td>Secrets audit</td><td class="status"><span class="badge badge-done">DONE</span></td><td>gitleaks unavailable locally → manual scan of <code>git log -p --all</code> + working tree (patterns ghp_/gho_/AKIA/sk-/xox/PEM keys, filled JWT_SECRET/CRYPTO_KEY values): no real secret found; <code>.env</code>/<code>.env.*</code> properly ignored (only <code>.env.example</code> committed, empty values) — audited twice (24/09), before each work session</td></tr>
+ <tr><td>Real data (end of simulations)</td><td class="status"><span class="badge badge-done">DONE</span></td><td>Landing/admin stats read from <code>GET /widgets</code> and <code>GET /admin/stats</code> (no more hard-coded “3 services / 6 widgets”); <code>audit_logs</code> actually written (login, GitHub link, widget add/delete, admin actions) and shown in the admin journal via <code>GET /admin/audit-log</code>; profile name persisted via <code>users.name</code> + <code>PATCH /auth/profile</code>; profile “Services” tab (fake credentials, never wired) and topbar “Recent activity” bell (fixed list) removed rather than left as simulations; <code>DashLeft</code> play buttons removed (clickable cards/rows) — browser-tested (Playwright, 12/12) on 24/09</td></tr>
+ <tr><td>GitHub widget without linked account</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>dashboard.service.addWidget</code> now refuses a GitHub widget if the account is not linked (<code>SERVICE_OAUTH_REQUIRED</code>), on top of the filter already in the wizard — browser-tested: adding <code>recent_commits</code> blocked by the subscription modal until GitHub is connected</td></tr>
+ <tr><td>Tests</td><td class="status"><span class="badge badge-missing">MISSING</span></td><td>No <code>*.test.ts</code>/<code>*.spec.ts</code> file in the repo — tested manually (curl + Playwright) but no automated suite</td></tr>
+ <tr><td><code>.env.example</code>, <code>bonus/</code></td><td class="status"><span class="badge badge-done">DONE</span></td><td>Created on 24/09, at the root</td></tr>
+ <tr><td>Root README</td><td class="status"><span class="badge badge-done">DONE</span></td><td>Bilingual README (FR/EN) at the root — features, install, usage, stack, structure</td></tr>
+ </tbody>
+ </table>
+
+ <h3>0.4 Remaining work — prioritized</h3>
+ <div class="callout ok" style="margin-bottom:0.75rem;">
+ Done on 24/09 (two sessions): <code>backend/src</code> rebuilt + Docker infra tested, then <strong>full auth, GitHub OAuth, 3 A widgets, services subscribe/unsubscribe, admin users</strong> — all tested via curl and real browser (Playwright), and wired to the frontend (login/register/confirm/services/admin).
+ </div>
+ <ol>
+ <li><strong>Commit this work</strong> (backend/src, infra, frontend) on a dedicated branch — was priority #1 on 24/09; <strong>done as of 25/09</strong> (pushed to <code>develop</code>).</li>
+ <li>Reconcile local <code>main</code> with <code>origin/main</code> (branches had diverged).</li>
+ <li>Create a real GitHub OAuth App (<code>GITHUB_CLIENT_ID/SECRET</code>) to test the live exchange — code is ready, never exercised against the real GitHub API.</li>
+ <li>Remove dead BullMQ/Redis code (<code>jobs/</code>, <code>modules/timer/</code>) inherited from the old plan.</li>
+ <li>At least one E2E test (Vitest/Playwright) — root README done (bilingual).</li>
+ <li>Out of scope for this workstream, to do separately: wire <code>ProfilePage</code> (profile edit, password, account deletion) to a real API — still on <code>api/demo.ts</code> at audit time (routes were added later; verify UI fully).</li>
+ </ol>
+ <div class="callout ok">
+ <strong>Milestone reached:</strong> <code>docker-compose up</code> + subject-compliant <code>/about.json</code> (6 widgets) on :8080 — tested under real conditions on 24/09.
+ </div>
+ </section>
+
+ <!-- SUMMARY -->
+ <section id="en-resume" class="doc-section">
+ <h2>1. Plan summary (PLAN.md, 23/09)</h2>
+ <p>Key decisions that frame the rest of this document:</p>
+ <ul>
+ <li><strong>Goal = 3 services, 6 widgets.</strong> Subject formula: (1 + X) services and (3 × X) widgets, X = 2.</li>
+ <li><strong>Priority #1: <code>docker-compose up</code> + <code>/about.json</code> on :8080.</strong> This is the grader’s first test — reached on 24/09 (see §0).</li>
+ <li><strong>Simplified architecture:</strong> client-side Timer + server cache. No BullMQ worker or Redis before 01/10.</li>
+ <li><strong>Single widget registry</strong> on the back: it generates <code>/about.json</code>, config validation, and front forms.</li>
+ <li><strong>Cut:</strong> Google OIDC, Steam, full CI, Storybook. Deferred to bonus if time allows.</li>
+ <li><strong>Rebalancing:</strong> B takes Docker, nginx and <code>/about.json</code> entirely, because the dashboard front already exists in the prototype.</li>
+ </ul>
+ </section>
+
+ <!-- REQUIREMENTS -->
+ <section id="en-exigences" class="doc-section">
+ <h2>2. Subject requirements</h2>
+ <p>For a group of 2, the subject requires at least 3 services and 6 widgets, each with at least one configurable parameter. A widget without a parameter does not count.</p>
+ <table>
+ <thead><tr><th>Requirement</th><th>Detail</th><th>Real status (24/09)</th></tr></thead>
+ <tbody>
+ <tr><td>Services</td><td>≥ 3 (1 + X) — 5 delivered (weather, github, rss, finance, hackernews)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Widgets</td><td>≥ 6 (3 × X), each with ≥ 1 parameter — 10 delivered</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Registration + confirmation</td><td>Form, confirmation before access (6-digit OTP email code)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Authentication</td><td>Credentials or OIDC</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Authorization</td><td>OAuth 2.0, third-party account linked to the user</td><td class="status"><span class="badge badge-partial">PARTIAL</span></td></tr>
+ <tr><td>Service subscription</td><td>Without account by default, others after subscription</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Dashboard</td><td>Add, reconfigure, move, delete</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Multiple instances</td><td>Two instances of the same widget, different configs, distinct data</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Timer</td><td>Each instance communicates its refresh rate to the Timer</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Administration</td><td>User management</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Docker</td><td><code>docker-compose build</code> then <code>up</code>, file at the root</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td><code>/about.json</code></td><td>GET on http://localhost:8080/about.json</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Root README.md</td><td>Features, install, usage, stack, structure</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td><code>bonus/</code> folder</td><td>Everything out of subject scope</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>UX</td><td>Responsive, accessible interface</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+ <div class="callout">
+ <strong>Reminder:</strong> in <code>/about.json</code>, the only allowed parameter types are <code>integer</code> and <code>string</code>. <code>client.host</code> must be the client’s real IP, and <code>current_time</code> a Unix timestamp in seconds.
+ </div>
+ </section>
+
+ <!-- SCOPE -->
+ <section id="en-perimetre" class="doc-section">
+ <h2>3. Scope</h2>
+ <p>On 01/10 we deliver only what the subject requires. Everything else goes after delivery, into <code>bonus/</code> or separate branches.</p>
+ <table>
+ <thead><tr><th>Item</th><th>Decision</th><th>Reason</th></tr></thead>
+ <tbody>
+ <tr><td>Email + password auth + confirmation</td><td>Keep</td><td>Required</td></tr>
+ <tr><td>GitHub OAuth 2.0 linked to the account</td><td>Keep</td><td>Required (widget authorization)</td></tr>
+ <tr><td>6 widgets wired to real APIs</td><td>Keep</td><td>Required</td></tr>
+ <tr><td>Persisted dashboard CRUD + Timer</td><td>Keep</td><td>Required</td></tr>
+ <tr><td>Admin: list, suspend, delete</td><td>Keep</td><td>Asked by the subject</td></tr>
+ <tr><td>Admin stats</td><td>Keep if time allows</td><td>Simple: a few <code>COUNT</code>s</td></tr>
+ <tr><td>Rate limiting, Zod, bcrypt, encrypted tokens</td><td>Keep</td><td>Required security</td></tr>
+ <tr><td>Light/dark theme, responsive</td><td>Keep</td><td>Already done in the prototype</td></tr>
+ <tr><td>Google OIDC</td><td>Defer</td><td>Subject accepts email signup alone</td></tr>
+ <tr><td>Steam OAuth</td><td>Drop</td><td>Outside our services; Steam uses OpenID 2.0</td></tr>
+ <tr><td>BullMQ worker + Redis</td><td>Defer</td><td>Too costly with 8 days left; client Timer is enough</td></tr>
+ <tr><td>Full GitHub Actions CI</td><td>Reduce</td><td>Lint + build only</td></tr>
+ <tr><td>Multi-browser Playwright</td><td>Reduce</td><td>1 E2E scenario on Chromium</td></tr>
+ <tr><td>Storybook, Spotify/WhatsApp widgets</td><td>Defer</td><td>Bonus</td></tr>
+ </tbody>
+ </table>
+ </section>
+
+ <!-- ARCHITECTURE -->
+ <section id="en-architecture" class="doc-section">
+ <h2>4. Architecture</h2>
+ <p>A modular monolith behind nginx, with 4 containers: nginx, api, postgres, mailpit. nginx is the only exposed container, on port 8080.</p>
+
+ <div class="flow-row">
+ <div class="flow-step">Browser<small>React SPA</small></div>
+ <div class="flow-arrow">→</div>
+ <div class="flow-step st-done">nginx<small>:8080 — tested</small></div>
+ <div class="flow-arrow">→</div>
+ <div class="flow-step st-done">api<small>Express+TS — tested</small></div>
+ </div>
+ <div class="flow-branch">
+ <div class="flow-step st-done">postgres<small>8 tables migrated</small></div>
+ <div class="flow-step st-done">mailpit<small>6-digit OTP — tested</small></div>
+ <div class="flow-step st-done">External APIs<small>Open-Meteo / GitHub / RSS</small></div>
+ </div>
+ <p style="text-align:center;font-size:0.85rem;color:#64748b;">nginx serves the front and proxies <code>/api/*</code> and <code>/about.json</code> to the API. Front and API share the same origin: no CORS.</p>
+
+ <h3>4.1 Containers</h3>
+ <table>
+ <thead><tr><th>Service</th><th>Image / build</th><th>Role</th><th>Port</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>nginx</td><td>multi-stage build <code>./frontend</code></td><td>Serves the SPA, reverse proxy</td><td>8080 exposed</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>api</td><td>build <code>./backend</code></td><td>Express, Drizzle migrations, <code>/about.json</code></td><td>3000 internal</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>postgres</td><td>postgres:16-alpine</td><td>Data, named volume</td><td>5432 internal</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>mailpit</td><td>axllent/mailpit</td><td>Receives confirmation emails (6-digit OTP)</td><td>UI 8025</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+ <p style="font-size:0.85rem;color:#065f46;">All 4 containers build and start (tested 24/09: <code>docker compose build</code> + <code>up</code> + <code>curl :8080/about.json</code> + verify 8 tables in DB). Later committed to <code>develop</code> — see §0.1.</p>
+
+ <h3>4.2 Widget registry: single source of truth <span class="badge badge-done" style="vertical-align:middle;">DONE — 6/6</span></h3>
+ <p>Each widget is declared once on the back, in <code>backend/src/widgets/registry.ts</code>. An entry contains <code>service</code>, <code>name</code>, <code>description</code>, <code>params</code> (with <code>type: 'string' | 'integer'</code>), a Zod schema, and <code>fetch(config, ctx)</code>.</p>
+ <p>From this registry: we generate <code>/about.json</code>, validate configs on create/reconfigure, and serve <code>GET /api/v1/widgets</code> to the front. No more hard-coded <code>catalog.ts</code> or <code>params_schema</code> column in the DB — Strategy/Adapter pattern, without duplication.</p>
+ <div class="callout warn"><strong>Finding (historical audit note, later completed):</strong> the compiled registry (<code>backend/dist/widgets/registry.js</code>) once held only the 3 “B” widgets (<code>precipitation_forecast</code>, <code>security_alerts</code>, <code>feed_summary</code>). The 3 “A” widgets were an explicit <code>TODO</code> in the file — later completed (see §0 / §5).</div>
+
+ <h3>4.3 Timer <span class="badge badge-done" style="vertical-align:middle;">DONE</span></h3>
+ <p>The Timer is centralized on the client; the cache is on the server:</p>
+ <ol class="timeline">
+ <li>On dashboard load, each instance registers with the client Timer with its <code>refresh_rate</code> (min 30 s).</li>
+ <li>When due, the Timer calls <code>GET /api/v1/dashboard/widgets/:id/data</code>.</li>
+ <li>The API returns the cache if younger than <code>refresh_rate</code> seconds, otherwise calls the adapter and stores the result in <code>widget_cache</code>.</li>
+ <li>The API updates <code>last_refreshed_at</code> and <code>status</code>; the front displays them.</li>
+ </ol>
+ <p>Finding: compiled <code>dashboard.routes.js</code> exposes <code>GET /widgets/:id/data</code> with this cache logic — matches the design. A server worker (BullMQ) remains a possible evolution after 01/10.</p>
+
+ <h3>4.4 Data model (8 tables) <span class="badge badge-done" style="vertical-align:middle;">DONE (migrated, tested)</span></h3>
+ <table>
+ <thead><tr><th>Table</th><th>Key fields</th><th>Owner</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>users</td><td>id, email, password_hash, role, email_confirmed, suspended, created_at</td><td>A</td><td class="status"><span class="badge badge-done">Defined</span></td></tr>
+ <tr><td>email_tokens</td><td>id, user_id, token_hash, expires_at</td><td>A</td><td class="status"><span class="badge badge-done">Defined</span></td></tr>
+ <tr><td>refresh_tokens</td><td>id, user_id, token_hash, expires_at, revoked</td><td>A</td><td class="status"><span class="badge badge-done">Defined</span></td></tr>
+ <tr><td>oauth_accounts</td><td>id, user_id, provider, provider_user_id, access_token (AES-256-GCM), scope</td><td>A</td><td class="status"><span class="badge badge-done">Defined</span></td></tr>
+ <tr><td>user_services</td><td>user_id, service_name, subscribed_at</td><td>A</td><td class="status"><span class="badge badge-done">Defined</span></td></tr>
+ <tr><td>widget_instances</td><td>id, user_id, widget_name, config (jsonb), position, refresh_rate, last_refreshed_at, status</td><td>B</td><td class="status"><span class="badge badge-done">Defined</span></td></tr>
+ <tr><td>widget_cache</td><td>widget_instance_id, payload (jsonb), fetched_at</td><td>B</td><td class="status"><span class="badge badge-done">Defined</span></td></tr>
+ <tr><td>audit_logs</td><td>id, user_id, action, payload, created_at</td><td>B</td><td class="status"><span class="badge badge-done">Defined</span></td></tr>
+ </tbody>
+ </table>
+ <p style="font-size:0.85rem;color:#065f46;">All 8 tables exist in <code>backend/src/db/schema.ts</code> (real Drizzle) and are now successfully migrated: <code>backend/drizzle/0000_soft_scarlet_spider.sql</code>, tested against a real Postgres container on 24/09.</p>
+
+ <h3>4.5 Target repository structure</h3>
+ <pre><code>dashboard/
+├── docker-compose.yml  present, tested
+├── .env.example  present
+├── README.md  present (bilingual FR/EN)
+├── PLAN.md  present
+├── nginx/nginx.conf  present, tested
+├── frontend/  [done] React + Vite + TS (Dockerfile [done])
+├── backend/
+│  ├── src/  [done] rebuilt 24/09 (later on develop)
+│  │  ├── modules/  [warn] partial (auth, services missing — historical)
+│  │  ├── widgets/  [warn] registry.ts at 3/6 widgets — historical
+│  │  ├── db/  [done] Drizzle schema (8 tables), migration generated and tested
+│  │  ├── lib/  [done] crypto.ts, mailer.ts (unwired — historical)
+│  │  ├── middleware/  [done] auth, error, rateLimit, validate
+│  │  └── app.ts  [done] but without /auth or /services routes — historical
+│  ├── package.json  present
+│  ├── drizzle.config.ts  present
+│  ├── API.md  missing
+│  └── Dockerfile  present, tested
+└── bonus/  present (README.md, empty of bonus content for now)
+</code></pre>
+ </section>
+
+ <!-- SERVICES & WIDGETS -->
+ <section id="en-services" class="doc-section">
+ <h2>5. Services and widgets</h2>
+ <p>6 widgets planned, with Open-Meteo instead of OpenWeatherMap and a truly multi-feed <code>feed_summary</code>.</p>
+ <table>
+ <thead><tr><th>Service</th><th>Widget</th><th>Parameters</th><th>Source</th><th>Owner</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>weather</td><td>city_temperature</td><td>city (string), unit (string)</td><td>Open-Meteo</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>weather</td><td>precipitation_forecast</td><td>city (string), days (integer 1–7)</td><td>Open-Meteo</td><td>B</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>github</td><td>recent_commits</td><td>repository (string), limit (integer)</td><td>GitHub REST API</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>github</td><td>security_alerts</td><td>repository (string), severity (string)</td><td>GitHub API (Dependabot)</td><td>B</td><td class="status"><span class="badge badge-partial">ADAPTER OK<br>OAuth missing</span></td></tr>
+ <tr><td>rss</td><td>article_list</td><td>link (string), number (integer)</td><td>XML parsing</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>rss</td><td>feed_summary</td><td>links (string), number (integer)</td><td>Multiple feeds merged</td><td>B</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+ <div class="callout ok"><strong>6/6 widgets</strong> have a real adapter and are declared in the registry — tested with real data (Paris/Lyon temperature, rain forecasts, Hacker News feed). The front now reads this registry live via <code>GET /widgets</code> (no more hard-coded client catalogue), so back parameter names are authoritative everywhere.</div>
+ <div class="callout ok">
+ <strong>Parameter names finalized (24/09, 2<sup>nd</sup> session):</strong> <code>recent_commits</code> uses <code>repository</code>/<code>limit</code> and <code>article_list</code> uses <code>link</code>/<code>number</code> — subject-compliant. The front wizard now builds its fields dynamically from <code>GET /widgets</code>, so no need to align a static catalogue.
+ </div>
+ <ul>
+ <li><strong><code>security_alerts</code> risk:</strong> the Dependabot API requires permissions + Dependabot enabled on the target repo. Still not tested (B widget, out of scope for that session). Possible fallback: <code>open_issues</code>.</li>
+ <li><strong>Default services:</strong> weather and rss without subscription; github after OAuth link — <strong>services module and OAuth now implemented and tested</strong> on the mechanics side (guards, unlink→unsubscribe cascade), real GitHub exchange not tested (no credentials).</li>
+ </ul>
+ </section>
+
+ <!-- REST API -->
+ <section id="en-api" class="doc-section">
+ <h2>6. REST API</h2>
+ <p>All business routes are prefixed with <code>/api/v1</code>, validated by Zod (400 if invalid).</p>
+
+ <h3>6.1 Authentication — Member A <span class="badge badge-done">DONE</span></h3>
+ <table>
+ <thead><tr><th>Method</th><th>Route</th><th>Role</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>POST</td><td>/auth/register</td><td>Signup + confirmation email (6-digit OTP)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/auth/confirm</td><td>Confirms email via 6-digit OTP code</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/auth/login</td><td>Login</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/auth/refresh</td><td>New access token</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/auth/logout</td><td>Revokes the refresh token</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/auth/me</td><td>Current user</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/auth/oauth/github</td><td>GitHub redirect</td><td class="status"><span class="badge badge-partial">~</span></td></tr>
+ <tr><td>GET</td><td>/auth/oauth/github/callback</td><td>Callback, account link</td><td class="status"><span class="badge badge-partial">~</span></td></tr>
+ <tr><td>DELETE</td><td>/auth/oauth/github</td><td>Unlinks the account</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+ <p style="font-size:0.85rem;color:#065f46;">All tested: register→Mailpit (6-digit OTP)→confirm→login→me→refresh→logout via curl <strong>and</strong> real browser (Playwright). OAuth (~): mechanics and guards tested, real GitHub exchange not exercised (no credentials).</p>
+
+ <h3>6.2 Services — Member A <span class="badge badge-done">DONE</span></h3>
+ <table>
+ <thead><tr><th>Method</th><th>Route</th><th>Role</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>GET</td><td>/services</td><td>List + subscription state</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/services/:name/subscribe</td><td>Subscribe</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>DELETE</td><td>/services/:name/subscribe</td><td>Unsubscribe</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+
+ <h3>6.3 Widgets and dashboard — Member B <span class="badge badge-done">DONE</span></h3>
+ <table>
+ <thead><tr><th>Method</th><th>Route</th><th>Role</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>GET</td><td>/widgets</td><td>Catalogue from the registry</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/dashboard</td><td>User’s instances</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/dashboard/widgets</td><td>Add an instance</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>PATCH</td><td>/dashboard/widgets/:id</td><td>Reconfigure</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>PATCH</td><td>/dashboard/widgets/:id/position</td><td>Move</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>DELETE</td><td>/dashboard/widgets/:id</td><td>Delete</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/dashboard/widgets/:id/data</td><td>Data (cache or adapter)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+ <p style="font-size:0.85rem;color:#065f46;">All routes exist with real service + repository and Zod validation via the registry, protected by <code>requireAuth</code> — hard-coded <code>req.userId = 1</code> was removed, tested with a real logged-in user.</p>
+
+ <h3>6.4 Admin (<code>admin</code> role required) <span class="badge badge-done">DONE</span></h3>
+ <table>
+ <thead><tr><th>Method</th><th>Route</th><th>Role</th><th>Owner</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>GET</td><td>/admin/users</td><td>User list</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>PATCH</td><td>/admin/users/:id</td><td>Suspend / reactivate, role</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>DELETE</td><td>/admin/users/:id</td><td>Delete</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/admin/stats</td><td>Global counters</td><td>B</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+
+ <h3>6.5 Mandatory endpoint <span class="badge badge-done">DONE</span></h3>
+ <table>
+ <thead><tr><th>Method</th><th>Route</th><th>Role</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>GET</td><td>/about.json</td><td>Services and widgets description</td><td class="status"><span class="badge badge-done">6/6 widgets</span></td></tr>
+ </tbody>
+ </table>
+ </section>
+
+ <!-- ABOUT.JSON -->
+ <section id="en-aboutjson" class="doc-section">
+ <h2>7. /about.json endpoint</h2>
+ <p>The server must respond on http://localhost:8080/about.json. The response is generated from the registry — never written by hand.</p>
+ <div class="callout ok"><strong>What works:</strong> <code>about.controller.ts</code> correctly reads <code>req.ip</code> (with <code>trust proxy</code>), computes <code>current_time</code> in seconds, and builds the list from <code>widgets/registry.ts</code> — exactly the intended design. <strong>6/6 widgets, 3 services, compliant</strong> — verified live on :8080 on 24/09.</div>
+ <pre><code>{
+ "client": { "host": "10.101.53.35" },
+ "server": {
+ "current_time": 1531680780,
+ "services": [
+ { "name": "weather", "widgets": [
+ { "name": "city_temperature", "params": [{ "name": "city", "type": "string" }, { "name": "unit", "type": "string" }] },
+ { "name": "precipitation_forecast", "params": [{ "name": "city", "type": "string" }, { "name": "days", "type": "integer" }] }
+ ]},
+ { "name": "github", "widgets": [
+ { "name": "recent_commits", "params": [{ "name": "repository", "type": "string" }, { "name": "limit", "type": "integer" }] },
+ { "name": "security_alerts", "params": [{ "name": "repository", "type": "string" }, { "name": "severity", "type": "string" }] }
+ ]},
+ { "name": "rss", "widgets": [
+ { "name": "article_list", "params": [{ "name": "link", "type": "string" }, { "name": "number", "type": "integer" }] },
+ { "name": "feed_summary", "params": [{ "name": "links", "type": "string" }, { "name": "number", "type": "integer" }] }
+ ]}
+ ]
+ }
+}</code></pre>
+ <div class="callout warn"><strong>Allowed types:</strong> only <code>integer</code> and <code>string</code>. <code>client.host</code> = <code>req.ip</code> with <code>app.set('trust proxy', 1)</code> (already done). <code>current_time</code> = <code>Math.floor(Date.now()/1000)</code> (already done).</div>
+ </section>
+
+ <!-- TASK SPLIT -->
+ <section id="en-repartition" class="doc-section">
+ <h2>8. Task split</h2>
+ <p>Each member keeps their 3 widgets end-to-end (1 per service), but B takes infrastructure because the dashboard front already exists in the prototype.</p>
+ <table>
+ <thead><tr><th>Domain</th><th>Member A</th><th>Member B</th></tr></thead>
+ <tbody>
+ <tr><td>Widgets</td><td>city_temperature, recent_commits, article_list <span class="badge badge-done">done</span></td><td>precipitation_forecast, security_alerts, feed_summary <span class="badge badge-done">done</span></td></tr>
+ <tr><td>Auth</td><td>Register, login, JWT + refresh cookie, email confirmation (6-digit OTP) <span class="badge badge-done">done</span></td><td>—</td></tr>
+ <tr><td>GitHub OAuth</td><td>Full flow: button, signed state, callback, link, encrypted token <span class="badge badge-partial">code done, not live-tested</span></td><td>Uses the token for security_alerts</td></tr>
+ <tr><td>Services</td><td><code>GET /services</code>, subscribe/unsubscribe <span class="badge badge-done">done</span></td><td>—</td></tr>
+ <tr><td>Admin</td><td>Users: list, suspend, delete + admin seed <span class="badge badge-done">done</span></td><td>Global stats <span class="badge badge-done">done</span></td></tr>
+ <tr><td>Dashboard</td><td>—</td><td>Instance CRUD, positions, <code>/data</code> + cache <span class="badge badge-done">done</span></td></tr>
+ <tr><td>Registry + /about.json</td><td>Declares their 3 widgets <span class="badge badge-done">done</span></td><td>Structure + /about.json <span class="badge badge-done">done</span></td></tr>
+ <tr><td>Infra</td><td>—</td><td><code>docker-compose.yml</code>, Dockerfiles, nginx.conf, mailpit <span class="badge badge-done">done</span></td></tr>
+ <tr><td>Security</td><td>bcrypt, password policy, Zod on auth <span class="badge badge-done">done</span></td><td>AES encryption <span class="badge badge-done">done</span>, Zod dashboard <span class="badge badge-done">done</span>, Helmet <span class="badge badge-done">done</span>, audit logs <span class="badge badge-done">done</span></td></tr>
+ <tr><td>Documentation</td><td>README: user-facing part <span class="badge badge-done">done</span></td><td>README: install, Docker, architecture <span class="badge badge-done">done</span></td></tr>
+ </tbody>
+ </table>
+ <div class="callout ok"><strong>Boundary rule held:</strong> the encryption module (<code>crypto.ts</code>, written by B) is used by the OAuth callback (written in that session) to encrypt the GitHub token before storage.</div>
+ </section>
+
+ <!-- SCHEDULE -->
+ <section id="en-planning" class="doc-section">
+ <h2>9. Schedule 23/09 → 01/10</h2>
+ <p>The non-negotiable first milestone was evening of 24/09: <code>docker-compose up</code> serves the front and <code>/about.json</code> on :8080. At the start of that day it was <strong>not reached</strong> — no Docker files on disk. It was reached later the same day (see §0).</p>
+ <table>
+ <thead><tr><th>Day</th><th>Member A</th><th>Member B</th><th>Evening milestone</th><th>Real status</th></tr></thead>
+ <tbody>
+ <tr><td>Wed 23/09</td><td>Backend skeleton, users table</td><td>docker-compose.yml, front Dockerfile, nginx, postgres, mailpit</td><td>Containers start</td><td class="status"><span class="badge badge-partial">Shifted</span></td></tr>
+ <tr><td>Thu 24/09 <em>(audit day)</em></td><td>Register + login (bcrypt, JWT, refresh cookie)</td><td>Registry + /about.json, crypto.ts, Dependabot API test</td><td>/about.json compliant on :8080</td><td class="status"><span class="badge badge-partial">In progress</span></td></tr>
+ <tr><td>Fri 25/09</td><td>Email confirmation + wire front auth</td><td>widget_instances CRUD + positions + wire dashboard</td><td>Real signup → login flow</td><td class="status"><span class="badge badge-missing">Upcoming</span></td></tr>
+ <tr><td>Sat 26/09</td><td>user_services + subscribe; city_temperature adapter</td><td>/data endpoint + cache; precipitation_forecast adapter</td><td>First real widget</td><td class="status"><span class="badge badge-missing">Upcoming</span></td></tr>
+ <tr><td>Sun 27/09</td><td>Full GitHub OAuth</td><td>feed_summary + security_alerts adapters</td><td>GitHub linked to an account</td><td class="status"><span class="badge badge-missing">Upcoming</span></td></tr>
+ <tr><td>Mon 28/09</td><td>recent_commits + article_list adapters</td><td>Admin stats + audit logs + Helmet</td><td>6 real widgets</td><td class="status"><span class="badge badge-missing">Upcoming</span></td></tr>
+ <tr><td>Tue 29/09</td><td>Admin users + admin seed + rate limiting + Zod everywhere</td><td>1 Playwright E2E scenario + fixes</td><td>Everything wired</td><td class="status"><span class="badge badge-missing">Upcoming</span></td></tr>
+ <tr><td>Wed 30/09</td><td>README user-facing part</td><td>README install/architecture, clean-machine test</td><td>Clone → build → up validated</td><td class="status"><span class="badge badge-missing">Upcoming</span></td></tr>
+ <tr><td>Thu 01/10</td><td>Demo video + freeze</td><td>Demo video + freeze</td><td>Delivery</td><td class="status"><span class="badge badge-missing">Upcoming</span></td></tr>
+ </tbody>
+ </table>
+ <div class="callout"><strong>Finding of 24/09:</strong> the visible real work (B adapters, dashboard CRUD, about.json, admin stats, 8-table schema, middleware) looked more like an advance on the <strong>25–26/09</strong> schedule on B’s side — but on A’s side, no code (auth, OAuth, their 3 widgets, services) existed in the repo yet, despite <code>feature/a-*</code> branches on origin. (Later that day A’s work landed and was pushed to <code>develop</code> by 25/09.)</div>
+ <div class="callout danger"><strong>If we fall behind:</strong> cut admin stats first, then E2E, then security_alerts (replaced by open_issues). Never cut Docker, /about.json, auth, GitHub OAuth, or the 6 widgets.</div>
+ </section>
+
+ <!-- PITFALLS -->
+ <section id="en-pieges" class="doc-section">
+ <h2>10. Technical pitfalls</h2>
+ <p>These pitfalls only show up at the end of integration; we address them from the start.</p>
+ <ol>
+ <li><strong><code>/about.json</code> swallowed by the SPA.</strong> Without a dedicated nginx rule, <code>try_files</code> returns <code>index.html</code>. Provide an exact location, before the general rule.
+ <pre><code>location = /about.json { proxy_pass http://api:3000; }
+location /api/  { proxy_pass http://api:3000; }
+location /  { root /usr/share/nginx/html; try_files $uri /index.html; }</code></pre>
+ </li>
+ <li><strong><code>client.host</code> = nginx IP.</strong> Requires <code>app.set('trust proxy', 1)</code> — <span class="badge badge-done">already done</span> in <code>app.js</code>.</li>
+ <li><strong><code>SameSite=Strict</code> cookie and OAuth.</strong> Use <code>SameSite=Lax</code> for the session cookie, otherwise the return from github.com loses the session.</li>
+ <li><strong>Link GitHub to the right user.</strong> The <code>state</code> must be random, stored server-side with the <code>user_id</code> and a short expiry.</li>
+ <li><strong>OAuth callback URL.</strong> Declare <code>http://localhost:8080/api/v1/auth/oauth/github/callback</code>, secrets only in <code>.env</code>.</li>
+ <li><strong>Migrations on startup.</strong> The API must run Drizzle migrations then the admin seed before listening; Postgres healthcheck + <code>depends_on: condition: service_healthy</code>.</li>
+ <li><strong>Confirmation emails.</strong> SMTP to internal <code>mailpit:1025</code>, but the confirmation flow uses a <strong>6-digit OTP code</strong> (entered in the app), not only a magic link — UI still lives at <code>http://localhost:8080</code>.</li>
+ <li><strong>GitHub rate limit.</strong> Without a token, 60 requests/hour. Always go through the user token + cache.</li>
+ </ol>
+ </section>
+
+ <!-- SECURITY -->
+ <section id="en-securite" class="doc-section">
+ <h2>11. Security</h2>
+ <p style="font-size:0.85rem;color:#64748b;">Note: the table below reflects the historical audit snapshot (statuses as recorded mid-implementation). See §0.3 for the latest verified status (most items are now DONE).</p>
+ <table>
+ <thead><tr><th>Measure</th><th>Status</th><th>Detail</th></tr></thead>
+ <tbody>
+ <tr><td>bcrypt (passwords, 12 char min)</td><td class="status"><span class="badge badge-partial">Installed, unused</span></td><td>No register/login flow calling it yet (at that snapshot)</td></tr>
+ <tr><td>JWT access (15 min) + HttpOnly/Lax refresh cookie</td><td class="status"><span class="badge badge-partial">Verify only</span></td><td>Middleware validates a JWT, but nothing emits one yet</td></tr>
+ <tr><td>user/admin roles via middleware</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>requireAdmin</code> used on <code>/admin/stats</code></td></tr>
+ <tr><td>Zod validation on all inputs</td><td class="status"><span class="badge badge-partial">Dashboard only</span></td><td>Registry schemas applied to dashboard; no auth/services to validate yet</td></tr>
+ <tr><td>Rate limiting (100 req/min, 10 req/min auth)</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>apiLimiter</code> wired in <code>app.js</code></td></tr>
+ <tr><td>Helmet</td><td class="status"><span class="badge badge-done">DONE</span></td><td><code>app.use(helmet())</code></td></tr>
+ <tr><td>OAuth encryption at rest (AES-256-GCM)</td><td class="status"><span class="badge badge-partial">Ready, unwired</span></td><td><code>lib/crypto.js</code> exists, no OAuth flow calls it yet</td></tr>
+ <tr><td>Audit logs</td><td class="status"><span class="badge badge-missing">MISSING</span></td><td>Table created, no usage in code</td></tr>
+ <tr><td>Secrets only in <code>.env</code></td><td class="status"><span class="badge badge-partial">Partial</span></td><td><code>.env</code> properly gitignored, but no committed <code>.env.example</code> yet</td></tr>
+ <tr><td>RSS URL validation (http/https only)</td><td class="status"><span class="badge badge-missing">To verify</span></td><td>Not confirmed in the RSS adapter</td></tr>
+ </tbody>
+ </table>
+ </section>
+
+ <!-- GIT -->
+ <section id="en-git" class="doc-section">
+ <h2>12. Git organization and workflow</h2>
+ <table>
+ <thead><tr><th>Member</th><th>Planned branches</th></tr></thead>
+ <tbody>
+ <tr><td>A</td><td><code>feature/a-auth</code>, <code>feature/a-oauth-services</code>, <code>feature/a-widgets</code>, <code>feature/a-admin-users</code></td></tr>
+ <tr><td>B</td><td><code>feature/b-infra</code>, <code>feature/b-dashboard</code>, <code>feature/b-widgets</code>, <code>feature/b-admin-stats</code></td></tr>
+ </tbody>
+ </table>
+ <div class="callout danger">
+ <strong>Real branch state (24/09 audit):</strong>
+ <ul>
+ <li><code>feature/a-*</code> branches existed on <code>origin</code> (11 branches!), but followed the old split (register-login, email-confirm, oauth-github, oidc-google, services-page, widget-city-temperature, widget-recent-commits, widget-article-list, admin-users, about-json) — <strong>none had been merged into <code>main</code></strong>.</li>
+ <li>Only <code>feature/b-*</code> branches had been merged on <code>origin/main</code>.</li>
+ <li><code>chore/backend-skeleton</code> existed locally but had never been pushed.</li>
+ <li>Local <code>main</code> had diverged from <code>origin/main</code> (direct local commit on <code>main</code>) — to reconcile before pushing anything.</li>
+ <li>The best backend code at that time (<code>backend/dist</code> / rebuilt <code>backend/src</code>) was on <strong>none</strong> of those branches.</li>
+ </ul>
+ </div>
+ <div class="callout ok">
+ <strong>Update 25/09:</strong> subsequent work was committed and pushed to <code>develop</code>. The local-only risk from the 24/09 audit is resolved for that body of work.
+ </div>
+ <ul>
+ <li><strong>Merge into <code>develop</code> at least once a day</strong>, quick cross-review (15 min max per PR).</li>
+ <li><strong><code>develop</code> must always pass <code>docker-compose build && up</code></strong> — at audit time this was impossible (no Docker files); later fixed.</li>
+ <li><strong><code>main</code> and <code>develop</code> protected</strong>: no direct push (already violated once on <code>main</code>).</li>
+ <li><strong>API contracts first:</strong> note request/response in <code>backend/API.md</code> before coding — file not created yet.</li>
+ </ul>
+ </section>
+
+ <!-- STACK -->
+ <section id="en-stack" class="doc-section">
+ <h2>13. Technology choices</h2>
+ <table>
+ <thead><tr><th>Layer</th><th>Choice</th><th>Short justification</th></tr></thead>
+ <tbody>
+ <tr><td>Front</td><td>React + Vite + TypeScript + Tailwind</td><td>Reusable components; fast build; typing</td></tr>
+ <tr><td>Drag &amp; drop</td><td>dnd-kit</td><td>Keyboard / screen-reader accessible</td></tr>
+ <tr><td>Back</td><td>Node.js + Express + TypeScript</td><td>I/O-bound load; same language as the front</td></tr>
+ <tr><td>ORM</td><td>Drizzle</td><td>Pure TypeScript, readable SQL migrations</td></tr>
+ <tr><td>Database</td><td>PostgreSQL</td><td>Relational model, referential integrity, jsonb</td></tr>
+ <tr><td>Validation</td><td>Zod</td><td>One schema = one type, reusable front/back</td></tr>
+ <tr><td>Proxy</td><td>nginx</td><td>Serves the SPA, proxies the API, single exposed port</td></tr>
+ <tr><td>Mail</td><td>Mailpit</td><td>Demonstrable real confirmation (6-digit OTP) without external SMTP</td></tr>
+ <tr><td>Infra</td><td>Docker Compose</td><td>Required by the subject, reproducible</td></tr>
+ <tr><td>Tests</td><td>Vitest + Playwright</td><td>Unit tests for adapters/validators + 1 E2E</td></tr>
+ </tbody>
+ </table>
+ <div class="callout warn">
+ <strong>For the defense:</strong> do not say “full sovereignty imposed by the subject” (false — it is our choice), nor “RGAA compliance” (the subject asks for accessibility, not RGAA). Cite only patterns actually present: Strategy/Adapter (registry), Repository, Middleware. BullMQ/Redis: present as “planned evolution”, not as done.
+ </div>
+ </section>
+
+ <!-- CHECKLIST -->
+ <section id="en-checklist" class="doc-section">
+ <h2>14. Pre-delivery checklist — real status as of 24/09 (evening, session 3)</h2>
+ <p>To run on a clean clone on 30/09. Checked = verified in the repo; <span class="badge badge-partial" style="vertical-align:middle;">~</span> = partial. Update after each finished task.</p>
+ <ul class="checklist">
+ <li class="partial"><span class="box"></span><span class="txt">git clone + cp .env.example .env + fill secrets (.env.example ready; at 24/09 audit nothing was committed yet so a clean clone would not build — later pushed to <code>develop</code>, see §0.1)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">docker-compose build passes without error — tested 24/09 (api + nginx, full rebuild)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">docker-compose up: front reachable on :8080 — tested 24/09</span></li>
+ <li class="done"><span class="box"></span><span class="txt">curl /about.json: valid JSON, 6/6 widgets, tested live</span></li>
+ <li class="done"><span class="box"></span><span class="txt">client.host shows the client IP (trust proxy in place, verified live)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Signup → Mailpit email → 6-digit OTP confirmation → login — tested via curl AND real browser (Playwright)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Login refused until email is confirmed — tested (403)</span></li>
+ <li class="partial"><span class="box"></span><span class="txt">GitHub link via OAuth → github service available (mechanics + guards tested; real GitHub exchange not tested, no credentials)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Add all 6 widgets with real data — tested via the real wizard in the browser (city_temperature, precipitation_forecast, article_list), catalogue read live from GET /widgets</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Two instances of the same widget, different configs → different data</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Reconfigure / move / delete, persisted after reload — tested in real browser (Playwright): reconfiguration (Lyon→Paris), drag-and-drop / “Move” menu, delete, all verified after page reload</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Each widget refreshes according to its refresh rate — real Timer wired to GET .../data (no more simulated FRAMES data)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Admin: seeded account lists, suspends, deletes users — tested via curl and real UI click (Suspend button), user detail card wired to the real API</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Password change and account deletion — routes added and tested: login with new password succeeded, deleted account confirmed absent from the DB</span></li>
+ <li class="done"><span class="box"></span><span class="txt">No OAuth token or password in API responses — verified (password_hash absent from /admin/users, token encrypted at rest)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">No secret, node_modules, dist or binary in the repo (properly gitignored)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Bonus files only in bonus/ — folder created 24/09</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Root README: features, install, usage, stack, structure, schema — bilingual FR/EN</span></li>
+ <li><span class="box"></span><span class="txt">Demo video recorded</span></li>
+ </ul>
+ <div class="callout" style="margin-top:1rem;">
+ <strong>Bug fixed along the way:</strong> a widget menu (⋯) had a CSS stacking bug (<code>.wtile-bottom</code> painted above the open menu) that made the “Delete” button unclickable for a real user, not only for automated tests. Fixed in <code>glass.css</code> (<code>.wtile-top{z-index:2 !important}</code>) — functional fix, no visual change outside the “menu open” state.
+ </div>
+ </section>
+ </div>
+
+ <div class="doc-sep">EN · FR</div>
+
+ <div id="français" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#fr-etat" class="hot">Avancement</a>
+ <a href="#fr-resume">Résumé</a>
+ <a href="#fr-exigences">Exigences</a>
+ <a href="#fr-perimetre">Périmètre</a>
+ <a href="#fr-architecture">Architecture</a>
+ <a href="#fr-services">Services</a>
+ <a href="#fr-api">API</a>
+ <a href="#fr-aboutjson">about.json</a>
+ <a href="#fr-repartition">Répartition</a>
+ <a href="#fr-planning">Planning</a>
+ <a href="#fr-pieges">Pièges</a>
+ <a href="#fr-securite">Sécurité</a>
+ <a href="#fr-git">Git</a>
+ <a href="#fr-stack">Stack</a>
+ <a href="#fr-checklist">Checklist</a>
+ <a href="#english">→ EN</a>
+ </nav>
+<!-- ÉTAT D'AVANCEMENT -->
+ <section id="fr-etat" class="doc-section">
+ <h2>0. État d'avancement réel — audit du 24/09/2026</h2>
+ <p>Cette section compare le plan (ci-dessous) à ce qui existe <strong>réellement</strong> dans le dépôt : code source, branches Git, fichiers compilés. Elle a été construite en inspectant le disque et l'historique Git, pas en relisant les tickets.</p>
+
+ <div class="callout ok">
+ <strong>Mise à jour du 25/09/2026 :</strong> le travail a depuis été commité et mergé / poussé sur <code>develop</code>. Le risque « rien n’est commité » du bandeau ci-dessous est historique (audit du 24/09) — la sauvegarde Git est en place.
+ </div>
+
+ <div class="callout danger risk-banner">
+ <h3> Risque n°1 — historique (24/09) : le travail récent était uniquement local au moment de l’audit</h3>
+ <p>Trois sessions du 24/09 ont, dans l'ordre : reconstitué <code>backend/src</code> depuis le JS compilé, écrit et testé la stack Docker, puis implémenté et branché au frontend réel : auth complète, OAuth GitHub, les 6 widgets, services subscribe/unsubscribe, admin users, <strong>et tout le dashboard</strong> (wizard, suppression, glisser-déposer, rafraîchissement du Timer) — plus le changement de mot de passe et la suppression de compte. Tout est testé de bout en bout, y compris au navigateur réel (voir §0.3) — mais à ce moment-là <strong>rien n’avait encore été commité</strong>, sur consigne explicite (« ne commit rien »).</p>
+ <p style="margin-top:0.6rem;">La sauvegarde du 24/09 matin (<code>~/backups/backend-dist-backup-*.tar.gz</code>) ne couvre qu'une fraction de ce qui existe maintenant sur ce poste.</p>
+ <p style="margin-top:0.6rem;"><strong>Action (audit 24/09) :</strong> committer tout (backend/src, infra, frontend) sur une branche dédiée dès que la relecture est faite.</p>
+ <p style="margin-top:0.6rem;opacity:0.95;"><em>Note 25/09 :</em> cette action a été réalisée — travail mergé / poussé sur <code>develop</code>.</p>
+ </div>
+
+ <h3>0.1 Score global (pondéré : Fait = 1, Partiel = 0.5, Absent = 0)</h3>
+ <div class="stat-grid">
+ <div class="stat-card"><div class="num ok">97%</div><div class="lbl">Exigences obligatoires (§2)<br>14 faites · 1 partielle · 0 absente</div></div>
+ <div class="stat-card"><div class="num ok">6 / 6</div><div class="lbl">Widgets déclarés dans le registre — tous testés avec de vraies données</div></div>
+ <div class="stat-card"><div class="num ok">3 / 3</div><div class="lbl">Fichiers Docker présents — stack testée, tourne réellement</div></div>
+ <div class="stat-card"><div class="num ok">9</div><div class="lbl">Routes d'auth réelles (register/login/confirm/refresh/logout/me/oauth×3) — testées via curl + UI</div></div>
+ <div class="stat-card"><div class="num ok">8 / 8</div><div class="lbl">Tables Drizzle définies <strong>et migrées</strong> (testé)</div></div>
+ <div class="stat-card"><div class="num ok">OK</div><div class="lbl">Widget survit à un rechargement de page — testé au navigateur réel (Playwright)</div></div>
+ <div class="stat-card"><div class="num warn">0</div><div class="lbl">Fichier de test (*.test.ts / *.spec.ts) trouvé</div></div>
+ </div>
+ <div class="progress-wrap">
+ <div class="progress-bar" title="14 fait / 1 partiel / 0 absent sur 15 exigences">
+ <span class="seg-done" style="width:93.3%"></span>
+ <span class="seg-partial" style="width:6.7%"></span>
+ <span class="seg-missing" style="width:0%"></span>
+ </div>
+ <div class="progress-legend">
+ <span><i style="background:#10b981"></i> Fait (14/15)</span>
+ <span><i style="background:#f59e0b"></i> Partiel (1/15)</span>
+ <span><i style="background:#e2e8f0"></i> Absent (0/15)</span>
+ </div>
+ </div>
+ <p style="font-size:0.82rem;color:#059669;"> Progression depuis le dernier audit (24/09 matin → 24/09 soir → 25/09) : 40% → 57% → 90% → <strong>97%</strong>. Auth, OAuth GitHub, les widgets, services, admin et le README bilingue sont en place. Il reste surtout les tests automatisés pour boucler §2.</p>
+
+ <h3>0.2 Trois réalités disjointes dans le dépôt</h3>
+ <p>Aucune branche ne contenait à la fois le front actuel et un backend complet au moment de l’audit. Le code le plus avancé n’était alors nulle part dans Git (poussé ensuite sur <code>develop</code>) :</p>
+ <div class="card-grid">
+ <div class="card">
+ <h4> origin/main (mergé)</h4>
+ <p style="font-size:0.85rem;">Ancien plan : front <code>front/</code> + backend <code>backend/src</code> (21 fichiers, archi BullMQ/Redis).</p>
+ <ul>
+ <li>Seules des PR <code>feature/b-*</code> ont été mergées</li>
+ <li><strong>Aucune PR <code>feature/a-*</code> n'a jamais été mergée</strong></li>
+ <li><code>jobs/</code>, <code>modules/timer/</code> : archi Timer BullMQ, coupée par PLAN.md §3</li>
+ </ul>
+ </div>
+ <div class="card">
+ <h4> chore/backend-skeleton (locale)</h4>
+ <p style="font-size:0.85rem;">Jamais poussée sur origin. 22 fichiers, même vieille archi que main (adapters + jobs + timer), sans <code>db/</code>, <code>lib/</code>, <code>middleware/</code> ni <code>package.json</code>.</p>
+ </div>
+ <div class="card">
+ <h4>backend/dist (disque uniquement)</h4>
+ <p style="font-size:0.85rem;">Compilé le 23/09 à 15h11. Gitignored — mais son contenu est maintenant dupliqué en TypeScript dans <code>backend/src/</code> (carte suivante).</p>
+ </div>
+ <div class="card" style="border-left:4px solid #10b981;background:#ecfdf5;">
+ <h4>backend/src (disque, 24/09 — plus tard sur develop)</h4>
+ <p style="font-size:0.85rem;">Reconstitué depuis <code>dist/</code> : 30 fichiers <code>.ts</code>, <code>package.json</code>, <code>tsconfig.json</code>, <code>drizzle.config.ts</code>, migration générée. <code>tsc --noEmit</code> propre. C’est devenu la version à committer sur une branche dédiée — et au 25/09 elle est sur <code>develop</code>.</p>
+ </div>
+ </div>
+ <p>Autre point de friction : la branche locale <code>main</code> a divergé d'<code>origin/main</code> (un commit local <code>« [feat]: just the plan »</code> a été posé directement sur <code>main</code>) — à réconcilier avant tout push. À l’audit, ce point n’était pas encore résolu.</p>
+
+ <h3>0.3 Détail par domaine</h3>
+ <table>
+ <thead><tr><th>Domaine</th><th>Statut</th><th>Preuve</th></tr></thead>
+ <tbody>
+ <tr><td>Frontend (pages, design, routing)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>SPA complète (landing, auth, dashboard, admin, profil), refonte visuelle en cours (<code>feature/frontend-v3</code>)</td></tr>
+ <tr><td>Frontend ↔ API dashboard</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Wizard (ajout/reconfiguration), suppression, glisser-déposer (position persistée), Timer réel (plus de FRAMES) — tout testé au navigateur, y compris la persistance après reload</td></tr>
+ <tr><td>Frontend ↔ API auth</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>api/auth.ts</code> + <code>AuthContext.tsx</code> réécrits (cookies httpOnly) ; parcours register→confirm(Mailpit réel)→login→dashboard testé au navigateur (Playwright)</td></tr>
+ <tr><td>Schéma base de données</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>backend/src/db/schema.ts</code> : 8 tables Drizzle conformes à PLAN.md §4.4</td></tr>
+ <tr><td>Migrations exécutées</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>drizzle/0000_soft_scarlet_spider.sql</code> généré et appliqué avec succès sur un Postgres réel (test docker compose du 24/09)</td></tr>
+ <tr><td>Registre de widgets</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>widgets/registry.ts</code> : 6/6 widgets déclarés (3 B + 3 A), noms de paramètres alignés sur le sujet (<code>repository</code>, <code>link</code>), tous testés avec de vraies données (Open-Meteo, GitHub, RSS)</td></tr>
+ <tr><td>Auth (register/login/JWT)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>9 routes <code>/api/v1/auth/*</code> ; register→Mailpit→confirm→login→me→refresh→logout testé via curl ET navigateur réel</td></tr>
+ <tr><td>OAuth GitHub (serveur)</td><td class="status"><span class="badge badge-partial">PARTIEL</span></td><td>State signé, callback, chiffrement AES, garde-fous (401/503/state invalide) tous testés ; échange réel avec GitHub non testé — pas de <code>GITHUB_CLIENT_ID/SECRET</code> réels disponibles</td></tr>
+ <tr><td>Abonnement aux services</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>services.routes.ts</code> : weather/rss par défaut, github après OAuth ; testé via curl et page Services réelle</td></tr>
+ <tr><td>Dashboard CRUD + Timer</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>6 routes <code>dashboard.routes.ts</code>, protégées par <code>requireAuth</code> (plus de <code>userId=1</code> en dur)</td></tr>
+ <tr><td>Admin</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>/admin/users</code> liste/suspend/delete + auto-protection (un admin ne peut pas se suspendre/supprimer lui-même) ; testé via curl et clic réel dans l'UI</td></tr>
+ <tr><td>/about.json</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>6/6 widgets, 3 services, conforme au sujet — vérifié en direct sur :8080</td></tr>
+ <tr><td>Docker / nginx</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>docker-compose.yml</code>, <code>backend/Dockerfile</code>, <code>nginx/nginx.conf</code> écrits et <strong>testés en conditions réelles</strong> le 24/09 (build + up + curl /about.json + vérif des 8 tables)</td></tr>
+ <tr><td>Sécurité (Helmet, rate-limit, Zod, bcrypt, JWT, AES)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Toutes câblées et exercées : bcrypt (register), JWT sign+verify (login/me), rate-limit auth testé (bloque après spam), AES prêt pour OAuth</td></tr>
+ <tr><td>Profil (mot de passe, suppression de compte)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>POST /auth/change-password</code>, <code>DELETE /auth/me</code> ajoutés ; testés au navigateur (reconnexion avec le nouveau mot de passe, suppression vérifiée absente de la base ensuite)</td></tr>
+ <tr><td>GitHub adapters : token par utilisateur</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Les adapters <code>recent_commits</code>/<code>security_alerts</code> exigent le compte GitHub lié de l'utilisateur ; sans lien, <code>DASHBOARD_FETCH_FAILED</code>→<code>SERVICE_OAUTH_REQUIRED</code> en production, repli sur <code>GITHUB_TOKEN</code> serveur uniquement si <code>NODE_ENV!==production</code> — vérifié le 24/09 (prod refuse même avec <code>GITHUB_TOKEN</code> renseigné, et l'app démarre sans identifiants GitHub dans <code>.env</code>)</td></tr>
+ <tr><td>Services Finance &amp; Hacker News (5<sup>e</sup> service, widgets 7–10)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Sans compte ni clé, comme weather/rss : <code>exchange_rate</code>/<code>crypto_price</code> (Frankfurter, CoinGecko) + <code>top_stories</code>/<code>story_search</code> (Algolia HN) — Zod, codes d'erreur, images <code>public/img/</code> sourcées (Unsplash) ; <code>/about.json</code> vérifié 5 services / 10 widgets, et les 4 adapters testés contre les vraies API externes le 24/09</td></tr>
+ <tr><td>Internationalisation FR/EN</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>react-i18next, 2 fichiers (<code>i18n/locales/{fr,en}.json</code>), zéro texte en dur restant (pages/modales/menus/erreurs/toasts) y compris les données du registre (noms/descriptions/paramètres de widgets, clé i18n par id avec repli sur le registre), langue par défaut = navigateur, sélecteur dans le menu utilisateur + nav landing/login, persistée en localStorage et sur le compte (<code>users.language</code>, <code>PATCH /auth/language</code>), emails de confirmation envoyés dans la langue choisie à l'inscription (Mailpit vérifié FR+EN), dates/nombres via <code>Intl</code>, codes d'erreur back stables traduits côté front — testé au navigateur réel (Playwright, 13/13 puis 9/9) les 24/09</td></tr>
+ <tr><td>Audit de secrets</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>gitleaks indisponible localement → scan manuel de <code>git log -p --all</code> + arbre de travail (motifs ghp_/gho_/AKIA/sk-/xox/clés PEM, valeurs JWT_SECRET/CRYPTO_KEY renseignées) : aucun secret réel trouvé ; <code>.env</code>/<code>.env.*</code> bien ignorés (seul <code>.env.example</code> commité, valeurs vides) — audité deux fois (24/09), avant chaque session de travail</td></tr>
+ <tr><td>Données réelles (fin des simulations)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Stats landing/admin lues depuis <code>GET /widgets</code> et <code>GET /admin/stats</code> (plus de « 3 services / 6 widgets » en dur) ; <code>audit_logs</code> réellement écrit (login, liaison GitHub, ajout/suppression de widget, actions admin) et affiché dans le journal admin via <code>GET /admin/audit-log</code> ; nom de profil persisté via <code>users.name</code> + <code>PATCH /auth/profile</code> ; onglet « Services » du profil (identifiants simulés, jamais branchés) et cloche « Activité récente » de la topbar (liste fixe) supprimés plutôt que laissés en simulation ; boutons play de <code>DashLeft</code> retirés (cartes/lignes cliquables) — testé au navigateur (Playwright, 12/12) le 24/09</td></tr>
+ <tr><td>Widget GitHub sans compte lié</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>dashboard.service.addWidget</code> refuse désormais un widget GitHub si le compte n'est pas lié (<code>SERVICE_OAUTH_REQUIRED</code>), en plus du filtre déjà présent côté assistant (wizard) — testé au navigateur : ajout de <code>recent_commits</code> bloqué par la modale d'abonnement tant que GitHub n'est pas connecté</td></tr>
+ <tr><td>Tests</td><td class="status"><span class="badge badge-missing">ABSENT</span></td><td>Aucun fichier <code>*.test.ts</code>/<code>*.spec.ts</code> dans le dépôt — testé manuellement (curl + Playwright) mais pas de suite automatisée</td></tr>
+ <tr><td><code>.env.example</code>, <code>bonus/</code></td><td class="status"><span class="badge badge-done">FAIT</span></td><td>Créés le 24/09, à la racine</td></tr>
+ <tr><td>README racine</td><td class="status"><span class="badge badge-done">FAIT</span></td><td>README bilingue (FR/EN) à la racine — features, install, usage, stack, structure</td></tr>
+ </tbody>
+ </table>
+
+ <h3>0.4 Reste à faire — priorisé</h3>
+ <div class="callout ok" style="margin-bottom:0.75rem;">
+ Fait le 24/09 (deux sessions) : <code>backend/src</code> reconstitué + infra Docker testée, puis <strong>auth complète, OAuth GitHub, 3 widgets A, services subscribe/unsubscribe, admin users</strong> — tout testé via curl et navigateur réel (Playwright), et branché au frontend (login/register/confirm/services/admin).
+ </div>
+ <ol>
+ <li><strong>Committer tout ce travail</strong> (backend/src, infra, frontend) sur une branche dédiée — était la priorité n°1 le 24/09 ; <strong>fait au 25/09</strong> (poussé sur <code>develop</code>).</li>
+ <li>Réconcilier <code>main</code> local avec <code>origin/main</code> (branches ont divergé).</li>
+ <li>Créer une vraie OAuth App GitHub (<code>GITHUB_CLIENT_ID/SECRET</code>) pour tester l'échange réel — le code est prêt, jamais exercé contre la vraie API GitHub.</li>
+ <li>Supprimer le code mort BullMQ/Redis (<code>jobs/</code>, <code>modules/timer/</code>) hérité de l'ancien plan.</li>
+ <li>Au moins un test E2E (Vitest/Playwright) — README racine fait (bilingue).</li>
+ <li>Hors périmètre de ce chantier, à faire séparément : brancher <code>ProfilePage</code> (édition profil, mot de passe, suppression de compte) sur une vraie API — reste sur <code>api/demo.ts</code>.</li>
+ </ol>
+ <div class="callout ok">
+ <strong>Jalon atteint :</strong> <code>docker-compose up</code> + <code>/about.json</code> conforme (6 widgets) sur :8080 — testé en conditions réelles le 24/09.
+ </div>
+ </section>
+
+ <!-- RÉSUMÉ -->
+ <section id="fr-resume" class="doc-section">
+ <h2>1. Résumé du plan (PLAN.md, 23/09)</h2>
+ <p>Décisions clés qui encadrent tout le reste du document :</p>
+ <ul>
+ <li><strong>Objectif = 3 services, 6 widgets.</strong> Formule du sujet : (1 + X) services et (3 × X) widgets, X = 2.</li>
+ <li><strong>Priorité n°1 : <code>docker-compose up</code> + <code>/about.json</code> sur :8080.</strong> C’est le premier test du correcteur — atteint le 24/09 (voir §0).</li>
+ <li><strong>Architecture simplifiée :</strong> Timer côté client + cache serveur. Pas de worker BullMQ ni de Redis avant le 01/10.</li>
+ <li><strong>Registre de widgets unique</strong> côté back : il génère <code>/about.json</code>, la validation des configs et les formulaires du front.</li>
+ <li><strong>Coupé :</strong> OIDC Google, Steam, CI complète, Storybook. Reportés en bonus si le temps le permet.</li>
+ <li><strong>Rééquilibrage :</strong> B prend Docker, nginx et <code>/about.json</code> en entier, car le front du dashboard existe déjà dans le prototype.</li>
+ </ul>
+ </section>
+
+ <!-- EXIGENCES -->
+ <section id="fr-exigences" class="doc-section">
+ <h2>2. Exigences du sujet</h2>
+ <p>Pour un groupe de 2, le sujet exige au minimum 3 services et 6 widgets, chacun avec au moins un paramètre configurable. Un widget sans paramètre n'est pas compté.</p>
+ <table>
+ <thead><tr><th>Exigence</th><th>Détail</th><th>Statut réel (24/09)</th></tr></thead>
+ <tbody>
+ <tr><td>Services</td><td>≥ 3 (1 + X) — 5 livrés (weather, github, rss, finance, hackernews)</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Widgets</td><td>≥ 6 (3 × X), chacun avec ≥ 1 paramètre — 10 livrés</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Inscription + confirmation</td><td>Formulaire, confirmation avant accès (code OTP email à 6 chiffres)</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Authentification</td><td>Identifiants ou OIDC</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Autorisation</td><td>OAuth 2.0, compte tiers lié à l'utilisateur</td><td class="status"><span class="badge badge-partial">PARTIEL</span></td></tr>
+ <tr><td>Abonnement aux services</td><td>Sans compte par défaut, les autres après abonnement</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Dashboard</td><td>Ajouter, reconfigurer, déplacer, supprimer</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Instances multiples</td><td>Deux instances du même widget, configs différentes, données distinctes</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Timer</td><td>Chaque instance communique son refresh rate au Timer</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Administration</td><td>Gestion des utilisateurs</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Docker</td><td><code>docker-compose build</code> puis <code>up</code>, fichier à la racine</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td><code>/about.json</code></td><td>GET sur http://localhost:8080/about.json</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>README.md racine</td><td>Features, install, usage, stack, structure</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Dossier <code>bonus/</code></td><td>Tout ce qui est hors sujet</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>UX</td><td>Interface responsive, accessible</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ </tbody>
+ </table>
+ <div class="callout">
+ <strong>Rappel :</strong> dans <code>/about.json</code>, les seuls types de paramètres autorisés sont <code>integer</code> et <code>string</code>. <code>client.host</code> doit être l'IP réelle du client, et <code>current_time</code> un timestamp Unix en secondes.
+ </div>
+ </section>
+
+ <!-- PÉRIMÈTRE -->
+ <section id="fr-perimetre" class="doc-section">
+ <h2>3. Périmètre</h2>
+ <p>On livre au 01/10 uniquement ce que le sujet exige. Le reste passe après la livraison, dans <code>bonus/</code> ou dans des branches séparées.</p>
+ <table>
+ <thead><tr><th>Élément</th><th>Décision</th><th>Raison</th></tr></thead>
+ <tbody>
+ <tr><td>Auth email + mot de passe + confirmation</td><td>Garder</td><td>Exigé</td></tr>
+ <tr><td>OAuth 2.0 GitHub lié au compte</td><td>Garder</td><td>Exigé (autorisation des widgets)</td></tr>
+ <tr><td>6 widgets branchés sur de vraies APIs</td><td>Garder</td><td>Exigé</td></tr>
+ <tr><td>Dashboard CRUD persisté + Timer</td><td>Garder</td><td>Exigé</td></tr>
+ <tr><td>Admin : liste, suspension, suppression</td><td>Garder</td><td>Demandé par le sujet</td></tr>
+ <tr><td>Admin stats</td><td>Garder si le temps le permet</td><td>Simple : quelques <code>COUNT</code></td></tr>
+ <tr><td>Rate limiting, Zod, bcrypt, tokens chiffrés</td><td>Garder</td><td>Sécurité exigée</td></tr>
+ <tr><td>Thème clair/sombre, responsive</td><td>Garder</td><td>Déjà fait dans le prototype</td></tr>
+ <tr><td>OIDC Google</td><td>Reporter</td><td>Le sujet accepte l'inscription par email seule</td></tr>
+ <tr><td>OAuth Steam</td><td>Supprimer</td><td>Hors de nos services ; Steam utilise OpenID 2.0</td></tr>
+ <tr><td>Worker BullMQ + Redis</td><td>Reporter</td><td>Trop coûteux à 8 jours ; le Timer client suffit</td></tr>
+ <tr><td>CI GitHub Actions complète</td><td>Réduire</td><td>Lint + build seulement</td></tr>
+ <tr><td>Playwright multi-navigateurs</td><td>Réduire</td><td>1 scénario E2E sur Chromium</td></tr>
+ <tr><td>Storybook, widgets Spotify/WhatsApp</td><td>Reporter</td><td>Bonus</td></tr>
+ </tbody>
+ </table>
+ </section>
+
+ <!-- ARCHITECTURE -->
+ <section id="fr-architecture" class="doc-section">
+ <h2>4. Architecture</h2>
+ <p>Un monolithe modulaire derrière nginx, avec 4 conteneurs : nginx, api, postgres, mailpit. nginx est le seul conteneur exposé, sur le port 8080.</p>
+
+ <div class="flow-row">
+ <div class="flow-step">Navigateur<small>SPA React</small></div>
+ <div class="flow-arrow">→</div>
+ <div class="flow-step st-done">nginx<small>:8080 — testé</small></div>
+ <div class="flow-arrow">→</div>
+ <div class="flow-step st-done">api<small>Express+TS — testé</small></div>
+ </div>
+ <div class="flow-branch">
+ <div class="flow-step st-done">postgres<small>8 tables migrées</small></div>
+ <div class="flow-step st-done">mailpit<small>OTP 6 chiffres — testé</small></div>
+ <div class="flow-step st-done">APIs externes<small>Open-Meteo / GitHub / RSS</small></div>
+ </div>
+ <p style="text-align:center;font-size:0.85rem;color:#64748b;">nginx sert le front et relaie <code>/api/*</code> et <code>/about.json</code> vers l'API. Front et API partagent la même origine : pas de CORS.</p>
+
+ <h3>4.1 Conteneurs</h3>
+ <table>
+ <thead><tr><th>Service</th><th>Image / build</th><th>Rôle</th><th>Port</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>nginx</td><td>build multi-étapes <code>./frontend</code></td><td>Sert le SPA, reverse proxy</td><td>8080 exposé</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>api</td><td>build <code>./backend</code></td><td>Express, migrations Drizzle, <code>/about.json</code></td><td>3000 interne</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>postgres</td><td>postgres:16-alpine</td><td>Données, volume nommé</td><td>5432 interne</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>mailpit</td><td>axllent/mailpit</td><td>Reçoit les mails de confirmation</td><td>UI 8025</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ </tbody>
+ </table>
+ <p style="font-size:0.85rem;color:#065f46;">Les 4 conteneurs buildent et démarrent (testé le 24/09 : <code>docker compose build</code> + <code>up</code> + <code>curl :8080/about.json</code> + vérification des 8 tables en base). Plus tard commités sur <code>develop</code> — voir §0.1.</p>
+
+ <h3>4.2 Registre de widgets : une seule source de vérité <span class="badge badge-done" style="vertical-align:middle;">FAIT — 6/6</span></h3>
+ <p>Chaque widget est déclaré une seule fois côté back, dans <code>backend/src/widgets/registry.ts</code>. Une entrée contient <code>service</code>, <code>name</code>, <code>description</code>, <code>params</code> (avec <code>type: 'string' | 'integer'</code>), un schéma Zod, et <code>fetch(config, ctx)</code>.</p>
+ <p>À partir de ce registre : on génère <code>/about.json</code>, on valide les configs à la création/reconfiguration, et on sert <code>GET /api/v1/widgets</code> au front. Plus de <code>catalog.ts</code> codé en dur ni de colonne <code>params_schema</code> en base — pattern Strategy/Adapter, sans duplication.</p>
+ <div class="callout warn"><strong>Constat (note d’audit historique, ensuite complété) :</strong> le registre compilé (<code>backend/dist/widgets/registry.js</code>) ne contient que les 3 widgets « B » (<code>precipitation_forecast</code>, <code>security_alerts</code>, <code>feed_summary</code>). Les 3 widgets « A » sont un <code>TODO</code> explicite dans le fichier.</div>
+
+ <h3>4.3 Timer <span class="badge badge-done" style="vertical-align:middle;">FAIT</span></h3>
+ <p>Le Timer est centralisé côté client, le cache côté serveur :</p>
+ <ol class="timeline">
+ <li>Au chargement du dashboard, chaque instance s'enregistre auprès du Timer client avec son <code>refresh_rate</code> (min 30 s).</li>
+ <li>À l'échéance, le Timer appelle <code>GET /api/v1/dashboard/widgets/:id/data</code>.</li>
+ <li>L'API renvoie le cache s'il a moins de <code>refresh_rate</code> secondes, sinon appelle l'adapter et stocke le résultat dans <code>widget_cache</code>.</li>
+ <li>L'API met à jour <code>last_refreshed_at</code> et <code>status</code> ; le front les affiche.</li>
+ </ol>
+ <p>Constat : <code>dashboard.routes.js</code> compilé expose bien <code>GET /widgets/:id/data</code> avec cette logique de cache — conforme au design. Un worker serveur (BullMQ) reste une évolution possible après le 01/10.</p>
+
+ <h3>4.4 Modèle de données (8 tables) <span class="badge badge-done" style="vertical-align:middle;">FAIT (migré, testé)</span></h3>
+ <table>
+ <thead><tr><th>Table</th><th>Champs clés</th><th>Responsable</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>users</td><td>id, email, password_hash, role, email_confirmed, suspended, created_at</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+ <tr><td>email_tokens</td><td>id, user_id, token_hash, expires_at</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+ <tr><td>refresh_tokens</td><td>id, user_id, token_hash, expires_at, revoked</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+ <tr><td>oauth_accounts</td><td>id, user_id, provider, provider_user_id, access_token (AES-256-GCM), scope</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+ <tr><td>user_services</td><td>user_id, service_name, subscribed_at</td><td>A</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+ <tr><td>widget_instances</td><td>id, user_id, widget_name, config (jsonb), position, refresh_rate, last_refreshed_at, status</td><td>B</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+ <tr><td>widget_cache</td><td>widget_instance_id, payload (jsonb), fetched_at</td><td>B</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+ <tr><td>audit_logs</td><td>id, user_id, action, payload, created_at</td><td>B</td><td class="status"><span class="badge badge-done">Définie</span></td></tr>
+ </tbody>
+ </table>
+ <p style="font-size:0.85rem;color:#065f46;">Les 8 tables existent dans <code>backend/src/db/schema.ts</code> (Drizzle réel) et sont désormais migrées avec succès : <code>backend/drizzle/0000_soft_scarlet_spider.sql</code>, testé contre un vrai conteneur Postgres le 24/09.</p>
+
+ <h3>4.5 Structure du dépôt cible</h3>
+ <pre><code>dashboard/
+├── docker-compose.yml  présent, testé
+├── .env.example  présent
+├── README.md  présent (bilingue FR/EN)
+├── PLAN.md  présent
+├── nginx/nginx.conf  présent, testé
+├── frontend/  [done] React + Vite + TS (Dockerfile [done])
+├── backend/
+│  ├── src/  [done] reconstitué le 24/09 (plus tard sur develop)
+│  │  ├── modules/  [warn] partiel (auth, services manquants)
+│  │  ├── widgets/  [warn] registry.ts à 3/6 widgets
+│  │  ├── db/  [done] schéma Drizzle (8 tables), migration générée et testée
+│  │  ├── lib/  [done] crypto.ts, mailer.ts (non branchés)
+│  │  ├── middleware/  [done] auth, error, rateLimit, validate
+│  │  └── app.ts  [done] mais sans routes /auth ni /services
+│  ├── package.json  présent
+│  ├── drizzle.config.ts  présent
+│  ├── API.md  absent
+│  └── Dockerfile  présent, testé
+└── bonus/  présent (README.md, vide de contenu bonus pour l'instant)
+</code></pre>
+ </section>
+
+ <!-- SERVICES & WIDGETS -->
+ <section id="fr-services" class="doc-section">
+ <h2>5. Services et widgets</h2>
+ <p>6 widgets prévus, avec Open-Meteo à la place d'OpenWeatherMap et un <code>feed_summary</code> vraiment multi-flux.</p>
+ <table>
+ <thead><tr><th>Service</th><th>Widget</th><th>Paramètres</th><th>Source</th><th>Resp.</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>weather</td><td>city_temperature</td><td>city (string), unit (string)</td><td>Open-Meteo</td><td>A</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>weather</td><td>precipitation_forecast</td><td>city (string), days (integer 1–7)</td><td>Open-Meteo</td><td>B</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>github</td><td>recent_commits</td><td>repository (string), limit (integer)</td><td>API REST GitHub</td><td>A</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>github</td><td>security_alerts</td><td>repository (string), severity (string)</td><td>API GitHub (Dependabot)</td><td>B</td><td class="status"><span class="badge badge-partial">ADAPTER OK<br>OAuth manquant</span></td></tr>
+ <tr><td>rss</td><td>article_list</td><td>link (string), number (integer)</td><td>Parsing XML</td><td>A</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>rss</td><td>feed_summary</td><td>links (string), number (integer)</td><td>Plusieurs flux fusionnés</td><td>B</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ </tbody>
+ </table>
+ <div class="callout ok"><strong>6/6 widgets</strong> ont un adapter réel et sont déclarés dans le registre — testés avec de vraies données (température de Paris/Lyon, prévisions de pluie, flux Hacker News). Le front lit désormais ce registre en direct via <code>GET /widgets</code> (plus de catalogue codé en dur côté client), donc les noms de paramètres du back font foi partout.</div>
+ <div class="callout ok">
+ <strong>Noms de paramètres finalisés (24/09, 2<sup>e</sup> session) :</strong> <code>recent_commits</code> utilise <code>repository</code>/<code>limit</code> et <code>article_list</code> utilise <code>link</code>/<code>number</code> — conformes au sujet. Le wizard front construit maintenant ses champs dynamiquement depuis <code>GET /widgets</code>, donc plus besoin d'aligner un catalogue statique.
+ </div>
+ <ul>
+ <li><strong>Risque <code>security_alerts</code> :</strong> l'API Dependabot exige des droits + Dependabot activé sur le dépôt cible. Toujours pas testé (widget B, hors périmètre de cette session). Repli possible : <code>open_issues</code>.</li>
+ <li><strong>Services par défaut :</strong> weather et rss sans abonnement ; github après liaison OAuth — <strong>module services et OAuth désormais implémentés et testés</strong> côté mécanique (guards, cascade unlink→unsubscribe), échange réel GitHub non testé (pas de credentials).</li>
+ </ul>
+ </section>
+
+ <!-- API REST -->
+ <section id="fr-api" class="doc-section">
+ <h2>6. API REST</h2>
+ <p>Toutes les routes métier sont préfixées par <code>/api/v1</code>, validées par Zod (400 si invalide).</p>
+
+ <h3>6.1 Authentification — Membre A <span class="badge badge-done">FAIT</span></h3>
+ <table>
+ <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>POST</td><td>/auth/register</td><td>Inscription + mail de confirmation</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/auth/confirm</td><td>Confirme l'email</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/auth/login</td><td>Connexion</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/auth/refresh</td><td>Nouveau access token</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/auth/logout</td><td>Révoque le refresh token</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/auth/me</td><td>Utilisateur courant</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/auth/oauth/github</td><td>Redirection GitHub</td><td class="status"><span class="badge badge-partial">~</span></td></tr>
+ <tr><td>GET</td><td>/auth/oauth/github/callback</td><td>Callback, liaison du compte</td><td class="status"><span class="badge badge-partial">~</span></td></tr>
+ <tr><td>DELETE</td><td>/auth/oauth/github</td><td>Délie le compte</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+ <p style="font-size:0.85rem;color:#065f46;">Toutes testées : register→Mailpit→confirm→login→me→refresh→logout via curl <strong>et</strong> navigateur réel (Playwright). OAuth (~) : mécanique et garde-fous testés, échange réel avec GitHub non exercé (pas de credentials).</p>
+
+ <h3>6.2 Services — Membre A <span class="badge badge-done">FAIT</span></h3>
+ <table>
+ <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>GET</td><td>/services</td><td>Liste + état d'abonnement</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/services/:name/subscribe</td><td>Abonnement</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>DELETE</td><td>/services/:name/subscribe</td><td>Désabonnement</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+
+ <h3>6.3 Widgets et dashboard — Membre B <span class="badge badge-done">FAIT</span></h3>
+ <table>
+ <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>GET</td><td>/widgets</td><td>Catalogue issu du registre</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/dashboard</td><td>Instances de l'utilisateur</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>POST</td><td>/dashboard/widgets</td><td>Ajoute une instance</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>PATCH</td><td>/dashboard/widgets/:id</td><td>Reconfigure</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>PATCH</td><td>/dashboard/widgets/:id/position</td><td>Déplace</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>DELETE</td><td>/dashboard/widgets/:id</td><td>Supprime</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/dashboard/widgets/:id/data</td><td>Données (cache ou adapter)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+ <p style="font-size:0.85rem;color:#065f46;">Toutes les routes existent avec service + repository réels et validation Zod via le registre, protégées par <code>requireAuth</code> — <code>req.userId = 1</code> codé en dur a été retiré, testé avec un vrai utilisateur connecté.</p>
+
+ <h3>6.4 Admin (rôle <code>admin</code> requis) <span class="badge badge-done">FAIT</span></h3>
+ <table>
+ <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Resp.</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>GET</td><td>/admin/users</td><td>Liste des utilisateurs</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>PATCH</td><td>/admin/users/:id</td><td>Suspendre / réactiver, rôle</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>DELETE</td><td>/admin/users/:id</td><td>Supprimer</td><td>A</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>GET</td><td>/admin/stats</td><td>Compteurs globaux</td><td>B</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ </tbody>
+ </table>
+
+ <h3>6.5 Endpoint obligatoire <span class="badge badge-done">FAIT</span></h3>
+ <table>
+ <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>GET</td><td>/about.json</td><td>Description des services et widgets</td><td class="status"><span class="badge badge-done">6/6 widgets</span></td></tr>
+ </tbody>
+ </table>
+ </section>
+
+ <!-- ABOUT.JSON -->
+ <section id="fr-aboutjson" class="doc-section">
+ <h2>7. Endpoint /about.json</h2>
+ <p>Le serveur doit répondre sur http://localhost:8080/about.json. La réponse est générée à partir du registre — jamais écrite à la main.</p>
+ <div class="callout ok"><strong>Ce qui marche :</strong> <code>about.controller.ts</code> lit bien <code>req.ip</code> (avec <code>trust proxy</code>), calcule <code>current_time</code> en secondes, et construit la liste depuis <code>widgets/registry.ts</code> — exactement le design prévu. <strong>6/6 widgets, 3 services, conforme</strong> — vérifié en direct sur :8080 le 24/09.</div>
+ <pre><code>{
+ "client": { "host": "10.101.53.35" },
+ "server": {
+ "current_time": 1531680780,
+ "services": [
+ { "name": "weather", "widgets": [
+ { "name": "city_temperature", "params": [{ "name": "city", "type": "string" }, { "name": "unit", "type": "string" }] },
+ { "name": "precipitation_forecast", "params": [{ "name": "city", "type": "string" }, { "name": "days", "type": "integer" }] }
+ ]},
+ { "name": "github", "widgets": [
+ { "name": "recent_commits", "params": [{ "name": "repository", "type": "string" }, { "name": "limit", "type": "integer" }] },
+ { "name": "security_alerts", "params": [{ "name": "repository", "type": "string" }, { "name": "severity", "type": "string" }] }
+ ]},
+ { "name": "rss", "widgets": [
+ { "name": "article_list", "params": [{ "name": "link", "type": "string" }, { "name": "number", "type": "integer" }] },
+ { "name": "feed_summary", "params": [{ "name": "links", "type": "string" }, { "name": "number", "type": "integer" }] }
+ ]}
+ ]
+ }
+}</code></pre>
+ <div class="callout warn"><strong>Types autorisés :</strong> uniquement <code>integer</code> et <code>string</code>. <code>client.host</code> = <code>req.ip</code> avec <code>app.set('trust proxy', 1)</code> (déjà fait). <code>current_time</code> = <code>Math.floor(Date.now()/1000)</code> (déjà fait).</div>
+ </section>
+
+ <!-- RÉPARTITION -->
+ <section id="fr-repartition" class="doc-section">
+ <h2>8. Répartition des tâches</h2>
+ <p>Chacun garde ses 3 widgets de bout en bout (1 par service), mais B reprend l'infrastructure puisque le front du dashboard existe déjà dans le prototype.</p>
+ <table>
+ <thead><tr><th>Domaine</th><th>Membre A</th><th>Membre B</th></tr></thead>
+ <tbody>
+ <tr><td>Widgets</td><td>city_temperature, recent_commits, article_list <span class="badge badge-done">fait</span></td><td>precipitation_forecast, security_alerts, feed_summary <span class="badge badge-done">fait</span></td></tr>
+ <tr><td>Auth</td><td>Register, login, JWT + refresh cookie, confirmation email <span class="badge badge-done">fait</span></td><td>—</td></tr>
+ <tr><td>OAuth GitHub</td><td>Flux complet : bouton, state signé, callback, liaison, token chiffré <span class="badge badge-partial">code fait, non testé live</span></td><td>Utilise le token pour security_alerts</td></tr>
+ <tr><td>Services</td><td><code>GET /services</code>, subscribe/unsubscribe <span class="badge badge-done">fait</span></td><td>—</td></tr>
+ <tr><td>Admin</td><td>Users : liste, suspension, suppression + seed admin <span class="badge badge-done">fait</span></td><td>Stats globales <span class="badge badge-done">fait</span></td></tr>
+ <tr><td>Dashboard</td><td>—</td><td>CRUD instances, positions, <code>/data</code> + cache <span class="badge badge-done">fait</span></td></tr>
+ <tr><td>Registre + /about.json</td><td>Déclare ses 3 widgets <span class="badge badge-done">fait</span></td><td>Structure + /about.json <span class="badge badge-done">fait</span></td></tr>
+ <tr><td>Infra</td><td>—</td><td><code>docker-compose.yml</code>, Dockerfiles, nginx.conf, mailpit <span class="badge badge-done">fait</span></td></tr>
+ <tr><td>Sécurité</td><td>bcrypt, politique mdp, Zod sur l'auth <span class="badge badge-done">fait</span></td><td>Chiffrement AES <span class="badge badge-done">fait</span>, Zod dashboard <span class="badge badge-done">fait</span>, Helmet <span class="badge badge-done">fait</span>, audit logs <span class="badge badge-done">fait</span></td></tr>
+ <tr><td>Documentation</td><td>README : partie utilisateurs <span class="badge badge-done">fait</span></td><td>README : install, Docker, architecture <span class="badge badge-done">fait</span></td></tr>
+ </tbody>
+ </table>
+ <div class="callout ok"><strong>Règle de frontière tenue :</strong> le module de chiffrement (<code>crypto.ts</code>, écrit par B) est utilisé par le callback OAuth (écrit dans cette session) pour chiffrer le token GitHub avant stockage.</div>
+ </section>
+
+ <!-- PLANNING -->
+ <section id="fr-planning" class="doc-section">
+ <h2>9. Planning 23/09 → 01/10</h2>
+ <p>Le premier jalon non négociable était le 24/09 au soir : <code>docker-compose up</code> sert le front et <code>/about.json</code> sur :8080. Au début de cette journée il n’était <strong>pas atteint</strong> — aucun fichier Docker sur le disque. Il a été atteint plus tard le même jour (voir §0).</p>
+ <table>
+ <thead><tr><th>Jour</th><th>Membre A</th><th>Membre B</th><th>Jalon du soir</th><th>Statut réel</th></tr></thead>
+ <tbody>
+ <tr><td>Mer 23/09</td><td>Squelette backend, table users</td><td>docker-compose.yml, Dockerfile front, nginx, postgres, mailpit</td><td>Les conteneurs démarrent</td><td class="status"><span class="badge badge-partial">Décalé</span></td></tr>
+ <tr><td>Jeu 24/09 <em>(jour d’audit)</em></td><td>Register + login (bcrypt, JWT, refresh cookie)</td><td>Registre + /about.json, crypto.ts, test API Dependabot</td><td>/about.json conforme sur :8080</td><td class="status"><span class="badge badge-partial">En cours</span></td></tr>
+ <tr><td>Ven 25/09</td><td>Confirmation email + branchement front auth</td><td>CRUD widget_instances + positions + branchement dashboard</td><td>Parcours inscription → login réel</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+ <tr><td>Sam 26/09</td><td>user_services + subscribe ; adapter city_temperature</td><td>Endpoint /data + cache ; adapter precipitation_forecast</td><td>Premier widget réel</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+ <tr><td>Dim 27/09</td><td>OAuth GitHub complet</td><td>Adapters feed_summary + security_alerts</td><td>GitHub lié à un compte</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+ <tr><td>Lun 28/09</td><td>Adapters recent_commits + article_list</td><td>Admin stats + audit logs + Helmet</td><td>6 widgets réels</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+ <tr><td>Mar 29/09</td><td>Admin users + seed admin + rate limiting + Zod partout</td><td>1 scénario E2E Playwright + corrections</td><td>Tout est branché</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+ <tr><td>Mer 30/09</td><td>README partie utilisateurs</td><td>README install/architecture, test machine propre</td><td>Clone → build → up validé</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+ <tr><td>Jeu 01/10</td><td>Vidéo de démo + gel</td><td>Vidéo de démo + gel</td><td>Livraison</td><td class="status"><span class="badge badge-missing">À venir</span></td></tr>
+ </tbody>
+ </table>
+ <div class="callout"><strong>Constat du 24/09 :</strong> le travail réel visible (adapters B, dashboard CRUD, about.json, admin stats, schéma 8 tables, middleware) correspond plutôt à une avance sur le planning des <strong>25–26/09</strong> côté B — mais côté A, aucune trace de code (auth, OAuth, ses 3 widgets, services) n'existe dans le dépôt, malgré des branches <code>feature/a-*</code> créées sur origin.</div>
+ <div class="callout danger"><strong>Si on prend du retard :</strong> on coupe d'abord admin stats, puis l'E2E, puis security_alerts (remplacé par open_issues). On ne coupe jamais Docker, /about.json, l'auth, OAuth GitHub ni les 6 widgets.</div>
+ </section>
+
+ <!-- PIÈGES -->
+ <section id="fr-pieges" class="doc-section">
+ <h2>10. Pièges techniques</h2>
+ <p>Ces pièges ne se voient qu'en fin d'intégration ; on les traite dès le départ.</p>
+ <ol>
+ <li><strong><code>/about.json</code> avalé par le SPA.</strong> Sans règle nginx dédiée, <code>try_files</code> renvoie <code>index.html</code>. Prévoir une location exacte, avant la règle générale.
+ <pre><code>location = /about.json { proxy_pass http://api:3000; }
+location /api/  { proxy_pass http://api:3000; }
+location /  { root /usr/share/nginx/html; try_files $uri /index.html; }</code></pre>
+ </li>
+ <li><strong><code>client.host</code> = IP de nginx.</strong> Nécessite <code>app.set('trust proxy', 1)</code> — <span class="badge badge-done">déjà fait</span> dans <code>app.js</code>.</li>
+ <li><strong>Cookie <code>SameSite=Strict</code> et OAuth.</strong> Utiliser <code>SameSite=Lax</code> pour le cookie de session, sinon le retour de github.com perd la session.</li>
+ <li><strong>Lier GitHub au bon utilisateur.</strong> Le <code>state</code> doit être aléatoire, stocké côté serveur avec le <code>user_id</code> et une expiration courte.</li>
+ <li><strong>URL de callback OAuth.</strong> Déclarer <code>http://localhost:8080/api/v1/auth/oauth/github/callback</code>, secrets uniquement dans <code>.env</code>.</li>
+ <li><strong>Migrations au démarrage.</strong> L'API doit lancer les migrations Drizzle puis le seed admin avant d'écouter ; healthcheck Postgres + <code>depends_on: condition: service_healthy</code>.</li>
+ <li><strong>Mails de confirmation.</strong> SMTP vers <code>mailpit:1025</code> en interne, mais le lien de confirmation doit pointer vers <code>http://localhost:8080</code>.</li>
+ <li><strong>Rate limit GitHub.</strong> Sans token, 60 requêtes/heure. Toujours passer par le token utilisateur + cache.</li>
+ </ol>
+ </section>
+
+ <!-- SÉCURITÉ -->
+ <section id="fr-securite" class="doc-section">
+ <h2>11. Sécurité</h2>
+ <p style="font-size:0.85rem;color:var(--muted);">Note : le tableau ci-dessous reflète le snapshot d’audit historique. Voir §0.3 pour le statut vérifié le plus récent (la plupart des items sont désormais FAIT).</p>
+ <table>
+ <thead><tr><th>Mesure</th><th>Statut</th><th>Détail</th></tr></thead>
+ <tbody>
+ <tr><td>bcrypt (mots de passe, 12 car. min)</td><td class="status"><span class="badge badge-partial">Installé, non utilisé</span></td><td>Aucun flux register/login qui l'appelle</td></tr>
+ <tr><td>JWT access (15 min) + refresh cookie HttpOnly/Lax</td><td class="status"><span class="badge badge-partial">Vérification seule</span></td><td>Le middleware valide un JWT, mais rien n'en émet</td></tr>
+ <tr><td>Rôles user/admin par middleware</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>requireAdmin</code> utilisé sur <code>/admin/stats</code></td></tr>
+ <tr><td>Validation Zod sur toutes les entrées</td><td class="status"><span class="badge badge-partial">Dashboard seulement</span></td><td>Schémas du registre appliqués au dashboard, pas d'auth/services à valider pour l'instant</td></tr>
+ <tr><td>Rate limiting (100 req/min, 10 req/min auth)</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>apiLimiter</code> câblé dans <code>app.js</code></td></tr>
+ <tr><td>Helmet</td><td class="status"><span class="badge badge-done">FAIT</span></td><td><code>app.use(helmet())</code></td></tr>
+ <tr><td>Chiffrement OAuth au repos (AES-256-GCM)</td><td class="status"><span class="badge badge-partial">Prêt, non branché</span></td><td><code>lib/crypto.js</code> existe, aucun flux OAuth ne l'appelle encore</td></tr>
+ <tr><td>Audit logs</td><td class="status"><span class="badge badge-missing">ABSENT</span></td><td>Table créée, aucun usage dans le code</td></tr>
+ <tr><td>Secrets uniquement dans <code>.env</code></td><td class="status"><span class="badge badge-partial">Partiel</span></td><td><code>.env</code> bien gitignoré, mais pas de <code>.env.example</code> commité</td></tr>
+ <tr><td>Validation des URLs RSS (http/https only)</td><td class="status"><span class="badge badge-missing">À vérifier</span></td><td>Non confirmé dans l'adapter RSS</td></tr>
+ </tbody>
+ </table>
+ </section>
+
+ <!-- GIT -->
+ <section id="fr-git" class="doc-section">
+ <h2>12. Organisation Git et travail</h2>
+ <table>
+ <thead><tr><th>Membre</th><th>Branches prévues</th></tr></thead>
+ <tbody>
+ <tr><td>A</td><td><code>feature/a-auth</code>, <code>feature/a-oauth-services</code>, <code>feature/a-widgets</code>, <code>feature/a-admin-users</code></td></tr>
+ <tr><td>B</td><td><code>feature/b-infra</code>, <code>feature/b-dashboard</code>, <code>feature/b-widgets</code>, <code>feature/b-admin-stats</code></td></tr>
+ </tbody>
+ </table>
+ <div class="callout danger">
+ <strong>État réel des branches (audit 24/09) :</strong>
+ <ul>
+ <li>Les branches <code>feature/a-*</code> existent bien sur <code>origin</code> (11 branches !), mais reprennent l'ancien découpage (register-login, email-confirm, oauth-github, oidc-google, services-page, widget-city-temperature, widget-recent-commits, widget-article-list, admin-users, about-json) — <strong>aucune n'a été mergée dans <code>main</code></strong>.</li>
+ <li>Seules des branches <code>feature/b-*</code> ont été mergées sur <code>origin/main</code>.</li>
+ <li><code>chore/backend-skeleton</code> existe en local mais n'a jamais été poussée.</li>
+ <li><code>main</code> local a divergé d'<code>origin/main</code> (commit local direct sur <code>main</code>) — à réconcilier avant de pousser quoi que ce soit.</li>
+ <li>Le meilleur code backend actuel (<code>backend/dist</code>) n'est sur <strong>aucune</strong> de ces branches.</li>
+ </ul>
+ </div>
+ <div class="callout ok">
+ <strong>Mise à jour 25/09 :</strong> le travail suivant a été commité et poussé sur <code>develop</code>. Le risque « uniquement local » de l’audit du 24/09 est résolu pour ce lot de travail.
+ </div>
+ <ul>
+ <li><strong>Merge dans <code>develop</code> au moins une fois par jour</strong>, relecture croisée rapide (15 min max par PR).</li>
+ <li><strong><code>develop</code> doit toujours passer <code>docker-compose build && up</code></strong> — à l’audit impossible (pas de fichiers Docker) ; corrigé ensuite.</li>
+ <li><strong><code>main</code> et <code>develop</code> protégées</strong> : pas de push direct (déjà violé une fois sur <code>main</code>).</li>
+ <li><strong>Contrats d'API d'abord :</strong> noter requête/réponse dans <code>backend/API.md</code> avant de coder — fichier pas encore créé.</li>
+ </ul>
+ </section>
+
+ <!-- STACK -->
+ <section id="fr-stack" class="doc-section">
+ <h2>13. Choix technologiques</h2>
+ <table>
+ <thead><tr><th>Brique</th><th>Choix</th><th>Justification courte</th></tr></thead>
+ <tbody>
+ <tr><td>Front</td><td>React + Vite + TypeScript + Tailwind</td><td>Composants réutilisables ; build rapide ; typage</td></tr>
+ <tr><td>Drag & drop</td><td>dnd-kit</td><td>Accessible clavier/lecteurs d'écran</td></tr>
+ <tr><td>Back</td><td>Node.js + Express + TypeScript</td><td>Charge I/O-bound ; même langage que le front</td></tr>
+ <tr><td>ORM</td><td>Drizzle</td><td>TypeScript pur, migrations SQL lisibles</td></tr>
+ <tr><td>Base</td><td>PostgreSQL</td><td>Modèle relationnel, intégrité référentielle, jsonb</td></tr>
+ <tr><td>Validation</td><td>Zod</td><td>Un schéma = un type, réutilisable front/back</td></tr>
+ <tr><td>Proxy</td><td>nginx</td><td>Sert le SPA, relaie l'API, un seul port exposé</td></tr>
+ <tr><td>Mail</td><td>Mailpit</td><td>Confirmation réelle démontrable sans SMTP externe</td></tr>
+ <tr><td>Infra</td><td>Docker Compose</td><td>Imposé par le sujet, reproductible</td></tr>
+ <tr><td>Tests</td><td>Vitest + Playwright</td><td>Unitaires adapters/validateurs + 1 E2E</td></tr>
+ </tbody>
+ </table>
+ <div class="callout warn">
+ <strong>Pour la soutenance :</strong> ne pas dire « souveraineté totale imposée par le sujet » (faux — c'est notre choix), ni « conformité RGAA » (le sujet demande de l'accessibilité, pas le RGAA). Ne citer que les patterns réellement présents : Strategy/Adapter (registre), Repository, Middleware. BullMQ/Redis : présenter comme « évolution prévue », pas comme fait.
+ </div>
+ </section>
+
+ <!-- CHECKLIST -->
+ <section id="fr-checklist" class="doc-section">
+ <h2>14. Checklist avant livraison — état réel au 24/09 (soir, session 3)</h2>
+ <p>À dérouler sur un clone propre le 30/09. Coché = vérifié dans le dépôt ; <span class="badge badge-partial" style="vertical-align:middle;">~</span> = partiel. Mise à jour après chaque tâche terminée.</p>
+ <ul class="checklist">
+ <li class="partial"><span class="box"></span><span class="txt">git clone + cp .env.example .env + remplir les secrets (.env.example prêt ; à l’audit du 24/09 rien n’était encore commité donc un clone propre ne buildait pas — plus tard poussé sur <code>develop</code>, voir §0.1)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">docker-compose build passe sans erreur — testé le 24/09 (api + nginx, rebuild complet)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">docker-compose up : front accessible sur :8080 — testé le 24/09</span></li>
+ <li class="done"><span class="box"></span><span class="txt">curl /about.json : JSON valide, 6/6 widgets, testé en live</span></li>
+ <li class="done"><span class="box"></span><span class="txt">client.host affiche l'IP du client (trust proxy en place, vérifié en live)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Inscription → mail Mailpit → confirmation OTP à 6 chiffres → login — testé via curl ET navigateur réel (Playwright)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Login refusé tant que l'email n'est pas confirmé — testé (403)</span></li>
+ <li class="partial"><span class="box"></span><span class="txt">Liaison GitHub via OAuth → service github disponible (mécanique + garde-fous testés ; échange réel GitHub non testé, pas de credentials)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Ajout des 6 widgets avec vraies données — testé via le wizard réel au navigateur (city_temperature, precipitation_forecast, article_list), catalogue lu en direct depuis GET /widgets</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Deux instances du même widget, configs différentes → données différentes</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Reconfigurer / déplacer / supprimer, persisté après reload — testé au navigateur réel (Playwright) : reconfiguration (Lyon→Paris), glisser-déposer/menu « Déplacer », suppression, tous vérifiés après rechargement de page</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Chaque widget se rafraîchit selon son refresh rate — Timer réel câblé sur GET .../data (plus de données FRAMES simulées)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Admin : compte seedé liste, suspend, supprime des utilisateurs — testé via curl et clic réel dans l'UI (bouton Suspendre), fiche détail utilisateur branchée sur l'API réelle</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Changement de mot de passe et suppression de compte — routes ajoutées et testées : reconnexion avec le nouveau mot de passe réussie, compte supprimé confirmé absent de la base</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Aucun token OAuth ni mot de passe dans les réponses API — vérifié (password_hash absent de /admin/users, token chiffré en base)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Aucun secret, node_modules, dist ni binaire dans le dépôt (bien gitignorés)</span></li>
+ <li class="done"><span class="box"></span><span class="txt">Fichiers bonus uniquement dans bonus/ — dossier créé le 24/09</span></li>
+ <li class="done"><span class="box"></span><span class="txt">README racine : features, install, usage, stack, structure, schéma — bilingue FR/EN</span></li>
+ <li><span class="box"></span><span class="txt">Vidéo de démo enregistrée</span></li>
+ </ul>
+ <div class="callout" style="margin-top:1rem;">
+ <strong>Bug corrigé au passage :</strong> le menu d'un widget (⋯) avait un défaut d'empilement CSS (<code>.wtile-bottom</code> passait au-dessus du menu ouvert) qui rendait le bouton « Supprimer » incliquable pour un utilisateur réel, pas seulement pour les tests automatisés. Corrigé dans <code>glass.css</code> (<code>.wtile-top{z-index:2 !important}</code>) — c'est un correctif fonctionnel, aucun changement visuel en dehors de l'état « menu ouvert ».
+ </div>
+ </section>
+ </div>
+
+ <footer class="doc-footer">
+ <span>© EPITECH · Threshold · Pair X = 2 · Port 8080 · Delivery 01/10/26</span>
+ <span><a href="./index.html">Docs hub</a> · <a href="/">App</a></span>
+ </footer>
+ </div>
+</body>
+</html>
