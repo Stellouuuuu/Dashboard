@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>Threshold — API</title>
+ <link rel="stylesheet" href="./docs.css"/>
+ <style>:root{--bg-photo:url('/img/bg.jpg');}</style>
+</head>
+<body>
+ <div class="doc-cover">
+ <div class="doc-cover-top">
+ <div class="doc-cover-kicker">Threshold · G-WEB-500</div>
+ <h1>API</h1>
+ <p>REST endpoints, auth cookies, admin routes and common error codes.</p>
+ </div>
+ <div class="doc-cover-bottom">
+ <div class="doc-cover-meta">
+ <strong>Document</strong>
+ API · /api/v1 · about.json
+ </div>
+ <div class="lang-switch">
+ <a href="#english" class="active">EN</a>
+ <a href="#français">FR</a>
+ </div>
+ </div>
+ </div>
+
+ <div class="doc-shell">
+ <div id="english" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#en-public">Public</a>
+ <a href="#en-authd">Auth’d</a>
+ <a href="#en-admin">Admin</a>
+ <a href="#en-errors">Errors</a>
+ <a href="#français">→ FR</a>
+ </nav>
+ <section id="en-public" class="doc-section">
+ <h2>Public</h2>
+ <p class="lead">Base path: <code>/api/v1</code> (via nginx). JSON bodies. Auth uses httpOnly cookies unless noted.</p>
+ <table>
+ <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+ <tbody>
+ <tr><td><code>GET</code></td><td><code>/about.json</code></td><td>Subject endpoint — client host, server time, services &amp; widgets</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/widgets</code></td><td>Widget catalogue from the registry</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/widgets/:name</code></td><td>One widget definition</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/register</code></td><td>Create account (sends 6-digit code)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/confirm</code></td><td>Confirm email (<code>{ email, code }</code>)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/resend-confirm</code></td><td>Resend confirmation code (<code>{ email }</code>)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/forgot-password</code></td><td>Send reset code (<code>{ email }</code>)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/reset-password</code></td><td>Reset with code (<code>{ email, code, newPassword }</code>)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/login</code></td><td>Login → sets cookies</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/refresh</code></td><td>Refresh access cookie</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/logout</code></td><td>Clear cookies</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="en-authd" class="doc-section">
+ <h2>Authenticated (requireAuth)</h2>
+ <table>
+ <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+ <tbody>
+ <tr><td><code>GET</code></td><td><code>/api/v1/auth/me</code></td><td>Current user</td></tr>
+ <tr><td><code>PATCH</code></td><td><code>/api/v1/auth/profile</code></td><td>Update display name</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/change-password</code></td><td>Change password</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/auth/me</code></td><td>Delete account</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/auth/oauth/github</code></td><td>Start GitHub OAuth (redirect)</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/auth/oauth/github/callback</code></td><td>OAuth callback</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/auth/oauth/github</code></td><td>Unlink GitHub</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/services</code></td><td>List services + subscription state</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/services/:name/subscribe</code></td><td>Subscribe (GitHub requires OAuth)</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/services/:name/subscribe</code></td><td>Unsubscribe</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/dashboard</code></td><td>List widget instances</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/dashboard/widgets</code></td><td>Add instance</td></tr>
+ <tr><td><code>PATCH</code></td><td><code>/api/v1/dashboard/widgets/:id</code></td><td>Reconfigure</td></tr>
+ <tr><td><code>PATCH</code></td><td><code>/api/v1/dashboard/widgets/:id/position</code></td><td>Move</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/dashboard/widgets/:id/data</code></td><td>Live / cached data</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/dashboard/widgets/:id</code></td><td>Remove</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="en-admin" class="doc-section">
+ <h2>Admin (requireAdmin)</h2>
+ <table>
+ <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+ <tbody>
+ <tr><td><code>GET</code></td><td><code>/api/v1/admin/stats</code></td><td>Aggregated counts</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/admin/users</code></td><td>List users</td></tr>
+ <tr><td><code>PATCH</code></td><td><code>/api/v1/admin/users/:id</code></td><td>Suspend / role</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/admin/users/:id</code></td><td>Delete user</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/admin/audit-log</code></td><td>Recent audit events</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="en-errors" class="doc-section">
+ <h2>Common error codes</h2>
+ <table>
+ <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+ <tbody>
+ <tr><td><code>SERVICE_OAUTH_REQUIRED</code></td><td>GitHub widget without linked account</td></tr>
+ <tr><td><code>OAUTH_NOT_CONFIGURED</code></td><td>GitHub OAuth env vars missing</td></tr>
+ <tr><td><code>DASHBOARD_CONFIG_INVALID</code></td><td>Zod schema rejected the config</td></tr>
+ <tr><td><code>AUTH_UNCONFIRMED</code></td><td>Email not confirmed yet</td></tr>
+ <tr><td><code>AUTH_CONFIRM_TOKEN_INVALID</code></td><td>Invalid or expired confirmation code</td></tr>
+ <tr><td><code>AUTH_RESET_TOKEN_INVALID</code></td><td>Invalid or expired reset code</td></tr>
+ <tr><td><code>AUTH_UNAUTHENTICATED</code></td><td>Session required</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+
+ </div>
+
+ <div class="doc-sep">EN · FR</div>
+
+ <div id="français" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#fr-public">Public</a>
+ <a href="#fr-authd">Auth</a>
+ <a href="#fr-admin">Admin</a>
+ <a href="#fr-errors">Erreurs</a>
+ <a href="#english">→ EN</a>
+ </nav>
+ <section id="fr-public" class="doc-section">
+ <h2>Public</h2>
+ <p class="lead">Chemin de base : <code>/api/v1</code> (via nginx). Corps JSON. L’auth utilise des cookies httpOnly sauf indication contraire.</p>
+ <table>
+ <thead><tr><th>Méthode</th><th>Chemin</th><th>Description</th></tr></thead>
+ <tbody>
+ <tr><td><code>GET</code></td><td><code>/about.json</code></td><td>Endpoint du sujet — hôte client, heure serveur, services &amp; widgets</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/widgets</code></td><td>Catalogue des widgets depuis le registre</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/widgets/:name</code></td><td>Définition d’un widget</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/register</code></td><td>Créer un compte (envoie un code à 6 chiffres)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/confirm</code></td><td>Confirmer l’email (<code>{ email, code }</code>)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/resend-confirm</code></td><td>Renvoyer le code de confirmation (<code>{ email }</code>)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/forgot-password</code></td><td>Envoyer un code de reset (<code>{ email }</code>)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/reset-password</code></td><td>Reset avec code (<code>{ email, code, newPassword }</code>)</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/login</code></td><td>Connexion → pose les cookies</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/refresh</code></td><td>Rafraîchir le cookie d’accès</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/logout</code></td><td>Effacer les cookies</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="fr-authd" class="doc-section">
+ <h2>Authentifié (requireAuth)</h2>
+ <table>
+ <thead><tr><th>Méthode</th><th>Chemin</th><th>Description</th></tr></thead>
+ <tbody>
+ <tr><td><code>GET</code></td><td><code>/api/v1/auth/me</code></td><td>Utilisateur courant</td></tr>
+ <tr><td><code>PATCH</code></td><td><code>/api/v1/auth/profile</code></td><td>Mettre à jour le nom affiché</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/auth/change-password</code></td><td>Changer le mot de passe</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/auth/me</code></td><td>Supprimer le compte</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/auth/oauth/github</code></td><td>Démarrer l’OAuth GitHub (redirect)</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/auth/oauth/github/callback</code></td><td>Callback OAuth</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/auth/oauth/github</code></td><td>Délier GitHub</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/services</code></td><td>Liste des services + état d’abonnement</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/services/:name/subscribe</code></td><td>S’abonner (GitHub exige OAuth)</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/services/:name/subscribe</code></td><td>Se désabonner</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/dashboard</code></td><td>Liste des instances de widgets</td></tr>
+ <tr><td><code>POST</code></td><td><code>/api/v1/dashboard/widgets</code></td><td>Ajouter une instance</td></tr>
+ <tr><td><code>PATCH</code></td><td><code>/api/v1/dashboard/widgets/:id</code></td><td>Reconfigurer</td></tr>
+ <tr><td><code>PATCH</code></td><td><code>/api/v1/dashboard/widgets/:id/position</code></td><td>Déplacer</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/dashboard/widgets/:id/data</code></td><td>Données live / en cache</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/dashboard/widgets/:id</code></td><td>Supprimer</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="fr-admin" class="doc-section">
+ <h2>Admin (requireAdmin)</h2>
+ <table>
+ <thead><tr><th>Méthode</th><th>Chemin</th><th>Description</th></tr></thead>
+ <tbody>
+ <tr><td><code>GET</code></td><td><code>/api/v1/admin/stats</code></td><td>Compteurs agrégés</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/admin/users</code></td><td>Lister les utilisateurs</td></tr>
+ <tr><td><code>PATCH</code></td><td><code>/api/v1/admin/users/:id</code></td><td>Suspendre / rôle</td></tr>
+ <tr><td><code>DELETE</code></td><td><code>/api/v1/admin/users/:id</code></td><td>Supprimer un utilisateur</td></tr>
+ <tr><td><code>GET</code></td><td><code>/api/v1/admin/audit-log</code></td><td>Événements d’audit récents</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="fr-errors" class="doc-section">
+ <h2>Codes d’erreur courants</h2>
+ <table>
+ <thead><tr><th>Code</th><th>Signification</th></tr></thead>
+ <tbody>
+ <tr><td><code>SERVICE_OAUTH_REQUIRED</code></td><td>Widget GitHub sans compte lié</td></tr>
+ <tr><td><code>OAUTH_NOT_CONFIGURED</code></td><td>Variables d’env OAuth GitHub absentes</td></tr>
+ <tr><td><code>DASHBOARD_CONFIG_INVALID</code></td><td>Schéma Zod a rejeté la config</td></tr>
+ <tr><td><code>AUTH_UNCONFIRMED</code></td><td>Email pas encore confirmé</td></tr>
+ <tr><td><code>AUTH_CONFIRM_TOKEN_INVALID</code></td><td>Code de confirmation invalide ou expiré</td></tr>
+ <tr><td><code>AUTH_RESET_TOKEN_INVALID</code></td><td>Code de reset invalide ou expiré</td></tr>
+ <tr><td><code>AUTH_UNAUTHENTICATED</code></td><td>Session requise</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+
+ </div>
+
+ <footer class="doc-footer">
+ <span>© EPITECH · Threshold · G-WEB-500</span>
+ <span><a href="./index.html">Docs hub</a> · <a href="/">App</a></span>
+ </footer>
+ </div>
+</body>
+</html>

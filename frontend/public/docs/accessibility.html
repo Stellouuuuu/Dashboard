@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>Threshold — Accessibility</title>
+ <link rel="stylesheet" href="./docs.css"/>
+ <style>:root{--bg-photo:url('/img/bg.jpg');}</style>
+</head>
+<body>
+ <div class="doc-cover">
+ <div class="doc-cover-top">
+ <div class="doc-cover-kicker">Threshold · G-WEB-500</div>
+ <h1>Accessibility</h1>
+ <p>a11y goals, current practices and known gaps for Threshold.</p>
+ </div>
+ <div class="doc-cover-bottom">
+ <div class="doc-cover-meta">
+ <strong>Document</strong>
+ Accessibility · WCAG follow-ups
+ </div>
+ <div class="lang-switch">
+ <a href="#english" class="active">EN</a>
+ <a href="#français">FR</a>
+ </div>
+ </div>
+ </div>
+
+ <div class="doc-shell">
+ <div id="english" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#en-goals">Goals</a>
+ <a href="#en-practices">Practices</a>
+ <a href="#en-gaps">Gaps</a>
+ <a href="#français">→ FR</a>
+ </nav>
+ <section id="en-goals" class="doc-section">
+ <h2>Goals</h2>
+ <ul>
+ <li>Keyboard-reachable primary flows (login, register, dashboard actions, modals)</li>
+ <li>Visible focus states on interactive controls</li>
+ <li>Meaningful labels on icon-only buttons (<code>aria-label</code>)</li>
+ <li>Skip link to main content on public and auth layouts</li>
+ <li>Status messages exposed with <code>role="alert"</code> where appropriate (form errors)</li>
+ </ul>
+
+ </section>
+ <section id="en-practices" class="doc-section">
+ <h2>Current practices</h2>
+ <ul>
+ <li>Semantic landmarks: <code>header</code> / <code>main</code> / <code>nav</code> / <code>aside</code></li>
+ <li>Auth and landing stay in a forced dark “brand” shell for contrast of white text on imagery</li>
+ <li>Motion: Ken Burns / image fade respect <code>prefers-reduced-motion</code> where implemented</li>
+ <li>Language: UI strings via i18next (<code>fr</code> / <code>en</code>); <code>html[lang]</code> should follow the active locale</li>
+ </ul>
+
+ </section>
+ <section id="en-gaps" class="doc-section">
+ <h2>Known gaps / follow-ups</h2>
+ <div class="callout warn">
+ <ul style="margin-bottom:0">
+ <li>Full WCAG audit not completed</li>
+ <li>Some decorative images use empty <code>alt=""</code>; ensure informative images always have text alternatives</li>
+ <li>Drag-and-drop reordering has limited touch / keyboard parity (desktop-oriented)</li>
+ </ul>
+ </div>
+
+ </section>
+
+ </div>
+
+ <div class="doc-sep">EN · FR</div>
+
+ <div id="français" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#fr-goals">Objectifs</a>
+ <a href="#fr-practices">Pratiques</a>
+ <a href="#fr-gaps">Écarts</a>
+ <a href="#english">→ EN</a>
+ </nav>
+ <section id="fr-goals" class="doc-section">
+ <h2>Objectifs</h2>
+ <ul>
+ <li>Parcours principaux accessibles au clavier (login, inscription, actions dashboard, modales)</li>
+ <li>États de focus visibles sur les contrôles interactifs</li>
+ <li>Libellés significatifs sur les boutons icône seule (<code>aria-label</code>)</li>
+ <li>Lien d’évitement vers le contenu principal sur les layouts publics et auth</li>
+ <li>Messages d’état exposés avec <code>role="alert"</code> quand c’est pertinent (erreurs de formulaire)</li>
+ </ul>
+
+ </section>
+ <section id="fr-practices" class="doc-section">
+ <h2>Pratiques actuelles</h2>
+ <ul>
+ <li>Landmarks sémantiques : <code>header</code> / <code>main</code> / <code>nav</code> / <code>aside</code></li>
+ <li>Auth et landing restent dans une coque « brand » sombre forcée pour le contraste du texte blanc sur les images</li>
+ <li>Motion : Ken Burns / fondu d’image respectent <code>prefers-reduced-motion</code> là où c’est implémenté</li>
+ <li>Langue : chaînes UI via i18next (<code>fr</code> / <code>en</code>) ; <code>html[lang]</code> doit suivre la locale active</li>
+ </ul>
+
+ </section>
+ <section id="fr-gaps" class="doc-section">
+ <h2>Écarts connus / suites</h2>
+ <div class="callout warn">
+ <ul style="margin-bottom:0">
+ <li>Audit WCAG complet non réalisé</li>
+ <li>Certaines images décoratives utilisent <code>alt=""</code> vide ; s’assurer que les images informatives ont toujours une alternative textuelle</li>
+ <li>Le réordonnancement drag-and-drop a une parité tactile / clavier limitée (orienté desktop)</li>
+ </ul>
+ </div>
+
+ </section>
+
+ </div>
+
+ <footer class="doc-footer">
+ <span>© EPITECH · Threshold · G-WEB-500</span>
+ <span><a href="./index.html">Docs hub</a> · <a href="/">App</a></span>
+ </footer>
+ </div>
+</body>
+</html>

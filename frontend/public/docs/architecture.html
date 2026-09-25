@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>Threshold — Architecture</title>
+ <link rel="stylesheet" href="./docs.css"/>
+ <style>:root{--bg-photo:url('/img/bg.jpg');}</style>
+</head>
+<body>
+ <div class="doc-cover">
+ <div class="doc-cover-top">
+ <div class="doc-cover-kicker">Threshold · G-WEB-500</div>
+ <h1>Architecture</h1>
+ <p>Containers, auth model, widget pipeline and GitHub OAuth — bilingual EN / FR.</p>
+ </div>
+ <div class="doc-cover-bottom">
+ <div class="doc-cover-meta">
+ <strong>Document</strong>
+ Architecture · Runtime · Auth · Widgets
+ </div>
+ <div class="lang-switch">
+ <a href="#english" class="active">EN</a>
+ <a href="#français">FR</a>
+ </div>
+ </div>
+ </div>
+
+ <div class="doc-shell">
+ <div id="english" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#en-overview">Overview</a>
+ <a href="#en-runtime">Runtime</a>
+ <a href="#en-auth">Auth</a>
+ <a href="#en-pipeline">Pipeline</a>
+ <a href="#en-oauth">OAuth</a>
+ <a href="#en-frontend">Frontend</a>
+ <a href="#français">→ FR</a>
+ </nav>
+ <section id="en-overview" class="doc-section">
+ <h2>Overview</h2>
+ <p class="lead">Threshold is a Dockerized SPA + API. The browser only talks to nginx on port <strong>8080</strong>. nginx serves the built React app and proxies <code>/api/*</code> and <code>/about.json</code> to the Express API. The API owns authentication, widget configuration, caching, and outbound calls to third-party services.</p>
+
+ </section>
+ <section id="en-runtime" class="doc-section">
+ <h2>Runtime components</h2>
+ <table>
+ <thead><tr><th>Component</th><th>Role</th></tr></thead>
+ <tbody>
+ <tr><td><strong>nginx</strong></td><td>Static assets + reverse proxy</td></tr>
+ <tr><td><strong>api</strong></td><td>Express REST API, Zod validation, Drizzle ORM</td></tr>
+ <tr><td><strong>postgres</strong></td><td>Persistent state (users, widgets, cache, audit)</td></tr>
+ <tr><td><strong>mailpit</strong></td><td>Local SMTP catcher for OTP emails (optional if using Gmail SMTP)</td></tr>
+ <tr><td><strong>api_secrets</strong></td><td>Volume holding auto-generated <code>JWT_SECRET</code> / <code>CRYPTO_KEY</code></td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="en-auth" class="doc-section">
+ <h2>Authentication</h2>
+ <ul>
+ <li>Email + password registration → <strong>6-digit OTP</strong> emailed via SMTP (Mailpit or Gmail)</li>
+ <li>Forgot password → same OTP pattern, then set a new password</li>
+ <li>Session: httpOnly cookies (<code>access_token</code>, <code>refresh_token</code>)</li>
+ <li>Passwords hashed with bcrypt; OAuth tokens encrypted with AES-256-GCM (<code>CRYPTO_KEY</code>)</li>
+ <li>Roles: <code>user</code> | <code>admin</code></li>
+ </ul>
+
+ </section>
+ <section id="en-pipeline" class="doc-section">
+ <h2>Widget pipeline</h2>
+ <ol>
+ <li>User creates an instance (<code>POST /dashboard/widgets</code>) with a config validated against the <strong>widget registry</strong></li>
+ <li>Client timer fires → <code>GET /dashboard/widgets/:id/data</code></li>
+ <li>API checks <code>widget_cache</code>; on miss/stale, calls the adapter and stores the result</li>
+ <li>Minimum refresh interval: 30 seconds</li>
+ </ol>
+ <div class="callout">
+ The registry (<code>backend/src/widgets/registry.ts</code>) is the single source of truth for <code>/about.json</code>, catalogue endpoints, and config validation.
+ </div>
+
+ </section>
+ <section id="en-oauth" class="doc-section">
+ <h2>GitHub OAuth</h2>
+ <p>Optional. When <code>GITHUB_CLIENT_ID</code> / <code>SECRET</code> are unset, link endpoints return <code>OAUTH_NOT_CONFIGURED</code> (503) and GitHub widgets cannot be added (<code>SERVICE_OAUTH_REQUIRED</code>).</p>
+ <p>Scopes requested: <code>read:user</code>, <code>repo</code>, <code>security_events</code> (needed for private repos and Dependabot alerts). Organization policies may still block access to some org repositories.</p>
+
+ </section>
+ <section id="en-frontend" class="doc-section">
+ <h2>Frontend</h2>
+ <p>React 19 SPA with i18n (French / English), theme toggle, and API clients under <code>frontend/src/api/</code>. Protected routes wait on <code>/auth/me</code>.</p>
+
+ </section>
+
+ </div>
+
+ <div class="doc-sep">EN · FR</div>
+
+ <div id="français" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#fr-overview">Vue d’ensemble</a>
+ <a href="#fr-runtime">Runtime</a>
+ <a href="#fr-auth">Auth</a>
+ <a href="#fr-pipeline">Pipeline</a>
+ <a href="#fr-oauth">OAuth</a>
+ <a href="#fr-frontend">Frontend</a>
+ <a href="#english">→ EN</a>
+ </nav>
+ <section id="fr-overview" class="doc-section">
+ <h2>Vue d’ensemble</h2>
+ <p class="lead">Threshold est une SPA + API dockerisées. Le navigateur ne parle qu’à nginx sur le port <strong>8080</strong>. nginx sert l’app React buildée et proxyfie <code>/api/*</code> et <code>/about.json</code> vers l’API Express. L’API gère l’authentification, la configuration des widgets, le cache et les appels sortants vers les services tiers.</p>
+
+ </section>
+ <section id="fr-runtime" class="doc-section">
+ <h2>Composants runtime</h2>
+ <table>
+ <thead><tr><th>Composant</th><th>Rôle</th></tr></thead>
+ <tbody>
+ <tr><td><strong>nginx</strong></td><td>Assets statiques + reverse proxy</td></tr>
+ <tr><td><strong>api</strong></td><td>API REST Express, validation Zod, Drizzle ORM</td></tr>
+ <tr><td><strong>postgres</strong></td><td>État persistant (users, widgets, cache, audit)</td></tr>
+ <tr><td><strong>mailpit</strong></td><td>Catcher SMTP local pour les emails OTP (optionnel si SMTP Gmail)</td></tr>
+ <tr><td><strong>api_secrets</strong></td><td>Volume des secrets auto-générés (<code>JWT_SECRET</code> / <code>CRYPTO_KEY</code>)</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="fr-auth" class="doc-section">
+ <h2>Authentification</h2>
+ <ul>
+ <li>Inscription email + mot de passe → <strong>OTP à 6 chiffres</strong> envoyé par SMTP (Mailpit ou Gmail)</li>
+ <li>Mot de passe oublié → même schéma OTP, puis nouveau mot de passe</li>
+ <li>Session : cookies httpOnly (<code>access_token</code>, <code>refresh_token</code>)</li>
+ <li>Mots de passe hashés avec bcrypt ; tokens OAuth chiffrés AES-256-GCM (<code>CRYPTO_KEY</code>)</li>
+ <li>Rôles : <code>user</code> | <code>admin</code></li>
+ </ul>
+
+ </section>
+ <section id="fr-pipeline" class="doc-section">
+ <h2>Pipeline des widgets</h2>
+ <ol>
+ <li>L’utilisateur crée une instance (<code>POST /dashboard/widgets</code>) avec une config validée contre le <strong>registre de widgets</strong></li>
+ <li>Le timer client déclenche → <code>GET /dashboard/widgets/:id/data</code></li>
+ <li>L’API consulte <code>widget_cache</code> ; en miss/stale, appelle l’adapter et stocke le résultat</li>
+ <li>Intervalle de rafraîchissement minimum : 30 secondes</li>
+ </ol>
+ <div class="callout">
+ Le registre (<code>backend/src/widgets/registry.ts</code>) est la seule source de vérité pour <code>/about.json</code>, les endpoints catalogue et la validation des configs.
+ </div>
+
+ </section>
+ <section id="fr-oauth" class="doc-section">
+ <h2>OAuth GitHub</h2>
+ <p>Optionnel. Sans <code>GITHUB_CLIENT_ID</code> / <code>SECRET</code>, les endpoints de liaison renvoient <code>OAUTH_NOT_CONFIGURED</code> (503) et les widgets GitHub ne peuvent pas être ajoutés (<code>SERVICE_OAUTH_REQUIRED</code>).</p>
+ <p>Scopes demandés : <code>read:user</code>, <code>repo</code>, <code>security_events</code> (nécessaires pour les dépôts privés et les alertes Dependabot). Les politiques d’organisation peuvent encore bloquer l’accès à certains repos d’orga.</p>
+
+ </section>
+ <section id="fr-frontend" class="doc-section">
+ <h2>Frontend</h2>
+ <p>SPA React 19 avec i18n (français / anglais), bascule de thème, et clients API sous <code>frontend/src/api/</code>. Les routes protégées attendent <code>/auth/me</code>.</p>
+
+ </section>
+
+ </div>
+
+ <footer class="doc-footer">
+ <span>© EPITECH · Threshold · G-WEB-500</span>
+ <span><a href="./index.html">Docs hub</a> · <a href="/">App</a></span>
+ </footer>
+ </div>
+</body>
+</html>
