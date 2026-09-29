@@ -1,0 +1,18 @@
+{
+  "name": "poc-drizzle",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "drizzle-orm": "^0.36.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.20.4",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

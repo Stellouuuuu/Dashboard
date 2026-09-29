@@ -1,0 +1,13 @@
+services:
+  backend:
+    build: ./backend
+
+  proxy:
+    image: caddy:alpine
+    ports:
+      - "8082:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./html:/srv:ro
+    depends_on:
+      - backend

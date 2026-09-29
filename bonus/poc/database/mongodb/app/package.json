@@ -1,0 +1,8 @@
+{
+  "name": "poc-database-mongodb",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "mongodb": "^6.9.0"
+  }
+}

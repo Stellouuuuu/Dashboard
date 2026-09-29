@@ -1,0 +1,17 @@
+{
+  "name": "poc-prisma",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "prisma generate && prisma db push --skip-generate && tsx src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "prisma": "^5.22.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

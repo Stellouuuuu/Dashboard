@@ -1,0 +1,37 @@
+services:
+  backend:
+    build: ./backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=4000"
+
+  # Traefik ne sert pas de fichiers statiques lui-même : il faut un service dédié.
+  static:
+    image: nginx:alpine
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.static.rule=PathPrefix(`/`)"
+      - "traefik.http.services.static.loadbalancer.server.port=80"
+
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    environment:
+      # Traefik's bundled Docker client defaults to API 1.24, which some Docker
+      # daemons reject as too old ("client version 1.24 is too old, minimum
+      # supported API version is X"). Pin it to whatever this host actually
+      # speaks: `docker version --format '{{.Server.APIVersion}}'`.
+      DOCKER_API_VERSION: "1.44"
+    ports:
+      - "8083:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - backend
+      - static

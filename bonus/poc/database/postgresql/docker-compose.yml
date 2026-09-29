@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POC_DB_USER:-poc}
+      POSTGRES_PASSWORD: ${POC_DB_PASSWORD:-poc}
+      POSTGRES_DB: ${POC_DB_NAME:-poc}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POC_DB_USER:-poc} -d ${POC_DB_NAME:-poc}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: ./app
+    environment:
+      DATABASE_URL: postgres://${POC_DB_USER:-poc}:${POC_DB_PASSWORD:-poc}@db:5432/${POC_DB_NAME:-poc}
+    ports:
+      - "4201:3000"
+    depends_on:
+      db:
+        condition: service_healthy
