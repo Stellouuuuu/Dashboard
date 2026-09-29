@@ -29,7 +29,7 @@ export function encrypt(plainText: string): string {
 /** Decrypt a value produced by encrypt(). */
 export function decrypt(payload: string): string {
   const [ivHex, authTagHex, dataHex] = payload.split(":");
-  if (!ivHex || !authTagHex || !dataHex) throw new Error("Invalid encrypted payload");
+  if (!ivHex || !authTagHex || dataHex === undefined) throw new Error("Invalid encrypted payload");
   const decipher = createDecipheriv(ALGO, key(), Buffer.from(ivHex, "hex"));
   decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
   const decrypted = Buffer.concat([

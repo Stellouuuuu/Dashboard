@@ -104,6 +104,7 @@ export function WizardModal() {
       if (Object.keys(errs).length) return;
       setStep(3);
     } else if (step === 3) {
+      if (rate < 30) setRate(30);
       setStep(4);
     } else {
       if (!widget || submitting) return;
@@ -274,6 +275,18 @@ export function WizardModal() {
                     </button>
                   );
                 })}
+              </div>
+              <div style={{ marginTop: 16 }}>
+                <FormField label={t('wizard.customRate', { defaultValue: 'Ou saisissez une valeur personnalisée (secondes, min 30)' })} htmlFor="wiz-custom-rate">
+                  <input
+                    id="wiz-custom-rate"
+                    type="number"
+                    min="30"
+                    value={rate || ''}
+                    onChange={(e) => setRate(parseInt(e.target.value) || 0)}
+                    onBlur={() => setRate(Math.max(30, rate))}
+                  />
+                </FormField>
               </div>
             </div>
           )}
