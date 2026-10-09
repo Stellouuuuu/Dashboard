@@ -58,9 +58,12 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: .
     envVars:
-      # Must match threshold-api's actual Render URL above.
+      # Render assigns the actual URL at creation time (often with a random
+      # suffix, e.g. threshold-api-pmzv.onrender.com, if the plain name is
+      # taken) - sync: false so a Blueprint re-sync never overwrites the real
+      # value set manually in the dashboard with a wrong guess.
       - key: API_ORIGIN
-        value: https://threshold-api.onrender.com
+        sync: false
 
 databases:
   - name: threshold-db
