@@ -116,6 +116,24 @@ Notable finding from the NestJS POC: the default `npm install -D typescript` res
 
 ---
 
+## Conclusion
+
+Across all seven comparisons, the existing stack won every single time - not because the alternatives were bad, but because none of them cleared the bar of "measurably better enough to justify a rewrite under an 8-day deadline." That's the one pattern that repeats everywhere in this document: Vue scaffolds faster than React and Fastify's setup time ties Express's, but neither difference is large enough to pay for migrating already-working code. The real lesson of this POC round isn't "our stack is the best one" - it's that **switching cost is itself a decision criterion**, and on a short, scoped project it usually dominates every other axis once a technology is already working in production.
+
+Where this reasoning would flip: on a greenfield project with no deadline pressure, or one expected to scale past this project's size (more than ~30 routes, a team bigger than two people, a schema needing document flexibility), several "losing" alternatives here stop losing. NestJS's module/DI ceremony (dismissed in §"Backend runtime") pays for itself once an API grows past what two people can hold in their heads; Prisma's `generate` step (dismissed in §"Database & ORM") is a one-time cost that buys a notably larger tooling ecosystem (migrations UI, Prisma Studio) useful on a longer-lived project. If we rebuilt this project from scratch today with a 3-month timeline instead of 8 days, NestJS and a BullMQ-based proactive refresh worker (see §"Widget refresh strategy") are the two choices we'd genuinely reconsider, not just dismiss.
+
+The honesty notes throughout this document (MySQL, Caddy, Traefik POCs blocked by this sandbox's lack of Docker Hub egress for uncached images) are a real methodological gap, not a formality: three of the eleven technologies compared here were evaluated on written-but-unexecuted code. Anything cited from those rows at the defense should be flagged as such rather than presented as equally solid evidence.
+
+## Conclusion (FR)
+
+Sur les sept comparatifs, la stack existante l'a emporté à chaque fois - pas parce que les alternatives étaient mauvaises, mais parce qu'aucune n'a franchi la barre du "suffisamment meilleure pour justifier une réécriture" sous une deadline de 8 jours. C'est le seul schéma qui se répète partout dans ce document : Vue scaffold plus vite que React, et le temps de mise en place de Fastify égale celui d'Express, mais aucun des deux écarts n'est assez grand pour payer la migration d'un code déjà fonctionnel. La vraie leçon de cette session de POC n'est pas "notre stack est la meilleure" - c'est que **le coût de changement est lui-même un critère de décision**, et sur un projet court et cadré, il domine en général tous les autres axes dès qu'une technologie tourne déjà en production.
+
+Là où ce raisonnement s'inverserait : sur un projet neuf sans pression de deadline, ou destiné à grandir au-delà de la taille de celui-ci (plus d'une trentaine de routes, une équipe plus grande que deux personnes, un schéma ayant besoin de la flexibilité des documents), plusieurs alternatives "perdantes" ici cesseraient de l'être. La cérémonie modules/DI de NestJS (écartée en §"Runtime & framework backend") se rentabilise dès qu'une API dépasse ce que deux personnes peuvent garder en tête ; l'étape `generate` de Prisma (écartée en §"Base de données & ORM") est un coût ponctuel qui achète un écosystème d'outillage nettement plus grand (UI de migration, Prisma Studio), utile sur un projet à plus longue durée de vie. Si on reconstruisait ce projet de zéro aujourd'hui avec 3 mois devant nous au lieu de 8 jours, NestJS et un worker de rafraîchissement proactif à base de BullMQ (voir §"Stratégie de rafraîchissement des widgets") sont les deux choix qu'on reconsidérerait vraiment, pas juste qu'on écarterait.
+
+Les notes d'honnêteté disséminées dans ce document (POC MySQL, Caddy, Traefik bloqués par l'absence d'accès sortant Docker Hub de ce sandbox pour les images non en cache) sont une vraie limite méthodologique, pas une formalité : trois des onze technologies comparées ici ont été évaluées sur du code écrit mais non exécuté. Tout ce qui en serait cité en soutenance devrait être signalé comme tel plutôt que présenté comme une preuve aussi solide que le reste.
+
+---
+
 ## What each of us already knew
 
 *To be completed by us.*
