@@ -42,6 +42,11 @@ services:
       # match the verified sender.
       - key: BREVO_API_KEY
         sync: false
+      # Open-Meteo (no key) shares its rate limit across Render's free-tier egress
+      # IP with unrelated apps, causing 429s under light use. Set this to switch
+      # the weather adapter to WeatherAPI.com instead (quota per key, not per IP).
+      - key: WEATHERAPI_KEY
+        sync: false
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD

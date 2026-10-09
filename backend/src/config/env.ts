@@ -34,6 +34,10 @@ const envSchema = z.object({
   // Brevo's HTTP API (port 443) instead when this is set. SMTP_FROM's email
   // must match a sender verified in Brevo.
   BREVO_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Open-Meteo (no key) is rate-limited per IP, and Render's free-tier egress IP
+  // is shared across unrelated apps — so it can 429 even under light use. When
+  // this is set, the weather adapter uses WeatherAPI.com instead (quota per key).
+  WEATHERAPI_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
   APP_URL: z.string().url().default("http://localhost:8080"),
   SECRETS_DIR: z.preprocess(emptyToUndefined, z.string().optional()),
   ADMIN_EMAIL: z.preprocess(

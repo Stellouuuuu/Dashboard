@@ -1,3 +1,13 @@
+import { env } from "../config/env.js";
+
+interface WeatherApiCurrentResponse {
+  current?: { temp_c: number; temp_f: number; condition?: { text: string } };
+}
+
+interface WeatherApiForecastResponse {
+  forecast?: { forecastday: { date: string; day: { totalprecip_mm: number } }[] };
+}
+
 interface PrecipitationConfig {
   city: string;
   days: number;
@@ -87,8 +97,23 @@ const WEATHER_CODE_LABELS: Record<number, string> = {
  * `unit` accepte "C"/"F" ou "°C"/"°F" (format utilisé par le wizard front).
  */
 export async function fetchCityTemperature(config: CityTemperatureConfig): Promise<CityTemperature> {
-  const place = await geocode(config.city);
   const unit: "C" | "F" = /f/i.test(config.unit) ? "F" : "C";
+
+  if (env.WEATHERAPI_KEY) {
+    const url = `https://api.weatherapi.com/v1/current.json?key=${env.WEATHERAPI_KEY}&q=${encodeURIComponent(config.city)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Impossible de récupérer la météo (${res.status}: ${await res.text()})`);
+    const data = (await res.json()) as WeatherApiCurrentResponse;
+    if (!data.current) throw new Error("Réponse météo invalide");
+    return {
+      city: config.city,
+      temperature: Math.round((unit === "F" ? data.current.temp_f : data.current.temp_c) * 10) / 10,
+      unit,
+      description: data.current.condition?.text ?? "Conditions inconnues",
+    };
+  }
+
+  const place = await geocode(config.city);
   const temperatureUnit = unit === "F" ? "fahrenheit" : "celsius";
 
   const url =
@@ -114,9 +139,22 @@ export async function fetchCityTemperature(config: CityTemperatureConfig): Promi
 export async function fetchPrecipitationForecast(
   config: PrecipitationConfig,
 ): Promise<PrecipitationDay[]> {
+  const days = Math.min(Math.max(config.days, 1), 7);
+
+  if (env.WEATHERAPI_KEY) {
+    const url = `https://api.weatherapi.com/v1/forecast.json?key=${env.WEATHERAPI_KEY}&q=${encodeURIComponent(config.city)}&days=${days}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Impossible de récupérer la météo (${res.status}: ${await res.text()})`);
+    const data = (await res.json()) as WeatherApiForecastResponse;
+    if (!data.forecast) throw new Error("Réponse météo invalide");
+    return data.forecast.forecastday.map((d) => ({
+      day: d.date,
+      precipitation_mm: Math.round(d.day.totalprecip_mm * 10) / 10,
+    }));
+  }
+
   const place = await geocode(config.city);
 
-  const days = Math.min(Math.max(config.days, 1), 7);
   const forecastUrl =
     `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
     `&daily=precipitation_sum&timezone=auto&forecast_days=${days}`;
