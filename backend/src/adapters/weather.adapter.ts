@@ -1,0 +1,131 @@
+interface PrecipitationConfig {
+  city: string;
+  days: number;
+}
+
+interface CityTemperatureConfig {
+  city: string;
+  unit: string;
+}
+
+interface GeocodingResult {
+  results?: { latitude: number; longitude: number; name?: string }[];
+}
+
+interface ForecastResponse {
+  daily?: {
+    time: string[];
+    precipitation_sum: number[];
+  };
+}
+
+interface CurrentWeatherResponse {
+  current?: {
+    temperature_2m: number;
+    weather_code: number;
+  };
+}
+
+export interface PrecipitationDay {
+  day: string;
+  precipitation_mm: number;
+}
+
+export interface CityTemperature {
+  city: string;
+  temperature: number;
+  unit: "C" | "F";
+  description: string;
+}
+
+interface GeocodedPlace {
+  latitude: number;
+  longitude: number;
+  name: string;
+}
+
+/** Géocodage partagé par tous les widgets weather — Open-Meteo, gratuit, sans clé API. */
+async function geocode(city: string): Promise<GeocodedPlace> {
+  const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`;
+  const geoRes = await fetch(geoUrl);
+  if (!geoRes.ok) throw new Error("Géocodage impossible pour cette ville");
+  const geo = (await geoRes.json()) as GeocodingResult;
+  const place = geo.results?.[0];
+  if (!place) throw new Error(`Ville introuvable: ${city}`);
+  return { latitude: place.latitude, longitude: place.longitude, name: place.name ?? city };
+}
+
+// Sous-ensemble des codes météo WMO utilisés par Open-Meteo — suffisant pour une
+// description courte, pas besoin de couvrir les 100 codes.
+const WEATHER_CODE_LABELS: Record<number, string> = {
+  0: "Ciel dégagé",
+  1: "Plutôt dégagé",
+  2: "Partiellement nuageux",
+  3: "Couvert",
+  45: "Brouillard",
+  48: "Brouillard givrant",
+  51: "Bruine légère",
+  53: "Bruine",
+  55: "Bruine forte",
+  61: "Pluie légère",
+  63: "Pluie",
+  65: "Pluie forte",
+  71: "Neige légère",
+  73: "Neige",
+  75: "Neige forte",
+  80: "Averses",
+  81: "Averses fortes",
+  82: "Averses violentes",
+  95: "Orage",
+  96: "Orage avec grêle",
+  99: "Orage violent",
+};
+
+/**
+ * Adaptateur city_temperature — Open-Meteo (gratuit, sans clé API).
+ * `unit` accepte "C"/"F" ou "°C"/"°F" (format utilisé par le wizard front).
+ */
+export async function fetchCityTemperature(config: CityTemperatureConfig): Promise<CityTemperature> {
+  const place = await geocode(config.city);
+  const unit: "C" | "F" = /f/i.test(config.unit) ? "F" : "C";
+  const temperatureUnit = unit === "F" ? "fahrenheit" : "celsius";
+
+  const url =
+    `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
+    `&current=temperature_2m,weather_code&timezone=auto&temperature_unit=${temperatureUnit}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Impossible de récupérer la météo");
+  const data = (await res.json()) as CurrentWeatherResponse;
+  if (!data.current) throw new Error("Réponse météo invalide");
+
+  return {
+    city: place.name,
+    temperature: Math.round(data.current.temperature_2m * 10) / 10,
+    unit,
+    description: WEATHER_CODE_LABELS[data.current.weather_code] ?? "Conditions inconnues",
+  };
+}
+
+/**
+ * Adaptateur precipitation_forecast — Open-Meteo (gratuit, sans clé API).
+ * PLAN.md §5 : on évite de gérer un secret de plus.
+ */
+export async function fetchPrecipitationForecast(
+  config: PrecipitationConfig,
+): Promise<PrecipitationDay[]> {
+  const place = await geocode(config.city);
+
+  const days = Math.min(Math.max(config.days, 1), 7);
+  const forecastUrl =
+    `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
+    `&daily=precipitation_sum&timezone=auto&forecast_days=${days}`;
+  const forecastRes = await fetch(forecastUrl);
+  if (!forecastRes.ok) throw new Error("Impossible de récupérer la météo");
+  const data = (await forecastRes.json()) as ForecastResponse;
+  if (!data.daily) throw new Error("Réponse météo invalide");
+
+  return data.daily.time.map((day, i) => ({
+    day,
+    precipitation_mm: Math.round((data.daily!.precipitation_sum[i] ?? 0) * 10) / 10,
+  }));
+}

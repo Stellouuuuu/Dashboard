@@ -1,51 +1,29 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthContext';
 import { FormField } from '../components/FormField';
-import { apiChangePassword, AuthError } from '../api/demo';
+import { ApiAuthError } from '../api/auth';
+import { formatDate } from '../i18n/format';
 
-type ProfileTab = 'general' | 'security' | 'services';
+type ProfileTab = 'general' | 'security';
 
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
-
-function passwordRules(pw: string) {
-  return [
-    { ok: pw.length >= 8, label: 'Au moins 8 caractères' },
-    { ok: /[A-Z]/.test(pw), label: 'Une majuscule' },
-    { ok: /[0-9]/.test(pw), label: 'Un chiffre' },
-    { ok: /[^A-Za-z0-9]/.test(pw), label: 'Un caractère spécial' },
-  ];
+// Politique réelle du backend (PLAN.md §11, zod `min(12)`) : 12 caractères, rien de plus.
+function passwordRules(pw: string, label: string) {
+  return [{ ok: pw.length >= 12, label }];
 }
 
 export function ProfilePage() {
-  const { user, updateProfile, logout, deleteAccount, sessionRemainingMs } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lng = i18n.resolvedLanguage ?? i18n.language;
+  const { user, updateProfile, logout, changePassword, deleteAccount, sessionRemainingMs } = useAuth();
   const navigate = useNavigate();
 
   const [tab, setTab] = useState<ProfileTab>('general');
   const [editingGeneral, setEditingGeneral] = useState(false);
-  const [editingServices, setEditingServices] = useState(false);
   const [securityView, setSecurityView] = useState<'menu' | 'password' | 'delete'>('menu');
 
   const [name, setName] = useState(user?.name ?? '');
-  const [githubHint, setGithubHint] = useState(
-    user?.serviceCredentials.githubUsername ?? '',
-  );
-  const [weatherDefaultCity, setWeatherDefaultCity] = useState(
-    user?.serviceCredentials.weatherDefaultCity ?? '',
-  );
-  const [rssDefaultFeed, setRssDefaultFeed] = useState(
-    user?.serviceCredentials.rssDefaultFeed ?? '',
-  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -66,16 +44,6 @@ export function ProfilePage() {
     return name.trim() !== user.name;
   }, [user, name]);
 
-  const dirtyServices = useMemo(() => {
-    if (!user) return false;
-    return (
-      (githubHint.trim() || undefined) !== (user.serviceCredentials.githubUsername || undefined) ||
-      (weatherDefaultCity.trim() || undefined) !==
-        (user.serviceCredentials.weatherDefaultCity || undefined) ||
-      (rssDefaultFeed.trim() || undefined) !== (user.serviceCredentials.rssDefaultFeed || undefined)
-    );
-  }, [user, githubHint, weatherDefaultCity, rssDefaultFeed]);
-
   if (!user) return null;
 
   const displayName = editingGeneral ? name.trim() || user.name : user.name;
@@ -87,7 +55,7 @@ export function ProfilePage() {
     .toUpperCase();
 
   const mins = Math.floor(sessionRemainingMs / 60000);
-  const rules = passwordRules(newPassword);
+  const rules = passwordRules(newPassword, t('profile.password.minLength'));
 
   const resetGeneral = () => {
     setName(user.name);
@@ -96,50 +64,20 @@ export function ProfilePage() {
     setEditingGeneral(false);
   };
 
-  const resetServices = () => {
-    setGithubHint(user.serviceCredentials.githubUsername ?? '');
-    setWeatherDefaultCity(user.serviceCredentials.weatherDefaultCity ?? '');
-    setRssDefaultFeed(user.serviceCredentials.rssDefaultFeed ?? '');
-    setErrors({});
-    setSaved(false);
-    setEditingServices(false);
-  };
-
   const onSaveGeneral = async () => {
     const next: Record<string, string> = {};
-    if (!name.trim()) next.name = 'Le nom est requis.';
+    if (!name.trim()) next.name = t('profile.general.nameRequired');
     setErrors(next);
     if (Object.keys(next).length) return;
 
     setSaving(true);
     setSaved(false);
     try {
-      await updateProfile({ name: name.trim() });
+      await updateProfile(name.trim());
       setSaved(true);
       setEditingGeneral(false);
     } catch {
-      setErrors({ form: 'Enregistrement impossible.' });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const onSaveServices = async () => {
-    setSaving(true);
-    setSaved(false);
-    setErrors({});
-    try {
-      await updateProfile({
-        serviceCredentials: {
-          githubUsername: githubHint.trim() || undefined,
-          weatherDefaultCity: weatherDefaultCity.trim() || undefined,
-          rssDefaultFeed: rssDefaultFeed.trim() || undefined,
-        },
-      });
-      setSaved(true);
-      setEditingServices(false);
-    } catch {
-      setErrors({ form: 'Enregistrement impossible.' });
+      setErrors({ form: t('profile.saveFailed') });
     } finally {
       setSaving(false);
     }
@@ -148,16 +86,16 @@ export function ProfilePage() {
   const onChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const next: Record<string, string> = {};
-    if (!currentPassword) next.current = 'Indique ton mot de passe actuel.';
-    if (!rules.every((r) => r.ok)) next.new = 'Le nouveau mot de passe ne respecte pas les règles.';
-    if (newPassword !== confirmPassword) next.confirm = 'Les mots de passe ne correspondent pas.';
+    if (!currentPassword) next.current = t('profile.password.currentRequired');
+    if (!rules.every((r) => r.ok)) next.new = t('profile.password.newInvalid');
+    if (newPassword !== confirmPassword) next.confirm = t('profile.password.mismatch');
     setPwErrors(next);
     if (Object.keys(next).length) return;
 
     setPwSaving(true);
     setPwSaved(false);
     try {
-      await apiChangePassword(user.id, currentPassword, newPassword);
+      await changePassword(currentPassword, newPassword);
       setPwSaved(true);
       setCurrentPassword('');
       setNewPassword('');
@@ -165,7 +103,9 @@ export function ProfilePage() {
       window.setTimeout(() => setSecurityView('menu'), 900);
     } catch (err) {
       const msg =
-        err instanceof AuthError ? err.message : 'Impossible de changer le mot de passe.';
+        err instanceof ApiAuthError
+          ? t(`errors.${err.code}`, { defaultValue: t('profile.password.failed') })
+          : t('profile.password.failed');
       setPwErrors({ form: msg });
     } finally {
       setPwSaving(false);
@@ -175,7 +115,7 @@ export function ProfilePage() {
   const onDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!deletePassword.trim()) {
-      setDeleteError('Confirme avec ton mot de passe.');
+      setDeleteError(t('profile.delete.passwordRequired'));
       return;
     }
     setDeleteSaving(true);
@@ -185,7 +125,9 @@ export function ProfilePage() {
       navigate('/');
     } catch (err) {
       setDeleteError(
-        err instanceof AuthError ? err.message : 'Suppression impossible.',
+        err instanceof ApiAuthError
+          ? t(`errors.${err.code}`, { defaultValue: t('profile.delete.failed') })
+          : t('profile.delete.failed'),
       );
     } finally {
       setDeleteSaving(false);
@@ -205,19 +147,16 @@ export function ProfilePage() {
     <div className="app-pane profile-page">
       <div className="profile-head">
         <div>
-          <h1>Profil</h1>
-          <p className="profile-lead">
-            Mets à jour tes informations, tes identifiants de service et la sécurité du compte.
-          </p>
+          <h1>{t('profile.title')}</h1>
+          <p className="profile-lead">{t('profile.lead')}</p>
         </div>
       </div>
 
-      <div className="profile-tabs" role="tablist" aria-label="Sections du profil">
+      <div className="profile-tabs" role="tablist" aria-label={t('profile.tabsLabel')}>
         {(
           [
-            ['general', 'Général'],
-            ['services', 'Services'],
-            ['security', 'Sécurité'],
+            ['general', t('profile.tabs.general')],
+            ['security', t('profile.tabs.security')],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -241,7 +180,7 @@ export function ProfilePage() {
           className={`form-banner ${saved ? 'success' : 'error'}`}
           role={saved ? 'status' : 'alert'}
         >
-          {saved ? 'Profil enregistré.' : errors.form}
+          {saved ? t('profile.saved') : errors.form}
         </div>
       )}
 
@@ -256,17 +195,15 @@ export function ProfilePage() {
                 <div className="profile-hero-text">
                   <b>{user.name}</b>
                   <p>{user.email}</p>
-                  <span className="field-hint">
-                    Avatar généré depuis tes initiales (démo -- pas d’upload).
-                  </span>
+                  <span className="field-hint">{t('profile.avatarHint')}</span>
                 </div>
               </section>
 
               <section className="profile-card">
                 <div className="profile-card-head">
                   <div>
-                    <h2>Informations personnelles</h2>
-                    <p>Détails liés à ton compte Threshold.</p>
+                    <h2>{t('profile.general.title')}</h2>
+                    <p>{t('profile.general.lead')}</p>
                   </div>
                 </div>
 
@@ -274,26 +211,26 @@ export function ProfilePage() {
                   <>
                     <dl className="profile-dl">
                       <div>
-                        <dt>Nom affiché</dt>
+                        <dt>{t('profile.general.displayName')}</dt>
                         <dd>{user.name}</dd>
                       </div>
                       <div>
-                        <dt>Adresse e-mail</dt>
+                        <dt>{t('profile.general.email')}</dt>
                         <dd>{user.email}</dd>
                       </div>
                       <div>
-                        <dt>Rôle</dt>
-                        <dd>{user.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</dd>
+                        <dt>{t('profile.general.role')}</dt>
+                        <dd>{user.role === 'admin' ? t('profile.roleAdmin') : t('profile.roleUser')}</dd>
                       </div>
                       <div>
-                        <dt>Statut</dt>
+                        <dt>{t('profile.general.status')}</dt>
                         <dd className={user.confirmed ? 'ok' : 'warn'}>
-                          {user.confirmed ? 'Compte confirmé' : 'En attente'}
+                          {user.confirmed ? t('profile.general.confirmed') : t('profile.general.pending')}
                         </dd>
                       </div>
                       <div>
-                        <dt>Membre depuis</dt>
-                        <dd>{formatDate(user.createdAt)}</dd>
+                        <dt>{t('profile.general.memberSince')}</dt>
+                        <dd>{formatDate(user.createdAt, lng)}</dd>
                       </div>
                     </dl>
                     <div className="profile-section-actions">
@@ -310,13 +247,13 @@ export function ProfilePage() {
                           <path d="M12 20h9" />
                           <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                         </svg>
-                        Modifier
+                        {t('common.edit')}
                       </button>
                     </div>
                   </>
                 ) : (
                   <div className="profile-fields">
-                    <FormField label="Nom affiché" error={errors.name} htmlFor="prof-name">
+                    <FormField label={t('profile.general.displayName')} error={errors.name} htmlFor="prof-name">
                       <input
                         id="prof-name"
                         value={name}
@@ -325,8 +262,8 @@ export function ProfilePage() {
                       />
                     </FormField>
                     <FormField
-                      label="Adresse e-mail"
-                      hint="L’e-mail ne peut pas être modifié ici."
+                      label={t('profile.general.email')}
+                      hint={t('profile.general.emailHint')}
                       htmlFor="prof-email"
                     >
                       <div className="profile-input-readonly">
@@ -340,7 +277,7 @@ export function ProfilePage() {
                         disabled={saving}
                         onClick={resetGeneral}
                       >
-                        Annuler
+                        {t('common.cancel')}
                       </button>
                       <button
                         type="button"
@@ -348,7 +285,7 @@ export function ProfilePage() {
                         disabled={saving || !dirtyGeneral}
                         onClick={() => void onSaveGeneral()}
                       >
-                        {saving ? 'Enregistrement…' : 'Enregistrer'}
+                        {saving ? t('common.saving') : t('common.save')}
                       </button>
                     </div>
                   </div>
@@ -357,114 +294,13 @@ export function ProfilePage() {
             </div>
           )}
 
-          {tab === 'services' && (
-            <section className="profile-card">
-              <div className="profile-card-head">
-                <div>
-                  <h2>Identifiants de service</h2>
-                  <p>Valeurs par défaut utilisées lors de la configuration des widgets.</p>
-                </div>
-              </div>
-
-              {!editingServices ? (
-                <>
-                  <dl className="profile-dl">
-                    <div>
-                      <dt>Pseudo GitHub</dt>
-                      <dd>{user.serviceCredentials.githubUsername || '--'}</dd>
-                    </div>
-                    <div>
-                      <dt>Ville météo par défaut</dt>
-                      <dd>{user.serviceCredentials.weatherDefaultCity || '--'}</dd>
-                    </div>
-                    <div>
-                      <dt>Flux RSS par défaut</dt>
-                      <dd>{user.serviceCredentials.rssDefaultFeed || '--'}</dd>
-                    </div>
-                  </dl>
-                  <div className="profile-section-actions">
-                    <Link to="/services" className="btn btn-ghost btn-sm">
-                      Ouvrir Mes services
-                    </Link>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm profile-edit-btn"
-                      onClick={() => {
-                        setGithubHint(user.serviceCredentials.githubUsername ?? '');
-                        setWeatherDefaultCity(user.serviceCredentials.weatherDefaultCity ?? '');
-                        setRssDefaultFeed(user.serviceCredentials.rssDefaultFeed ?? '');
-                        setEditingServices(true);
-                        setSaved(false);
-                      }}
-                    >
-                      <svg viewBox="0 0 24 24" className="icon" aria-hidden="true">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                      </svg>
-                      Modifier
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="profile-fields">
-                  <FormField
-                    label="Pseudo GitHub"
-                    hint="Suggestion affichée pendant la connexion OAuth"
-                    htmlFor="prof-gh"
-                  >
-                    <input
-                      id="prof-gh"
-                      value={githubHint}
-                      onChange={(e) => setGithubHint(e.target.value)}
-                      placeholder="stella-dev"
-                    />
-                  </FormField>
-                  <FormField label="Ville météo par défaut" htmlFor="prof-city">
-                    <input
-                      id="prof-city"
-                      value={weatherDefaultCity}
-                      onChange={(e) => setWeatherDefaultCity(e.target.value)}
-                      placeholder="Cotonou"
-                    />
-                  </FormField>
-                  <FormField label="Flux RSS par défaut" htmlFor="prof-rss">
-                    <input
-                      id="prof-rss"
-                      value={rssDefaultFeed}
-                      onChange={(e) => setRssDefaultFeed(e.target.value)}
-                      placeholder="https://…"
-                    />
-                  </FormField>
-                  <div className="profile-section-actions">
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      disabled={saving}
-                      onClick={resetServices}
-                    >
-                      Annuler
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-sm"
-                      disabled={saving || !dirtyServices}
-                      onClick={() => void onSaveServices()}
-                    >
-                      {saving ? 'Enregistrement…' : 'Enregistrer'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </section>
-          )}
-
           {tab === 'security' && (
             <div className="profile-security">
               {securityView === 'menu' && (
                 <section className="profile-action-list">
                   <div className="profile-list-head">
-                    <h2>Sécurité</h2>
-                    <p>Mot de passe, session et compte.</p>
+                    <h2>{t('profile.security.title')}</h2>
+                    <p>{t('profile.security.lead')}</p>
                   </div>
                   <ul className="profile-menu">
                     <li>
@@ -478,8 +314,8 @@ export function ProfilePage() {
                         }}
                       >
                         <span>
-                          <b>Changer de mot de passe</b>
-                          <small>Mettre à jour le mot de passe de ton compte</small>
+                          <b>{t('profile.security.changePassword')}</b>
+                          <small>{t('profile.security.changePasswordHint')}</small>
                         </span>
                         <span className="profile-menu-chevron" aria-hidden="true">
                           ›
@@ -489,8 +325,8 @@ export function ProfilePage() {
                     <li>
                       <div className="profile-menu-item static">
                         <span>
-                          <b>Session active</b>
-                          <small>Expire dans {mins} min · navigateur actuel</small>
+                          <b>{t('profile.security.activeSession')}</b>
+                          <small>{t('profile.security.sessionExpires', { count: mins })}</small>
                         </span>
                       </div>
                     </li>
@@ -504,8 +340,8 @@ export function ProfilePage() {
                         }}
                       >
                         <span>
-                          <b>Se déconnecter</b>
-                          <small>Fermer la session sur cet appareil</small>
+                          <b>{t('profile.security.logout')}</b>
+                          <small>{t('profile.security.logoutHint')}</small>
                         </span>
                         <span className="profile-menu-chevron" aria-hidden="true">
                           ›
@@ -522,8 +358,8 @@ export function ProfilePage() {
                         }}
                       >
                         <span>
-                          <b>Se déconnecter de tous les appareils</b>
-                          <small>Invalider la session en cours (démo)</small>
+                          <b>{t('profile.security.logoutAll')}</b>
+                          <small>{t('profile.security.logoutAllHint')}</small>
                         </span>
                         <span className="profile-menu-chevron" aria-hidden="true">
                           ›
@@ -541,8 +377,8 @@ export function ProfilePage() {
                         }}
                       >
                         <span>
-                          <b>Supprimer le compte</b>
-                          <small>Action définitive -- données locales effacées</small>
+                          <b>{t('profile.security.deleteAccount')}</b>
+                          <small>{t('profile.security.deleteAccountHint')}</small>
                         </span>
                         <span className="profile-menu-chevron" aria-hidden="true">
                           ›
@@ -561,11 +397,11 @@ export function ProfilePage() {
                       className="profile-back"
                       onClick={resetPasswordForm}
                     >
-                      ← Retour
+                      ← {t('common.back')}
                     </button>
                     <div>
-                      <h2>Changer de mot de passe</h2>
-                      <p>Choisis un mot de passe robuste pour sécuriser ton accès.</p>
+                      <h2>{t('profile.password.title')}</h2>
+                      <p>{t('profile.password.lead')}</p>
                     </div>
                   </div>
                   {(pwSaved || pwErrors.form) && (
@@ -573,13 +409,13 @@ export function ProfilePage() {
                       className={`form-banner ${pwSaved ? 'success' : 'error'}`}
                       role={pwSaved ? 'status' : 'alert'}
                     >
-                      {pwSaved ? 'Mot de passe mis à jour.' : pwErrors.form}
+                      {pwSaved ? t('profile.password.updated') : pwErrors.form}
                     </div>
                   )}
                   <form className="profile-pw-grid" onSubmit={onChangePassword} noValidate>
                     <div className="profile-fields">
                       <FormField
-                        label="Mot de passe actuel"
+                        label={t('profile.password.current')}
                         error={pwErrors.current}
                         htmlFor="pw-current"
                       >
@@ -592,7 +428,7 @@ export function ProfilePage() {
                         />
                       </FormField>
                       <FormField
-                        label="Nouveau mot de passe"
+                        label={t('profile.password.new')}
                         error={pwErrors.new}
                         htmlFor="pw-new"
                       >
@@ -605,7 +441,7 @@ export function ProfilePage() {
                         />
                       </FormField>
                       <FormField
-                        label="Confirmer le mot de passe"
+                        label={t('profile.password.confirm')}
                         error={pwErrors.confirm}
                         htmlFor="pw-confirm"
                       >
@@ -623,19 +459,19 @@ export function ProfilePage() {
                           className="btn btn-ghost btn-sm"
                           onClick={resetPasswordForm}
                         >
-                          Annuler
+                          {t('common.cancel')}
                         </button>
                         <button
                           className="btn btn-primary btn-sm"
                           type="submit"
                           disabled={pwSaving}
                         >
-                          {pwSaving ? 'Mise à jour…' : 'Enregistrer'}
+                          {pwSaving ? t('profile.password.updating') : t('common.save')}
                         </button>
                       </div>
                     </div>
                     <aside className="profile-rules">
-                      <h3>Règles du mot de passe</h3>
+                      <h3>{t('profile.password.rulesTitle')}</h3>
                       <ul>
                         {rules.map((r) => (
                           <li key={r.label} className={r.ok ? 'ok' : undefined}>
@@ -660,14 +496,11 @@ export function ProfilePage() {
                         setDeleteError(undefined);
                       }}
                     >
-                      ← Retour
+                      ← {t('common.back')}
                     </button>
                     <div>
-                      <h2>Supprimer le compte</h2>
-                      <p>
-                        Cette action est définitive. Confirme avec ton mot de passe pour
-                        continuer.
-                      </p>
+                      <h2>{t('profile.delete.title')}</h2>
+                      <p>{t('profile.delete.lead')}</p>
                     </div>
                   </div>
                   {deleteError && (
@@ -676,7 +509,7 @@ export function ProfilePage() {
                     </div>
                   )}
                   <form className="profile-fields" onSubmit={onDeleteAccount} noValidate>
-                    <FormField label="Mot de passe" htmlFor="delete-pw">
+                    <FormField label={t('profile.delete.passwordLabel')} htmlFor="delete-pw">
                       <input
                         id="delete-pw"
                         type="password"
@@ -695,14 +528,14 @@ export function ProfilePage() {
                           setDeleteError(undefined);
                         }}
                       >
-                        Annuler
+                        {t('common.cancel')}
                       </button>
                       <button
                         type="submit"
                         className="btn btn-sm profile-btn-danger"
                         disabled={deleteSaving}
                       >
-                        {deleteSaving ? 'Suppression…' : 'Supprimer mon compte'}
+                        {deleteSaving ? t('profile.delete.submitting') : t('profile.delete.submit')}
                       </button>
                     </div>
                   </form>

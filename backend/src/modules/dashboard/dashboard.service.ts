@@ -1,94 +1,140 @@
-import { db } from "../../database/db.js";
-import { widgets } from "../../database/schema.js";
-import { eq } from "drizzle-orm";
-import { getRedis } from "../../database/client.js";
-import { adapters } from "./adapters.registry.js";
+import { getWidgetDefinition } from "../../widgets/registry.js";
 import { CONSTANTS } from "../../config/constants.js";
+import { httpError, HttpError } from "../../lib/httpError.js";
+import { logAudit, AUDIT_ACTIONS } from "../../lib/audit.js";
+import { isLinked as isGithubLinked } from "../auth/github-oauth.service.js";
 import * as repo from "./dashboard.repository.js";
+import type { WidgetInstanceRow } from "./dashboard.repository.js";
 
-/** Liste toutes les instances de l'utilisateur (enrichies du widget) */
-export async function getInstances(userId: number) {
-  return repo.findInstancesByUser(userId);
+interface EnrichedInstance extends WidgetInstanceRow {
+  widget: { service: string; description: string; params: unknown } | null;
 }
 
-/** Récupère l'instance d'un widget ou null si non autorisé */
-export async function getInstance(id: number, userId: number) {
-  return repo.findInstanceById(id, userId);
+interface DataResult {
+  data: unknown;
+  cached: boolean;
+  lastRefreshedAt: Date;
 }
 
-/** Ajoute un widget au dashboard */
+function enrich(instance: WidgetInstanceRow): EnrichedInstance {
+  const widget = getWidgetDefinition(instance.widgetName);
+  return {
+    ...instance,
+    widget: widget
+      ? { service: widget.service, description: widget.description, params: widget.params }
+      : null,
+  };
+}
+
+export async function getInstances(userId: number): Promise<EnrichedInstance[]> {
+  const rows = await repo.findInstancesByUser(userId);
+  return rows.map(enrich);
+}
+
+export async function getInstance(id: number, userId: number): Promise<EnrichedInstance | null> {
+  const row = await repo.findInstanceById(id, userId);
+  return row ? enrich(row) : null;
+}
+
+/** Ajoute un widget : valide la config contre le schéma du registre (PLAN.md §4.2). */
 export async function addWidget(
   userId: number,
-  widgetId: number,
-  config: Record<string, unknown>,
-  refreshRate: number
+  widgetName: string,
+  rawConfig: unknown,
+  refreshRate: number | undefined,
+  position: number,
 ) {
-  // Vérifie que le widget existe
-  const [widget] = await db.select().from(widgets).where(eq(widgets.id, widgetId));
-  if (!widget) throw new Error("Widget introuvable");
+  const widget = getWidgetDefinition(widgetName);
+  if (!widget) throw httpError(404, "DASHBOARD_WIDGET_UNKNOWN", "Widget introuvable dans le registre");
+
+  // Un widget GitHub ne peut être ajouté qu'avec le compte GitHub lié (PLAN.md §5) —
+  // évite d'accepter un widget qui échouera systématiquement à chaque rafraîchissement.
+  if (widget.service === "github" && !(await isGithubLinked(userId))) {
+    throw httpError(400, "SERVICE_OAUTH_REQUIRED", "Lie ton compte GitHub avant d'ajouter ce widget");
+  }
+
+  const parsed = widget.schema.safeParse(rawConfig);
+  if (!parsed.success) {
+    throw httpError(400, "DASHBOARD_CONFIG_INVALID", "Configuration invalide: " + parsed.error.message);
+  }
 
   const rate = Math.max(refreshRate ?? CONSTANTS.REFRESH_RATE_DEFAULT, CONSTANTS.REFRESH_RATE_MIN);
-  return repo.createInstance({ userId, widgetId, config, refreshRate: rate });
+  const instance = await repo.createInstance({ userId, widgetName, config: parsed.data, refreshRate: rate, position });
+  void logAudit(userId, AUDIT_ACTIONS.WIDGET_ADDED, { widgetName });
+  return instance;
 }
 
-/** Reconfigure une instance existante */
 export async function reconfigureWidget(
   id: number,
   userId: number,
-  config: Record<string, unknown>,
-  refreshRate?: number
+  rawConfig: unknown,
+  refreshRate: number | undefined,
 ) {
-  const updated = await repo.updateInstance(id, userId, { config, ...(refreshRate ? { refreshRate } : {}) });
-  if (!updated) throw new Error("Instance introuvable ou non autorisée");
-  return updated;
-}
+  const existing = await repo.findInstanceById(id, userId);
+  if (!existing) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
 
-/** Met à jour la position (drag & drop) */
-export async function moveWidget(
-  id: number,
-  userId: number,
-  positionX: number,
-  positionY: number
-) {
-  const updated = await repo.updatePosition(id, userId, { positionX, positionY });
-  if (!updated) throw new Error("Instance introuvable ou non autorisée");
-  return updated;
-}
+  const widget = getWidgetDefinition(existing.widgetName);
+  if (!widget) throw httpError(404, "DASHBOARD_WIDGET_UNKNOWN", "Widget introuvable dans le registre");
 
-/** Supprime une instance */
-export async function removeWidget(id: number, userId: number) {
-  const ok = await repo.deleteInstance(id, userId);
-  if (!ok) throw new Error("Instance introuvable ou non autorisée");
-}
-
-/** Récupère les données d'un widget via son adaptateur (avec cache Redis) */
-export async function fetchWidgetData(id: number, userId: number) {
-  const instance = await repo.findInstanceById(id, userId);
-  if (!instance) throw new Error("Instance introuvable ou non autorisée");
-
-  // Récupère le slug du widget
-  const [widget] = await db.select().from(widgets).where(eq(widgets.id, instance.widgetId));
-  if (!widget) throw new Error("Widget introuvable");
-
-  const cacheKey = `${CONSTANTS.REDIS_CACHE_PREFIX}${id}`;
-  const redis = getRedis();
-
-  // Tente le cache
-  const cached = await redis.get(cacheKey);
-  if (cached) {
-    return { data: JSON.parse(cached), cached: true };
+  const parsed = widget.schema.safeParse(rawConfig);
+  if (!parsed.success) {
+    throw httpError(400, "DASHBOARD_CONFIG_INVALID", "Configuration invalide: " + parsed.error.message);
   }
 
-  const adapter = adapters[widget.slug];
-  if (!adapter) throw new Error(`Aucun adaptateur pour le widget "${widget.slug}"`);
+  const updated = await repo.updateInstance(id, userId, {
+    config: parsed.data,
+    ...(refreshRate ? { refreshRate: Math.max(refreshRate, CONSTANTS.REFRESH_RATE_MIN) } : {}),
+  });
+  if (!updated) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
+  return updated;
+}
 
-  const data = await adapter(instance.config as Record<string, unknown>);
+export async function moveWidget(id: number, userId: number, position: number) {
+  const updated = await repo.updatePosition(id, userId, position);
+  if (!updated) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
+  return updated;
+}
 
-  // Met en cache avec TTL = refreshRate
-  await redis.setex(cacheKey, instance.refreshRate, JSON.stringify(data));
+export async function removeWidget(id: number, userId: number): Promise<void> {
+  const existing = await repo.findInstanceById(id, userId);
+  const ok = await repo.deleteInstance(id, userId);
+  if (!ok) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
+  void logAudit(userId, AUDIT_ACTIONS.WIDGET_REMOVED, { widgetName: existing?.widgetName });
+}
 
-  // Met à jour le statut
-  await repo.updateRefreshStatus(id, "ok");
+/**
+ * Données d'un widget : sert le cache (table widget_cache) s'il a moins de
+ * refresh_rate secondes, sinon appelle l'adapter du registre (PLAN.md §4.3).
+ */
+export async function fetchWidgetData(id: number, userId: number): Promise<DataResult> {
+  const instance = await repo.findInstanceById(id, userId);
+  if (!instance) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
 
-  return { data, cached: false };
+  const widget = getWidgetDefinition(instance.widgetName);
+  if (!widget) throw httpError(404, "DASHBOARD_ADAPTER_MISSING", "Aucun adaptateur pour ce widget");
+
+  const cached = await repo.getCachedPayload(id);
+  if (cached) {
+    const ageSec = (Date.now() - new Date(cached.fetchedAt).getTime()) / 1000;
+    if (ageSec < instance.refreshRate) {
+      return { data: cached.payload, cached: true, lastRefreshedAt: cached.fetchedAt };
+    }
+  }
+
+  try {
+    const data = await widget.fetch(instance.config, { userId });
+    await repo.upsertCachedPayload(id, data);
+    await repo.updateRefreshStatus(id, "ok");
+    return { data, cached: false, lastRefreshedAt: new Date() };
+  } catch (err) {
+    await repo.updateRefreshStatus(id, "error");
+    // Un adaptateur peut lever une HttpError explicite (ex: compte GitHub requis) —
+    // on garde alors son code stable tel quel pour que le front l'affiche correctement.
+    if (err instanceof HttpError) throw err;
+    // Sinon, erreur externe générique (API météo/GitHub/RSS/Finance/HN) : message
+    // d'origine gardé pour les logs, mais code stable générique — le détail exact
+    // varie trop pour être traduit un par un côté front.
+    const message = err instanceof Error ? err.message : "Échec de récupération des données";
+    throw httpError(502, "DASHBOARD_FETCH_FAILED", message);
+  }
 }

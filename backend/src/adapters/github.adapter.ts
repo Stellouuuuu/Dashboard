@@ -1,21 +1,103 @@
+import { eq, and } from "drizzle-orm";
 import { env } from "../config/env.js";
+import { db } from "../db/db.js";
+import { oauthAccounts } from "../db/schema.js";
+import { decrypt } from "../lib/crypto.js";
+import { httpError } from "../lib/httpError.js";
+import type { WidgetContext } from "../widgets/registry.js";
 
-type SecurityConfig = { repository: string; severity?: string };
+interface SecurityAlertsConfig {
+  repository: string;
+  severity?: string;
+}
 
-type SecurityAlert = {
-  number: number;
-  state: string;
-  dependency: { package: { name: string } };
-  security_advisory: {
-    summary: string;
-    severity: string;
-    cve_id: string | null;
+// Aligné sur les noms de paramètres du sujet : "repository" (owner/repo) et "limit".
+interface RecentCommitsConfig {
+  repository: string;
+  limit: number;
+}
+
+interface GithubCommit {
+  sha: string;
+  commit: { message: string; author: { name: string; date: string } };
+  html_url: string;
+}
+
+export interface CommitSummary {
+  sha: string;
+  message: string;
+  author: string;
+  date: string;
+  url: string;
+}
+
+/**
+ * Token GitHub à utiliser pour un widget : celui de l'utilisateur s'il a lié son
+ * compte via OAuth (PLAN.md §10, autorisation déléguée aux widgets). Sans compte lié,
+ * le widget échoue explicitement en production (compte requis) ; en développement
+ * uniquement, on retombe sur le token serveur optionnel (`GITHUB_TOKEN`) pour ne pas
+ * bloquer le dev sans OAuth App GitHub configurée.
+ */
+async function resolveGithubToken(userId: number): Promise<string | undefined> {
+  const [row] = await db
+    .select()
+    .from(oauthAccounts)
+    .where(and(eq(oauthAccounts.userId, userId), eq(oauthAccounts.provider, "github")));
+  if (row) return decrypt(row.accessToken);
+  if (env.NODE_ENV !== "production") return env.GITHUB_TOKEN;
+  throw httpError(400, "SERVICE_OAUTH_REQUIRED", "Lie ton compte GitHub pour utiliser ce widget");
+}
+
+function githubHeaders(token?: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
   };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
+/** Adaptateur recent_commits — derniers commits d'un dépôt public (PLAN.md §5). */
+export async function fetchRecentCommits(
+  config: RecentCommitsConfig,
+  ctx: WidgetContext,
+): Promise<CommitSummary[]> {
+  const limit = Math.min(Math.max(config.limit, 1), 20);
+  const token = await resolveGithubToken(ctx.userId);
+  const url = `https://api.github.com/repos/${config.repository}/commits?per_page=${limit}`;
+  const res = await fetch(url, { headers: githubHeaders(token) });
+
+  if (res.status === 404) {
+    throw new Error(
+      `Dépôt introuvable ou accès refusé: ${config.repository}. Vérifie le nom owner/repo et que GitHub est bien reconnecté avec les droits repo.`,
+    );
+  }
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(
+      `Accès GitHub refusé (${res.status}). Déconnecte puis reconnecte GitHub dans Services pour mettre à jour les permissions.`,
+    );
+  }
+  if (!res.ok) throw new Error(`GitHub API error ${res.status}: ${await res.text()}`);
+
+  const commits = (await res.json()) as GithubCommit[];
+  return commits.map((c) => ({
+    sha: c.sha.slice(0, 7),
+    message: c.commit.message.split("\n")[0],
+    author: c.commit.author.name,
+    date: c.commit.author.date,
+    url: c.html_url,
+  }));
+}
+
+interface GithubDependabotAlert {
+  number: number;
   html_url: string;
   created_at: string;
-};
+  dependency: { package: { name: string } };
+  security_advisory: { summary: string; severity: string; cve_id: string | null };
+}
 
-type AlertResult = {
+export interface SecurityAlertSummary {
   number: number;
   package: string;
   summary: string;
@@ -23,7 +105,7 @@ type AlertResult = {
   cve: string | null;
   url: string;
   createdAt: string;
-};
+}
 
 /**
  * Adaptateur security_alerts – Membre B
@@ -31,19 +113,12 @@ type AlertResult = {
  * Paramètres : repository ("owner/repo"), severity (optionnel : "low"|"medium"|"high"|"critical")
  */
 export async function fetchSecurityAlerts(
-  config: SecurityConfig
-): Promise<AlertResult[]> {
-  const headers: Record<string, string> = {
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-  };
-  if (env.GITHUB_TOKEN) {
-    headers["Authorization"] = `Bearer ${env.GITHUB_TOKEN}`;
-  }
-
+  config: SecurityAlertsConfig,
+  ctx: WidgetContext,
+): Promise<SecurityAlertSummary[]> {
+  const token = await resolveGithubToken(ctx.userId);
   const url = `https://api.github.com/repos/${config.repository}/dependabot/alerts?state=open&per_page=30`;
-
-  const res = await fetch(url, { headers });
+  const res = await fetch(url, { headers: githubHeaders(token) });
 
   // 404 = repo not found ou pas d'accès
   if (res.status === 404) {
@@ -57,13 +132,10 @@ export async function fetchSecurityAlerts(
     throw new Error(`GitHub API error ${res.status}: ${await res.text()}`);
   }
 
-  const alerts: SecurityAlert[] = await res.json();
-
+  const alerts = (await res.json()) as GithubDependabotAlert[];
   const filtered = config.severity
     ? alerts.filter(
-        (a) =>
-          a.security_advisory.severity.toLowerCase() ===
-          config.severity!.toLowerCase()
+        (a) => a.security_advisory.severity.toLowerCase() === config.severity!.toLowerCase(),
       )
     : alerts;
 

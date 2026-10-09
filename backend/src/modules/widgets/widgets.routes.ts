@@ -4,6 +4,6 @@ import * as ctrl from "./widgets.controller.js";
 const router = Router();
 
 router.get("/", ctrl.listCatalog);
-router.get("/:id", ctrl.getWidget);
+router.get("/:name", ctrl.getWidget);
 
 export default router;

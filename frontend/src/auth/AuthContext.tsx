@@ -4,25 +4,47 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import {
+  apiChangePassword,
   apiConfirm,
   apiDeleteAccount,
   apiLogin,
   apiLogout,
+  apiMe,
+  apiRefresh,
   apiRegister,
-  apiRestoreSession,
   apiUpdateProfile,
-  AuthError,
-} from '../api/demo';
-import { clearSession, type PublicUser } from './session';
+  type RealUser,
+} from '../api/auth';
+import i18n from '../i18n';
+import type { PublicUser } from './types';
+
+const LANG_STORAGE_KEY = 'threshold-lang';
+
+// Durée de vie de l'access token côté serveur (PLAN.md §11) — utilisée uniquement
+// pour l'affichage local du compte à rebours, le vrai TTL vit dans le JWT.
+const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000;
+
+/** Adapte l'utilisateur réel (backend) vers la forme `PublicUser` — `name` reflète
+ * `users.name` (PATCH /auth/profile réel), avec repli sur la partie locale de
+ * l'email tant qu'aucun nom n'a été choisi. */
+function adaptRealUser(u: RealUser): PublicUser {
+  return {
+    id: String(u.id),
+    name: u.name ?? u.email.split('@')[0],
+    email: u.email,
+    confirmed: u.emailConfirmed,
+    role: u.role,
+    createdAt: u.createdAt.slice(0, 10),
+  };
+}
 
 interface AuthContextValue {
   user: PublicUser | null;
-  token: string | null;
-  expiresAt: number | null;
   bootstrapping: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -31,14 +53,13 @@ interface AuthContextValue {
     name: string,
     email: string,
     password: string,
-  ) => Promise<{ confirmToken: string; email: string }>;
-  confirm: (token: string) => Promise<void>;
+    confirmPassword: string,
+  ) => Promise<{ message: string; email: string }>;
+  confirm: (email: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
-  updateProfile: (patch: {
-    name?: string;
-    serviceCredentials?: PublicUser['serviceCredentials'];
-  }) => Promise<void>;
+  updateProfile: (name: string) => Promise<void>;
   sessionRemainingMs: number;
 }
 
@@ -46,21 +67,40 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<PublicUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [bootstrapping, setBootstrapping] = useState(true);
   const [now, setNow] = useState(Date.now());
+  const accessIssuedAtRef = useRef<number | null>(null);
 
+  const applyUser = useCallback((real: RealUser | null) => {
+    if (!real) {
+      accessIssuedAtRef.current = null;
+      setUser(null);
+      return;
+    }
+    accessIssuedAtRef.current = Date.now();
+    setUser(adaptRealUser(real));
+    // Le choix explicite en localStorage prime sur la préférence du compte ;
+    // sans choix local (nouvel appareil), on adopte celle mémorisée côté back.
+    if (!window.localStorage.getItem(LANG_STORAGE_KEY) && real.language) {
+      i18n.changeLanguage(real.language);
+    }
+  }, []);
+
+  // Restaure la session depuis le cookie httpOnly (invisible en JS) : /me directement,
+  // ou un /refresh puis un nouveau /me si l'access token a expiré entre deux visites.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const restored = await apiRestoreSession();
-        if (cancelled) return;
-        if (restored) {
-          setUser(restored.user);
-          setToken(restored.token);
-          setExpiresAt(restored.expiresAt);
+        const me = await apiMe();
+        if (!cancelled) applyUser(me);
+      } catch {
+        try {
+          await apiRefresh();
+          const me = await apiMe();
+          if (!cancelled) applyUser(me);
+        } catch {
+          if (!cancelled) applyUser(null);
         }
       } finally {
         if (!cancelled) setBootstrapping(false);
@@ -69,102 +109,90 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [applyUser]);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    if (!expiresAt) return;
-    if (now >= expiresAt) {
-      clearSession();
-      setUser(null);
-      setToken(null);
-      setExpiresAt(null);
-    }
-  }, [now, expiresAt]);
-
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await apiLogin(email, password);
-    setUser(res.user);
-    setToken(res.token);
-    setExpiresAt(res.expiresAt);
-  }, []);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const { user: real } = await apiLogin(email, password);
+      applyUser(real);
+    },
+    [applyUser],
+  );
 
   const register = useCallback(
-    async (name: string, email: string, password: string) => {
-      return apiRegister(name, email, password);
+    async (name: string, email: string, password: string, confirmPassword: string) => {
+      const language =
+        ((i18n.resolvedLanguage ?? i18n.language ?? 'fr').split('-')[0] as 'fr' | 'en') || 'fr';
+      const { message } = await apiRegister(name, email, password, confirmPassword, language);
+      return { message, email };
     },
     [],
   );
 
-  const confirm = useCallback(async (confirmToken: string) => {
-    const res = await apiConfirm(confirmToken);
-    setUser(res.user);
-    setToken(res.token);
-    setExpiresAt(res.expiresAt);
+  // Ne connecte pas automatiquement (le backend n'émet pas de session à la
+  // confirmation) : l'utilisateur se connecte ensuite via /login, comme prévu
+  // par le parcours PLAN.md §2.1 (confirmation puis authentification).
+  const confirm = useCallback(async (email: string, code: string) => {
+    await apiConfirm(email, code);
   }, []);
 
   const logout = useCallback(async () => {
-    await apiLogout();
-    setUser(null);
-    setToken(null);
-    setExpiresAt(null);
+    await apiLogout().catch(() => undefined);
+    applyUser(null);
+  }, [applyUser]);
+
+  const updateProfile = useCallback(async (name: string) => {
+    const updated = await apiUpdateProfile(name);
+    setUser((prev) => (prev ? { ...prev, name: updated.name ?? prev.name } : prev));
+  }, []);
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    await apiChangePassword(currentPassword, newPassword);
   }, []);
 
   const deleteAccount = useCallback(
     async (password: string) => {
-      if (!user) throw new AuthError('EXPIRED_SESSION', 'Session expirée.');
-      await apiDeleteAccount(user.id, password);
-      setUser(null);
-      setToken(null);
-      setExpiresAt(null);
+      await apiDeleteAccount(password);
+      applyUser(null);
     },
-    [user],
+    [applyUser],
   );
 
-  const updateProfile = useCallback(
-    async (patch: {
-      name?: string;
-      serviceCredentials?: PublicUser['serviceCredentials'];
-    }) => {
-      if (!user) throw new AuthError('EXPIRED_SESSION', 'Session expirée.');
-      const updated = await apiUpdateProfile(user.id, patch);
-      setUser(updated);
-    },
-    [user],
-  );
+  const sessionRemainingMs = accessIssuedAtRef.current
+    ? Math.max(0, ACCESS_TOKEN_TTL_MS - (now - accessIssuedAtRef.current))
+    : 0;
 
   const value = useMemo(
     () => ({
       user,
-      token,
-      expiresAt,
       bootstrapping,
-      isAuthenticated: Boolean(user && token && expiresAt && now < expiresAt),
+      isAuthenticated: Boolean(user),
       isAdmin: user?.role === 'admin',
       login,
       register,
       confirm,
       logout,
+      changePassword,
       deleteAccount,
       updateProfile,
-      sessionRemainingMs: expiresAt ? Math.max(0, expiresAt - now) : 0,
+      sessionRemainingMs,
     }),
     [
       user,
-      token,
-      expiresAt,
       bootstrapping,
-      now,
       login,
       register,
       confirm,
       logout,
+      changePassword,
       deleteAccount,
       updateProfile,
+      sessionRemainingMs,
     ],
   );
 

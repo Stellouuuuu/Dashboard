@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAppData } from '../context/AppDataContext';
 import type { WidgetInstance } from '../data/catalog';
 import { EmptyState } from '../components/EmptyState';
@@ -10,7 +11,7 @@ interface WidgetGridProps {
   previewCount?: number;
   /** When set, render this list instead of all instances (e.g. service filter). */
   instancesOverride?: WidgetInstance[];
-  /** Mobile My Home: 2-col masonry, first card full-width. */
+  /** Grille du dashboard principal (colonnes adaptées au mobile). */
   masonry?: boolean;
 }
 
@@ -19,9 +20,10 @@ export function WidgetGrid({
   instancesOverride,
   masonry,
 }: WidgetGridProps) {
+  const { t } = useTranslation();
   const {
     instances,
-    setInstances,
+    reorderInstances,
     openWizard,
     toast,
     widgetsLoading,
@@ -37,12 +39,14 @@ export function WidgetGrid({
 
   if (!isPreview && widgetsLoading) return <DashboardSkeleton />;
 
-  if (!isPreview && widgetsError) {
+  // Erreur bloquante seulement s'il n'y a rien à afficher ; sinon on garde la grille
+  // (données de démo ou dernière version chargée) avec un avertissement discret.
+  if (!isPreview && widgetsError && list.length === 0) {
     return (
       <div className="form-banner error" role="alert">
         {widgetsError}{' '}
         <button type="button" className="link-btn" onClick={() => void loadWidgets()}>
-          Réessayer
+          {t('dashboard.grid.retry')}
         </button>
       </div>
     );
@@ -52,26 +56,17 @@ export function WidgetGrid({
     const filteredEmpty = instancesOverride !== undefined && instances.length > 0;
     return (
       <EmptyState
-        title={filteredEmpty ? 'Aucun widget ici' : 'Ton dashboard est encore vide'}
-        description={
-          filteredEmpty
-            ? 'Aucun widget pour ce service — change de filtre ou ajoute-en un.'
-            : 'Ajoute ton premier widget pour ouvrir une porte vers un service — météo, GitHub ou RSS.'
-        }
+        title={t(filteredEmpty ? 'dashboard.grid.emptyFilteredTitle' : 'dashboard.grid.emptyTitle')}
+        description={t(filteredEmpty ? 'dashboard.grid.emptyFilteredDesc' : 'dashboard.grid.emptyDesc')}
         action={
           <button type="button" className="btn btn-primary" onClick={() => openWizard()}>
             <IconPlus />
-            {filteredEmpty ? 'Ajouter un widget' : 'Ajouter mon premier widget'}
+            {t(filteredEmpty ? 'dashboard.grid.addWidget' : 'dashboard.grid.addFirstWidget')}
           </button>
         }
       />
     );
   }
-
-  const pairFlagUid =
-    !isPreview && list.filter((w) => w.pair).length >= 2
-      ? list.filter((w) => w.pair)[1]?.uid
-      : undefined;
 
   const handleDrop = (targetUid: number) => {
     if (dragUid === null || dragUid === targetUid) {
@@ -79,24 +74,31 @@ export function WidgetGrid({
       setOverUid(null);
       return;
     }
-    setInstances((prev) => {
-      const next = [...prev];
-      const from = next.findIndex((w) => w.uid === dragUid);
-      const to = next.findIndex((w) => w.uid === targetUid);
-      if (from < 0 || to < 0) return prev;
+    const next = [...instances];
+    const from = next.findIndex((w) => w.uid === dragUid);
+    const to = next.findIndex((w) => w.uid === targetUid);
+    if (from >= 0 && to >= 0) {
       const [moved] = next.splice(from, 1);
       next.splice(to, 0, moved);
-      return next;
-    });
-    toast('Widget déplacé');
+      void reorderInstances(next);
+      toast(t('dashboard.grid.moved'));
+    }
     setDragUid(null);
     setOverUid(null);
   };
 
   return (
-    <div className={`grid-widgets${masonry ? ' grid-widgets--masonry' : ''}`}>
-      {list.flatMap((inst, index) => {
-        const card = (
+    <>
+      {!isPreview && widgetsError && (
+        <p className="grid-notice" role="status">
+          {widgetsError}{' '}
+          <button type="button" className="link-btn" onClick={() => void loadWidgets()}>
+            {t('dashboard.grid.retry')}
+          </button>
+        </p>
+      )}
+      <div className={`grid-widgets${masonry ? ' grid-widgets--masonry' : ''}`}>
+        {list.map((inst) => (
           <WidgetCard
             key={inst.uid}
             inst={inst}
@@ -111,38 +113,17 @@ export function WidgetGrid({
               setOverUid(null);
             }}
           />
-        );
+        ))}
 
-        const wrapped =
-          masonry && index === 0 ? (
-            <div key={inst.uid} className="grid-widgets-span">
-              {card}
-            </div>
-          ) : (
-            card
-          );
-
-        if (inst.uid === pairFlagUid) {
-          return [
-            wrapped,
-            <div key="pair-flag" className="pair-flag">
-              <span className="line" />
-              <span>Même widget, configuration différente → données distinctes</span>
-              <span className="line" />
-            </div>,
-          ];
-        }
-        return [wrapped];
-      })}
-
-      {!isPreview && (
-        <button type="button" className="add-card" onClick={() => openWizard()}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          <span>Ajouter un widget</span>
-        </button>
-      )}
-    </div>
+        {!isPreview && (
+          <button type="button" className="add-card" onClick={() => openWizard()}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>{t('dashboard.grid.addWidget')}</span>
+          </button>
+        )}
+      </div>
+    </>
   );
 }

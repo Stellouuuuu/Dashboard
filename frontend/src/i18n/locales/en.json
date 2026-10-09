@@ -1,0 +1,540 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "services": {
+      "weather": "Weather",
+      "github": "GitHub",
+      "rss": "RSS",
+      "finance": "Finance",
+      "hackernews": "Hacker News"
+    }
+  },
+  "language": {
+    "selector": "Language",
+    "fr": "French",
+    "en": "English"
+  },
+  "theme": {
+    "label": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
+  },
+  "nav": {
+    "mainLabel": "Main navigation",
+    "brandAria": "Threshold — home",
+    "searchPlaceholder": "Search a widget…",
+    "searchLabel": "Search a widget",
+    "sectionsLabel": "Sections",
+    "tabs": { "home": "Home", "services": "Services", "admin": "Admin", "profile": "Profile" },
+    "bellLabel": "Recent activity",
+    "userMenu": {
+      "roleAdmin": "Admin",
+      "roleUser": "User",
+      "profile": "My profile",
+      "logout": "Log out"
+    },
+    "mobileNavLabel": "Mobile navigation",
+    "addWidgetLabel": "Add a widget"
+  },
+  "auth": {
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your first name or nickname",
+    "passwordLabel": "Password",
+    "confirmPasswordLabel": "Confirm password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "layout": { "quote": "One dashboard for the weather, your repos and your feeds." },
+    "login": {
+      "title": "Welcome back.",
+      "lead": "Sign in to find your dashboard, your widgets and your connected services.",
+      "emailRequired": "Email is required.",
+      "passwordRequired": "Password is required.",
+      "checkPassword": "Check your password.",
+      "remember": "Remember me",
+      "forgot": "Forgot password?",
+      "submitting": "Signing in…",
+      "submit": "Sign in",
+      "noAccount": "Don’t have an account yet?",
+      "createAccount": "Create an account"
+    },
+    "register": {
+      "title": "Create an account",
+      "lead": "Open your first door to a dashboard that gathers weather, GitHub and RSS feeds.",
+      "nameRequired": "Name is required.",
+      "passwordMin": "At least 12 characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "failed": "Sign up failed. Try again.",
+      "checkInbox": "Check your inbox",
+      "submitting": "Creating…",
+      "submit": "Create my account",
+      "hasAccount": "Already have an account?",
+      "confirmSent": "A 6-digit code was sent to <b>{{email}}</b>.",
+      "devMailHint": "Locally without Gmail SMTP, the email lands in Mailpit:",
+      "enterCode": "Enter my code",
+      "goToLogin": "Go to sign in"
+    },
+    "confirm": {
+      "title": "Confirm your account",
+      "successTitle": "Account confirmed",
+      "lead": "Enter the 6-digit code you received by email.",
+      "codeLabel": "Code",
+      "codeInvalid": "The code must be 6 digits.",
+      "submitting": "Verifying…",
+      "submit": "Confirm",
+      "resend": "Resend code",
+      "resending": "Sending…",
+      "resent": "A new code was sent if the account exists.",
+      "success": "Account confirmed — you can now sign in.",
+      "failed": "Confirmation failed.",
+      "newAccount": "Create a new account"
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "lead": "Enter your email — you’ll get a 6-digit code.",
+      "submit": "Send code",
+      "submitting": "Sending…",
+      "failed": "Could not send the code. Try again."
+    },
+    "reset": {
+      "title": "New password",
+      "successTitle": "Password updated",
+      "lead": "Enter the code you received and your new password.",
+      "newPassword": "New password",
+      "submit": "Reset password",
+      "submitting": "Updating…",
+      "success": "Password updated — you can sign in.",
+      "failed": "Reset failed.",
+      "resend": "Send a new code"
+    }
+  },
+  "landing": {
+    "nav": {
+      "services": "Services",
+      "howItWorks": "How it works",
+      "preview": "Preview",
+      "openDashboard": "Open the dashboard",
+      "login": "Sign in",
+      "createAccount": "Create an account",
+      "openMenu": "Open the menu",
+      "closeMenu": "Close the menu"
+    },
+    "footer": "Dashboard project — Epitech, module G-WEB-500",
+    "hero": {
+      "eyebrow": "{{services}} services · {{widgets}} widgets · updated live",
+      "title": "Open the threshold to",
+      "titleHighlight": "everything that matters.",
+      "lead": "Weather, GitHub repos, RSS feeds: Threshold brings your sources together in a single dashboard, which you compose widget by widget and a timer keeps up to date.",
+      "ctaAuthenticated": "Open my dashboard",
+      "ctaGuest": "Create my dashboard",
+      "login": "Sign in",
+      "inBrief": "In brief",
+      "step1": "Subscribe to services",
+      "step2": "Configure your widgets",
+      "step3": "The timer does the rest",
+      "floatTemp": "Temperature · Cotonou",
+      "floatTempDesc": "Partly cloudy",
+      "floatCommits": "Recent commits",
+      "floatCommitMsg": "Fix widget refresh",
+      "floatCommitMeta": "team/dashboard · 2 min ago",
+      "floatTimer": "Next refresh in 9 s"
+    },
+    "stats": {
+      "label": "In numbers",
+      "servicesConnected": "Connected services",
+      "widgetsConfigurable": "Configurable widgets",
+      "realtimeTimer": "Real-time timer"
+    },
+    "services": {
+      "kicker": "Services",
+      "title": "Five doors, ten widgets.",
+      "lead": "Each widget has its own settings: two instances of the same widget can track two cities, two repos or two different feeds.",
+      "weather": { "access": "No account needed", "pitch": "Temperature and rain for the cities that matter to you." },
+      "github": { "access": "OAuth 2.0", "pitch": "Commits and security alerts from your repositories." },
+      "rss": { "access": "Just a URL", "pitch": "The latest articles from your favorite blogs and media." },
+      "finance": { "access": "No account needed", "pitch": "Live exchange rates and crypto prices." },
+      "hackernews": { "access": "No account needed", "pitch": "Top stories and search on Hacker News." }
+    },
+    "steps": {
+      "kicker": "How it works",
+      "title": "Four steps, then it runs on its own.",
+      "step1": { "title": "Create your account", "text": "Sign up by email, confirmed before first access." },
+      "step2": { "title": "Connect your services", "text": "Weather is included. GitHub links via OAuth, RSS with a URL." },
+      "step3": { "title": "Compose your dashboard", "text": "Pick a widget, set its parameters and its frequency." },
+      "step4": { "title": "Let it run", "text": "The timer refreshes each widget at its own pace." }
+    },
+    "preview": {
+      "kicker": "Preview",
+      "title": "Your dashboard, for real.",
+      "lead": "Add, reconfigure, move or delete your widgets. Each one updates at its own frequency.",
+      "alt": "Preview of the Threshold dashboard with weather, GitHub and RSS widgets"
+    },
+    "cta": {
+      "title": "Ready to cross the threshold?",
+      "lead": "Your first widget is three clicks away."
+    }
+  },
+  "notFound": {
+    "kicker": "Error 404",
+    "title": "This door doesn’t exist.",
+    "lead": "The requested page could not be found or was moved.",
+    "home": "Home",
+    "dashboard": "Dashboard"
+  },
+  "boot": { "loadingSession": "Loading session…" },
+  "dashboard": {
+    "hero": {
+      "emptyBadge": "Welcome",
+      "emptyTitle": "Your dashboard is empty",
+      "emptyLead": "Add your first widget: weather, GitHub commits or RSS feed.",
+      "addWidget": "Add a widget",
+      "featuredBadge": "Featured widget",
+      "every": "Every {{count}} s",
+      "view": "View",
+      "reconfigure": "Reconfigure",
+      "refreshNow": "Refresh now",
+      "prev": "Previous widget",
+      "next": "Next widget",
+      "counter": "Widget {{current}} of {{total}}"
+    },
+    "left": {
+      "servicesTitle": "Services",
+      "connected": "Connected",
+      "showWidgets": "Show {{service}} widgets",
+      "connectService": "Connect {{service}}",
+      "availableTitle": "Available widgets",
+      "addWidgetLabel": "Add the {{name}} widget",
+      "pitch": {
+        "weather": "Weather: temperature and rain for your cities",
+        "github": "GitHub: commits and alerts from your repos",
+        "rss": "RSS: the latest articles from your feeds",
+        "finance": "Finance: exchange rates and crypto prices",
+        "hackernews": "Hacker News: top stories and search"
+      }
+    },
+    "page": {
+      "myWidgets": "My widgets",
+      "filterLabel": "Filter by service",
+      "filterAll": "All",
+      "searchNote_one": "Search “{{query}}”: {{count}} widget",
+      "searchNote_other": "Search “{{query}}”: {{count}} widgets"
+    },
+    "grid": {
+      "emptyTitle": "Your dashboard is still empty",
+      "emptyDesc": "Add your first widget to open a door to a service — weather, GitHub or RSS.",
+      "emptyFilteredTitle": "No widget here",
+      "emptyFilteredDesc": "No widget for this service — change the filter or add one.",
+      "addFirstWidget": "Add my first widget",
+      "addWidget": "Add a widget",
+      "retry": "Retry",
+      "moved": "Widget moved",
+      "loadError": "Could not load the dashboard from the API."
+    },
+    "card": {
+      "refreshedEvery": "Refreshed every {{count}} s",
+      "optionsLabel": "Widget options",
+      "retry": "Retry",
+      "refresh": "Refresh",
+      "reconfigure": "Reconfigure",
+      "moveFirst": "Move to first",
+      "moveLast": "Move to last",
+      "delete": "Delete",
+      "movedFirst": "Widget moved to the start",
+      "movedLast": "Widget moved to the end",
+      "deleted": "Widget deleted",
+      "deleteFailed": "Deletion failed",
+      "loadError": "Loading error"
+    },
+    "summary": {
+      "noCommit": "No commits",
+      "noAlert": "No alerts",
+      "noArticle": "No articles",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commits",
+      "alerts_one": "{{count}} alert",
+      "alerts_other": "{{count}} alerts",
+      "noStory": "No stories",
+      "stories_one": "{{count}} story",
+      "stories_other": "{{count}} stories"
+    },
+    "planning": {
+      "title": "Planning",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "refreshesPerDay": "Refreshes planned per day",
+      "refreshesPlanned_one": "{{formatted}} refresh planned",
+      "refreshesPlanned_other": "{{formatted}} refreshes planned",
+      "today": "Today",
+      "groups": { "start": "Getting started", "dashboard": "Your dashboard", "further": "Going further" },
+      "items": {
+        "createAccount": "Create and confirm your account",
+        "connectGithub": "Connect your GitHub account",
+        "subscribeRss": "Subscribe to an RSS feed",
+        "add6Widgets": "Add at least 6 widgets",
+        "duplicateWidget": "Configure the same widget twice",
+        "fastTimer": "Set a timer under 15 s",
+        "reorder": "Reorder your widgets"
+      },
+      "done": " (done)",
+      "todo": " (to do)",
+      "services": "Services",
+      "add": "Add"
+    }
+  },
+  "wizard": {
+    "title": {
+      "reconfigure": "Reconfigure widget",
+      "subscribeRequired": "Subscription required",
+      "add": "Add a widget"
+    },
+    "chooseWidget": "Choose a widget to continue",
+    "paramRequired": "{{label}} is required.",
+    "subscribeIntro": "The <b>{{widget}}</b> widget belongs to the <b>{{service}}</b> service, which you’re not subscribed to yet.",
+    "subscribeHint": "Subscribe first, then come back to finish adding the widget.",
+    "chooseAnother": "Choose another widget",
+    "subscribeTo": "Subscribe to {{service}}",
+    "available": "Available",
+    "connectionRequired": "Connection required",
+    "configureHint": "Configure its parameters.",
+    "frequencyHint": "How often should it refresh?",
+    "every": "Every {{value}}",
+    "reviewHint": "Review before confirming.",
+    "reviewWidget": "Widget",
+    "reviewRefresh": "Refresh rate",
+    "back": "Back",
+    "continue": "Continue",
+    "saving": "Saving…",
+    "saveEdit": "Save",
+    "addToDashboard": "Add to dashboard",
+    "saveFailed": "Saving failed.",
+    "reconfigured": "Widget reconfigured",
+    "added": "Widget added to dashboard",
+    "minutesUnit": "min",
+    "secondsUnit": "s"
+  },
+  "oauthModal": {
+    "title": "Authorize Threshold",
+    "intro": "Threshold wants access to your GitHub account to:",
+    "perm1": "Read the list of your repositories",
+    "perm2": "Read commits and security alerts",
+    "authorizing": "Authorizing…",
+    "authorize": "Authorize"
+  },
+  "services": {
+    "title": "My services",
+    "lead": "Connect your accounts to unlock their widgets.",
+    "weather": { "title": "Weather", "desc": "No account needed, available to every signed-in user." },
+    "github": {
+      "title": "GitHub",
+      "connected": "GitHub account connected.",
+      "notConnected": "Connect your account to read your repositories.",
+      "connect": "Connect GitHub",
+      "disconnect": "Disconnect",
+      "disconnected": "GitHub disconnected",
+      "connectedToast": "GitHub connected"
+    },
+    "rss": { "title": "RSS", "desc": "No account needed — enter the feed URL directly on each widget." },
+    "finance": { "title": "Finance", "desc": "No account needed, live exchange rates and crypto prices." },
+    "hackernews": { "title": "Hacker News", "desc": "No account needed, top stories and keyword search." },
+    "active": "Active"
+  },
+  "admin": {
+    "title": "Administration",
+    "lead": "Account moderation — click a user for details",
+    "stats": {
+      "users": "registered users",
+      "widgets": "widget instances",
+      "activeUsers": "active users"
+    },
+    "table": { "email": "Email", "status": "Status", "role": "Role", "registered": "Registered on", "actions": "Actions" },
+    "status": { "confirmed": "Confirmed", "pending": "Pending", "suspended": "Suspended" },
+    "action": { "reactivate": "Reactivate", "suspend": "Suspend", "delete": "Delete" },
+    "toast": {
+      "suspended": "User suspended",
+      "reactivated": "User reactivated",
+      "deleted": "User deleted",
+      "actionFailed": "Action failed",
+      "deleteFailed": "Deletion failed",
+      "loadFailed": "Could not load users."
+    },
+    "confirmDelete": "Permanently delete {{email}}?",
+    "audit": { "title": "Activity log", "activeWidgets": "Active widgets on your dashboard: {{count}}" },
+    "userNotFound": "User not found.",
+    "backToList": "Back to the list",
+    "breadcrumb": "Administration",
+    "roleAdmin": "Administrator",
+    "roleUser": "User",
+    "identifier": "Identifier",
+    "auditEmpty": "No activity yet.",
+    "auditEvent": {
+      "AUTH_LOGIN": "Sign in: {{email}}",
+      "OAUTH_GITHUB_LINKED": "GitHub connected by {{email}}",
+      "WIDGET_ADDED": "Widget added: {{widgetName}} by {{email}}",
+      "WIDGET_REMOVED": "Widget removed: {{widgetName}} by {{email}}",
+      "ADMIN_USER_SUSPENDED": "User suspended: {{targetEmail}}",
+      "ADMIN_USER_REACTIVATED": "User reactivated: {{targetEmail}}",
+      "ADMIN_USER_ROLE_CHANGED": "Role changed: {{targetEmail}} → {{role}}",
+      "ADMIN_USER_DELETED": "User deleted: {{targetEmail}}"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "lead": "Update your information and account security.",
+    "tabsLabel": "Profile sections",
+    "tabs": { "general": "General", "security": "Security" },
+    "saved": "Profile saved.",
+    "saveFailed": "Saving failed.",
+    "avatarHint": "Avatar generated from your initials.",
+    "roleAdmin": "Administrator",
+    "roleUser": "User",
+    "general": {
+      "title": "Personal information",
+      "lead": "Details tied to your Threshold account.",
+      "displayName": "Display name",
+      "email": "Email address",
+      "role": "Role",
+      "status": "Status",
+      "confirmed": "Account confirmed",
+      "pending": "Pending",
+      "memberSince": "Member since",
+      "nameRequired": "Name is required.",
+      "emailHint": "Email cannot be changed here."
+    },
+    "security": {
+      "title": "Security",
+      "lead": "Password, session and account.",
+      "changePassword": "Change password",
+      "changePasswordHint": "Update your account password",
+      "activeSession": "Active session",
+      "sessionExpires": "Expires in {{count}} min · current browser",
+      "logout": "Log out",
+      "logoutHint": "Close the session on this device",
+      "logoutAll": "Log out of all devices",
+      "logoutAllHint": "Invalidate the current session (demo)",
+      "deleteAccount": "Delete account",
+      "deleteAccountHint": "Permanent action — local data erased"
+    },
+    "password": {
+      "title": "Change password",
+      "lead": "Choose a strong password to secure your access.",
+      "updated": "Password updated.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm password",
+      "currentRequired": "Enter your current password.",
+      "newInvalid": "The new password doesn’t meet the rules.",
+      "mismatch": "Passwords don’t match.",
+      "updating": "Updating…",
+      "rulesTitle": "Password rules",
+      "minLength": "At least 12 characters",
+      "failed": "Could not change password."
+    },
+    "delete": {
+      "title": "Delete account",
+      "lead": "This action is permanent. Confirm with your password to continue.",
+      "passwordLabel": "Password",
+      "passwordRequired": "Confirm with your password.",
+      "submitting": "Deleting…",
+      "submit": "Delete my account",
+      "failed": "Deletion failed."
+    }
+  },
+  "widgets": {
+    "city_temperature": {
+      "name": "Temperature",
+      "description": "Current temperature for a city.",
+      "params": { "city": "City", "unit": "Unit (C/F)" }
+    },
+    "precipitation_forecast": {
+      "name": "Rain forecast",
+      "description": "Precipitation forecast for the next days.",
+      "params": { "city": "City", "days": "Days" }
+    },
+    "recent_commits": {
+      "name": "Recent commits",
+      "description": "Recent commits of a GitHub repository.",
+      "params": { "repository": "Repository (owner/repo or GitHub URL)", "limit": "Limit" }
+    },
+    "security_alerts": {
+      "name": "Security alerts",
+      "description": "Security alerts of a GitHub repository.",
+      "params": { "repository": "Repository (owner/repo or GitHub URL)", "severity": "Severity" }
+    },
+    "article_list": {
+      "name": "Latest articles",
+      "description": "List of the last articles from a feed.",
+      "params": { "link": "Feed URL", "number": "Number of articles" }
+    },
+    "feed_summary": {
+      "name": "Feed summary",
+      "description": "Latest articles merged from several feeds.",
+      "params": { "links": "Feed URLs (comma-separated)", "number": "Number of articles" }
+    },
+    "exchange_rate": {
+      "name": "Exchange rate",
+      "description": "Exchange rate between two currencies.",
+      "params": { "base": "Base currency", "target": "Target currency" }
+    },
+    "crypto_price": {
+      "name": "Crypto price",
+      "description": "Current price of a cryptocurrency.",
+      "params": { "coin": "Cryptocurrency", "currency": "Currency" }
+    },
+    "top_stories": {
+      "name": "Top stories",
+      "description": "Top stories from Hacker News.",
+      "params": { "number": "Number of stories" }
+    },
+    "story_search": {
+      "name": "Story search",
+      "description": "Search Hacker News stories by keyword.",
+      "params": { "query": "Search query", "number": "Number of results" }
+    }
+  },
+  "modal": { "close": "Close" },
+  "skeleton": { "loadingWidgets": "Loading widgets" },
+  "skipLink": { "label": "Skip to content" },
+  "errors": {
+    "AUTH_EMAIL_TAKEN": "An account already exists with this email.",
+    "AUTH_INVALID_CREDENTIALS": "Invalid credentials.",
+    "AUTH_EMAIL_NOT_CONFIRMED": "Confirm your email before signing in.",
+    "AUTH_ACCOUNT_SUSPENDED": "This account has been suspended.",
+    "AUTH_CONFIRM_TOKEN_INVALID": "Invalid or expired confirmation code.",
+    "AUTH_RESET_TOKEN_INVALID": "Invalid or expired reset code.",
+    "AUTH_SESSION_EXPIRED": "Session expired, please sign in again.",
+    "AUTH_UNAUTHENTICATED": "You need to be signed in to continue.",
+    "AUTH_TOKEN_INVALID": "Invalid session, please sign in again.",
+    "AUTH_FORBIDDEN": "Action not allowed.",
+    "AUTH_CURRENT_PASSWORD_INCORRECT": "Current password is incorrect.",
+    "AUTH_USER_NOT_FOUND": "User not found.",
+    "OAUTH_NOT_CONFIGURED": "GitHub sign-in is not available right now.",
+    "OAUTH_STATE_INVALID": "The authorization request expired, try again.",
+    "OAUTH_EXCHANGE_FAILED": "Connecting to GitHub failed, try again.",
+    "SERVICE_UNKNOWN": "Unknown service.",
+    "SERVICE_OAUTH_REQUIRED": "Connect your account first to subscribe to this service.",
+    "SERVICE_CANNOT_UNSUBSCRIBE_DEFAULT": "This service can’t be unsubscribed from.",
+    "DASHBOARD_WIDGET_UNKNOWN": "Widget not found in the registry.",
+    "DASHBOARD_CONFIG_INVALID": "Invalid widget configuration.",
+    "DASHBOARD_INSTANCE_NOT_FOUND": "Widget not found or not authorized.",
+    "DASHBOARD_ADAPTER_MISSING": "No adapter for this widget.",
+    "DASHBOARD_FETCH_FAILED": "Failed to fetch widget data.",
+    "ADMIN_USER_NOT_FOUND": "User not found.",
+    "ADMIN_SELF_ROLE_CHANGE_FORBIDDEN": "You can’t remove your own admin rights.",
+    "ADMIN_SELF_DELETE_FORBIDDEN": "You can’t delete your own account.",
+    "VALIDATION_ERROR": "Some information is invalid.",
+    "RATE_LIMITED": "Too many attempts, try again shortly.",
+    "INTERNAL_ERROR": "Something went wrong. Try again."
+  }
+}

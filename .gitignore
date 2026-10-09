@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+
+.env
+.env.*
+!.env.example
+
+# Auto-generated secrets (local / non-Docker runs)
+.data/
+
+.DS_Store
+*.log

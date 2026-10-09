@@ -1,0 +1,23 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${POC_DB_ROOT_PASSWORD:-poc}
+      MYSQL_DATABASE: ${POC_DB_NAME:-poc}
+      MYSQL_USER: ${POC_DB_USER:-poc}
+      MYSQL_PASSWORD: ${POC_DB_PASSWORD:-poc}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${POC_DB_USER:-poc}", "-p${POC_DB_PASSWORD:-poc}"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  app:
+    build: ./app
+    environment:
+      DATABASE_URL: mysql://${POC_DB_USER:-poc}:${POC_DB_PASSWORD:-poc}@db:3306/${POC_DB_NAME:-poc}
+    ports:
+      - "4202:3000"
+    depends_on:
+      db:
+        condition: service_healthy

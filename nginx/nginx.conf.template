@@ -1,0 +1,37 @@
+server {
+    listen 80;
+    server_name _;
+
+    resolver 1.1.1.1 8.8.8.8 valid=30s;
+
+    # Piège #1 (PLAN.md §10) : /about.json doit avoir sa propre location, EXACTE,
+    # déclarée avant la location générale /, sinon try_files le fait passer pour
+    # une route du SPA et renvoie index.html au lieu du JSON.
+    #
+    # ${API_ORIGIN} est substitué au démarrage du conteneur par l'entrypoint nginx
+    # officiel (envsubst sur les fichiers /etc/nginx/templates/*.template) : c'est
+    # ce qui permet de pointer vers "http://api:3000" en local (docker-compose) et
+    # vers l'URL publique du service API (ex: https://threshold-api.onrender.com)
+    # sur Render, sans deux fichiers de conf différents. `proxy_ssl_server_name on`
+    # est nécessaire pour la cible HTTPS de Render (routage par SNI côté leur LB).
+    location = /about.json {
+        proxy_pass ${API_ORIGIN}/about.json;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /api/ {
+        proxy_pass ${API_ORIGIN}/api/;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri /index.html;
+    }
+}

@@ -1,0 +1,18 @@
+services:
+  db:
+    image: mongo:6.0.5
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  app:
+    build: ./app
+    environment:
+      DATABASE_URL: mongodb://db:27017
+    ports:
+      - "4203:3000"
+    depends_on:
+      db:
+        condition: service_healthy

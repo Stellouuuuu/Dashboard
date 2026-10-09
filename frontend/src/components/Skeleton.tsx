@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export function Skeleton({
   className = '',
@@ -13,12 +14,12 @@ export function Skeleton({
 export function WidgetSkeleton() {
   return (
     <div className="wcard skeleton-card" aria-hidden="true">
-      <div className="wcard-media" style={{ pointerEvents: 'none' }}>
-        <Skeleton style={{ position: 'absolute', inset: 0, borderRadius: 0, height: '100%' }} />
-      </div>
-      <div className="wcard-meta">
-        <Skeleton style={{ width: '55%', height: 16, marginBottom: 8 }} />
-        <Skeleton style={{ width: '35%', height: 12 }} />
+      <div className="wcard-head">
+        <Skeleton style={{ width: 30, height: 30, borderRadius: 9 }} />
+        <div className="wcard-titles">
+          <Skeleton style={{ width: '55%', height: 12, marginBottom: 6 }} />
+          <Skeleton style={{ width: '35%', height: 10 }} />
+        </div>
       </div>
       <div className="wcard-body">
         <Skeleton style={{ width: '40%', height: 28, marginBottom: 10 }} />
@@ -32,8 +33,9 @@ export function WidgetSkeleton() {
 }
 
 export function DashboardSkeleton() {
+  const { t } = useTranslation();
   return (
-    <div className="grid-widgets" aria-busy="true" aria-label="Chargement des widgets">
+    <div className="grid-widgets" aria-busy="true" aria-label={t('skeleton.loadingWidgets')}>
       {Array.from({ length: 6 }, (_, i) => (
         <WidgetSkeleton key={i} />
       ))}

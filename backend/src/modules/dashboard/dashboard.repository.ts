@@ -1,35 +1,22 @@
-import { db } from "../../database/db.js";
-import { widgetInstances, widgets } from "../../database/schema.js";
+import { db } from "../../db/db.js";
+import { widgetInstances, widgetCache } from "../../db/schema.js";
 import { eq, and } from "drizzle-orm";
 
-/** Récupère toutes les instances d'un utilisateur avec les infos du widget */
-export async function findInstancesByUser(userId: number) {
+export type WidgetInstanceRow = typeof widgetInstances.$inferSelect;
+export type WidgetInstanceInsert = typeof widgetInstances.$inferInsert;
+export type WidgetCacheRow = typeof widgetCache.$inferSelect;
+
+/** Toutes les instances d'un utilisateur, triées par position (PLAN.md §4.4). */
+export async function findInstancesByUser(userId: number): Promise<WidgetInstanceRow[]> {
   return db
-    .select({
-      id: widgetInstances.id,
-      userId: widgetInstances.userId,
-      widgetId: widgetInstances.widgetId,
-      widgetSlug: widgets.slug,
-      widgetName: widgets.name,
-      widgetDescription: widgets.description,
-      paramsSchema: widgets.paramsSchema,
-      config: widgetInstances.config,
-      positionX: widgetInstances.positionX,
-      positionY: widgetInstances.positionY,
-      width: widgetInstances.width,
-      height: widgetInstances.height,
-      refreshRate: widgetInstances.refreshRate,
-      lastRefreshedAt: widgetInstances.lastRefreshedAt,
-      nextRefreshAt: widgetInstances.nextRefreshAt,
-      status: widgetInstances.status,
-    })
+    .select()
     .from(widgetInstances)
-    .innerJoin(widgets, eq(widgetInstances.widgetId, widgets.id))
-    .where(eq(widgetInstances.userId, userId));
+    .where(eq(widgetInstances.userId, userId))
+    .orderBy(widgetInstances.position);
 }
 
-/** Récupère une instance par id (vérifie l'appartenance à l'utilisateur) */
-export async function findInstanceById(id: number, userId: number) {
+/** Une instance par id (vérifie l'appartenance à l'utilisateur). */
+export async function findInstanceById(id: number, userId: number): Promise<WidgetInstanceRow | null> {
   const [row] = await db
     .select()
     .from(widgetInstances)
@@ -37,71 +24,47 @@ export async function findInstanceById(id: number, userId: number) {
   return row ?? null;
 }
 
-/** Crée une nouvelle instance */
-export async function createInstance(data: {
-  userId: number;
-  widgetId: number;
-  config: Record<string, unknown>;
-  refreshRate: number;
-}) {
-  const now = new Date();
-  const nextRefresh = new Date(now.getTime() + data.refreshRate * 1000);
-  const [row] = await db
-    .insert(widgetInstances)
-    .values({
-      userId: data.userId,
-      widgetId: data.widgetId,
-      config: data.config,
-      refreshRate: data.refreshRate,
-      nextRefreshAt: nextRefresh,
-      status: "pending",
-    })
-    .returning();
+export async function createInstance(
+  data: Omit<WidgetInstanceInsert, "status">,
+): Promise<WidgetInstanceRow> {
+  const [row] = await db.insert(widgetInstances).values({ ...data, status: "pending" }).returning();
   return row;
 }
 
-/** Met à jour la config et le refreshRate */
 export async function updateInstance(
   id: number,
   userId: number,
-  data: { config?: Record<string, unknown>; refreshRate?: number }
-) {
+  data: Partial<WidgetInstanceInsert>,
+): Promise<WidgetInstanceRow | null> {
   const [row] = await db
     .update(widgetInstances)
-    .set({ ...data })
+    .set(data)
     .where(and(eq(widgetInstances.id, id), eq(widgetInstances.userId, userId)))
     .returning();
   return row ?? null;
 }
 
-/** Met à jour la position (drag & drop) */
 export async function updatePosition(
   id: number,
   userId: number,
-  pos: { positionX: number; positionY: number }
-) {
+  position: number,
+): Promise<WidgetInstanceRow | null> {
   const [row] = await db
     .update(widgetInstances)
-    .set(pos)
+    .set({ position })
     .where(and(eq(widgetInstances.id, id), eq(widgetInstances.userId, userId)))
     .returning();
   return row ?? null;
 }
 
-/** Met à jour le statut et les timestamps de refresh */
-export async function updateRefreshStatus(
-  id: number,
-  status: "ok" | "error" | "pending"
-) {
-  const now = new Date();
+export async function updateRefreshStatus(id: number, status: string): Promise<void> {
   await db
     .update(widgetInstances)
-    .set({ status, lastRefreshedAt: now })
+    .set({ status, lastRefreshedAt: new Date() })
     .where(eq(widgetInstances.id, id));
 }
 
-/** Supprime une instance */
-export async function deleteInstance(id: number, userId: number) {
+export async function deleteInstance(id: number, userId: number): Promise<boolean> {
   const deleted = await db
     .delete(widgetInstances)
     .where(and(eq(widgetInstances.id, id), eq(widgetInstances.userId, userId)))
@@ -109,23 +72,21 @@ export async function deleteInstance(id: number, userId: number) {
   return deleted.length > 0;
 }
 
-/** Récupère les instances dont le refresh est dû */
-export async function findInstancesDueForRefresh() {
-  const now = new Date();
-  const rows = await db
-    .select({
-      id: widgetInstances.id,
-      widgetSlug: widgets.slug,
-      config: widgetInstances.config,
-      refreshRate: widgetInstances.refreshRate,
-    })
-    .from(widgetInstances)
-    .innerJoin(widgets, eq(widgetInstances.widgetId, widgets.id));
+/** Cache serveur (table widget_cache) — remplace le cache Redis (PLAN.md §4.3). */
+export async function getCachedPayload(widgetInstanceId: number): Promise<WidgetCacheRow | null> {
+  const [row] = await db
+    .select()
+    .from(widgetCache)
+    .where(eq(widgetCache.widgetInstanceId, widgetInstanceId));
+  return row ?? null;
+}
 
-  return rows.filter(
-    (r) => {
-      const next = (r as any).nextRefreshAt;
-      return !next || new Date(next) <= now;
-    }
-  );
+export async function upsertCachedPayload(widgetInstanceId: number, payload: unknown): Promise<void> {
+  await db
+    .insert(widgetCache)
+    .values({ widgetInstanceId, payload: payload as any, fetchedAt: new Date() })
+    .onConflictDoUpdate({
+      target: widgetCache.widgetInstanceId,
+      set: { payload: payload as any, fetchedAt: new Date() },
+    });
 }

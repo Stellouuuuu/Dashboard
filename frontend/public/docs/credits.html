@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>Threshold — Credits</title>
+ <link rel="stylesheet" href="./docs.css"/>
+ <style>:root{--bg-photo:url('/img/bg.jpg');}</style>
+</head>
+<body>
+ <div class="doc-cover">
+ <div class="doc-cover-top">
+ <div class="doc-cover-kicker">Threshold · G-WEB-500</div>
+ <h1>Credits</h1>
+ <p>Photography, open-source libraries and external APIs used by Threshold.</p>
+ </div>
+ <div class="doc-cover-bottom">
+ <div class="doc-cover-meta">
+ <strong>Document</strong>
+ Credits · Images · Libraries · APIs
+ </div>
+ <div class="lang-switch">
+ <a href="#english" class="active">EN</a>
+ <a href="#français">FR</a>
+ </div>
+ </div>
+ </div>
+
+ <div class="doc-shell">
+ <div id="english" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#en-photo">Photography</a>
+ <a href="#en-libs">Libraries</a>
+ <a href="#en-apis">APIs</a>
+ <a href="#en-project">Project</a>
+ <a href="#français">→ FR</a>
+ </nav>
+ <section id="en-photo" class="doc-section">
+ <h2>Photography</h2>
+ <p>UI photographs live under <code>frontend/public/img/</code>. Sources and licenses are tracked in <a href="/IMAGES.md">frontend/IMAGES.md</a> (Unsplash / Pexels unless noted). Replace assets by keeping the same filenames.</p>
+
+ </section>
+ <section id="en-libs" class="doc-section">
+ <h2>Open-source libraries</h2>
+ <p>Notable runtime dependencies:</p>
+ <table>
+ <thead><tr><th>Package</th><th>Use</th></tr></thead>
+ <tbody>
+ <tr><td>React / Vite</td><td>SPA</td></tr>
+ <tr><td>Express</td><td>API</td></tr>
+ <tr><td>Drizzle ORM + <code>pg</code></td><td>Database</td></tr>
+ <tr><td>Zod</td><td>Validation</td></tr>
+ <tr><td>jsonwebtoken / bcrypt</td><td>Auth</td></tr>
+ <tr><td>nodemailer</td><td>Outbound mail</td></tr>
+ <tr><td>i18next</td><td>Translations</td></tr>
+ <tr><td>Helmet / express-rate-limit</td><td>Hardening</td></tr>
+ </tbody>
+ </table>
+ <p>See each package’s license in <code>node_modules</code> / npm for redistribution terms.</p>
+
+ </section>
+ <section id="en-apis" class="doc-section">
+ <h2>External APIs</h2>
+ <table>
+ <thead><tr><th>Provider</th><th>Used by</th></tr></thead>
+ <tbody>
+ <tr><td>Open-Meteo</td><td>Weather widgets</td></tr>
+ <tr><td>GitHub REST API</td><td>Commits &amp; Dependabot alerts</td></tr>
+ <tr><td>Arbitrary RSS/Atom URLs</td><td>RSS widgets</td></tr>
+ <tr><td>Frankfurter / CoinGecko</td><td>Finance widgets</td></tr>
+ <tr><td>Algolia HN Search</td><td>Hacker News widgets</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="en-project" class="doc-section">
+ <h2>Project</h2>
+ <p>Epitech <strong>G-WEB-500</strong> dashboard module — student work.</p>
+
+ </section>
+
+ </div>
+
+ <div class="doc-sep">EN · FR</div>
+
+ <div id="français" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#fr-photo">Photos</a>
+ <a href="#fr-libs">Libs</a>
+ <a href="#fr-apis">APIs</a>
+ <a href="#fr-project">Projet</a>
+ <a href="#english">→ EN</a>
+ </nav>
+ <section id="fr-photo" class="doc-section">
+ <h2>Photographie</h2>
+ <p>Les photos d’UI sont dans <code>frontend/public/img/</code>. Sources et licences sont suivies dans <a href="/IMAGES.md">frontend/IMAGES.md</a> (Unsplash / Pexels sauf mention). Remplacer les assets en gardant les mêmes noms de fichiers.</p>
+
+ </section>
+ <section id="fr-libs" class="doc-section">
+ <h2>Bibliothèques open-source</h2>
+ <p>Dépendances runtime notables :</p>
+ <table>
+ <thead><tr><th>Package</th><th>Usage</th></tr></thead>
+ <tbody>
+ <tr><td>React / Vite</td><td>SPA</td></tr>
+ <tr><td>Express</td><td>API</td></tr>
+ <tr><td>Drizzle ORM + <code>pg</code></td><td>Base de données</td></tr>
+ <tr><td>Zod</td><td>Validation</td></tr>
+ <tr><td>jsonwebtoken / bcrypt</td><td>Auth</td></tr>
+ <tr><td>nodemailer</td><td>Envoi d’emails</td></tr>
+ <tr><td>i18next</td><td>Traductions</td></tr>
+ <tr><td>Helmet / express-rate-limit</td><td>Durcissement</td></tr>
+ </tbody>
+ </table>
+ <p>Voir la licence de chaque package dans <code>node_modules</code> / npm pour les conditions de redistribution.</p>
+
+ </section>
+ <section id="fr-apis" class="doc-section">
+ <h2>APIs externes</h2>
+ <table>
+ <thead><tr><th>Fournisseur</th><th>Utilisé par</th></tr></thead>
+ <tbody>
+ <tr><td>Open-Meteo</td><td>Widgets météo</td></tr>
+ <tr><td>GitHub REST API</td><td>Commits &amp; alertes Dependabot</td></tr>
+ <tr><td>URLs RSS/Atom arbitraires</td><td>Widgets RSS</td></tr>
+ <tr><td>Frankfurter / CoinGecko</td><td>Widgets finance</td></tr>
+ <tr><td>Algolia HN Search</td><td>Widgets Hacker News</td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="fr-project" class="doc-section">
+ <h2>Projet</h2>
+ <p>Module dashboard Epitech <strong>G-WEB-500</strong> — travail étudiant.</p>
+
+ </section>
+
+ </div>
+
+ <footer class="doc-footer">
+ <span>© EPITECH · Threshold · G-WEB-500</span>
+ <span><a href="./index.html">Docs hub</a> · <a href="/">App</a></span>
+ </footer>
+ </div>
+</body>
+</html>

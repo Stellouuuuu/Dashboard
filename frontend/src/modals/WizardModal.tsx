@@ -1,25 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import { Modal } from '../components/Modal';
-import {
-  CATALOG,
-  REFRESH_RATES,
-  SERVICE_LABEL,
-  catalogOf,
-  type CatalogWidget,
-} from '../data/catalog';
-import { useAppData } from '../context/AppDataContext';
+import { ACCENT, REFRESH_RATES, SERVICES } from '../data/catalog';
+import { widgetName, widgetDescription, widgetParamLabel } from '../i18n/widgets';
+import { ServiceIcon } from '../components/Icons';
+import { useAppData, toWidgetInstance } from '../context/AppDataContext';
+import { apiAddDashboardWidget, apiReconfigureDashboardWidget, ApiError, type ApiWidgetDefinition } from '../api/client';
 import { FormField } from '../components/FormField';
 
 export function WizardModal() {
+  const { t } = useTranslation();
   const {
     modal,
     closeModal,
     openModal,
     instances,
     setInstances,
+    catalog,
     wizardEditUid,
-    nextUid,
+    wizardPresetId,
     toast,
     setFlashUid,
     setAddedUid,
@@ -31,39 +31,45 @@ export function WizardModal() {
   const isEditing = wizardEditUid != null;
 
   const [step, setStep] = useState(1);
-  const [widget, setWidget] = useState<CatalogWidget | null>(null);
+  const [widget, setWidget] = useState<ApiWidgetDefinition | null>(null);
   const [config, setConfig] = useState<Record<string, string | number>>({});
   const [configErrors, setConfigErrors] = useState<Record<string, string>>({});
-  const [rate, setRate] = useState(30);
+  const [rate, setRate] = useState<number>(REFRESH_RATES[0]);
   const [needsSubscribe, setNeedsSubscribe] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setNeedsSubscribe(false);
     setConfigErrors({});
+    setSubmitError(null);
     if (wizardEditUid != null) {
       const editInst = instances.find((i) => i.uid === wizardEditUid);
       if (editInst) {
-        setWidget(catalogOf(editInst.widgetId) ?? null);
+        setWidget(catalog.find((w) => w.name === editInst.widgetId) ?? null);
         setConfig({ ...editInst.config });
         setRate(editInst.refresh);
         setStep(2);
         return;
       }
     }
-    setWidget(null);
+    const preset = wizardPresetId ? (catalog.find((w) => w.name === wizardPresetId) ?? null) : null;
+    setWidget(preset);
     setConfig({});
-    setRate(30);
+    setRate(REFRESH_RATES[0]);
     setStep(1);
-  }, [open, wizardEditUid]);
+    if (preset && !isSubscribed(preset.service)) setNeedsSubscribe(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, wizardEditUid, wizardPresetId, catalog]);
 
   const title = isEditing
-    ? 'Reconfigurer le widget'
+    ? t('wizard.title.reconfigure')
     : needsSubscribe
-      ? 'Abonnement requis'
-      : 'Ajouter un widget';
+      ? t('wizard.title.subscribeRequired')
+      : t('wizard.title.add');
 
-  const selectWidget = (w: CatalogWidget) => {
+  const selectWidget = (w: ApiWidgetDefinition) => {
     setWidget(w);
     setConfig({});
     setConfigErrors({});
@@ -78,7 +84,7 @@ export function WizardModal() {
     if (needsSubscribe) return;
     if (step === 1) {
       if (!widget) {
-        toast('Choisis un widget pour continuer');
+        toast(t('wizard.chooseWidget'));
         return;
       }
       if (!isSubscribed(widget.service)) {
@@ -91,51 +97,46 @@ export function WizardModal() {
       const errs: Record<string, string> = {};
       widget.params.forEach((p) => {
         const v = config[p.name];
-        if (v === undefined || v === '') errs[p.name] = `${p.label} est requis.`;
+        if (v === undefined || v === '')
+          errs[p.name] = t('wizard.paramRequired', { label: widgetParamLabel(t, widget.name, p.name, p.label) });
       });
       setConfigErrors(errs);
       if (Object.keys(errs).length) return;
       setStep(3);
     } else if (step === 3) {
+      if (rate < 30) setRate(30);
       setStep(4);
     } else {
-      if (!widget) return;
-      closeModal();
-      if (isEditing && wizardEditUid != null) {
-        setInstances((list) =>
-          list.map((i) =>
-            i.uid === wizardEditUid
-              ? { ...i, config: { ...config }, refresh: rate, status: 'ok' }
-              : i,
-          ),
-        );
-        setFlashUid(wizardEditUid);
-        toast('Widget reconfiguré');
-      } else {
-        const uid = nextUid();
-        setInstances((list) => [
-          ...list,
-          {
-            uid,
-            widgetId: widget.id,
-            config: { ...config },
-            refresh: rate,
-            status: 'ok',
-            frameKey:
-              widget.id === 'city_temperature'
-                ? String(config.city).toLowerCase() === 'paris'
-                  ? 'temp_paris'
-                  : 'temp_cotonou'
-                : undefined,
-          },
-        ]);
-        setAddedUid(uid);
-        toast('Widget ajouté au dashboard');
-      }
+      if (!widget || submitting) return;
+      setSubmitting(true);
+      setSubmitError(null);
+      const action =
+        isEditing && wizardEditUid != null
+          ? apiReconfigureDashboardWidget(wizardEditUid, { config, refreshRate: rate })
+          : apiAddDashboardWidget({ widgetName: widget.name, config, refreshRate: rate });
+
+      action
+        .then((row) => {
+          const inst = toWidgetInstance(row);
+          if (isEditing && wizardEditUid != null) {
+            setInstances((list) => list.map((i) => (i.uid === wizardEditUid ? inst : i)));
+            setFlashUid(wizardEditUid);
+            toast(t('wizard.reconfigured'));
+          } else {
+            setInstances((list) => [...list, inst]);
+            setAddedUid(inst.uid);
+            toast(t('wizard.added'));
+          }
+          closeModal();
+        })
+        .catch((e) => {
+          setSubmitError(e instanceof ApiError ? t(`errors.${e.code}`, { defaultValue: t('wizard.saveFailed') }) : t('wizard.saveFailed'));
+        })
+        .finally(() => setSubmitting(false));
     }
   };
 
-  const serviceLabel = widget ? SERVICE_LABEL[widget.service] : '';
+  const serviceLabel = widget ? t(`common.services.${widget.service}`) : '';
 
   return (
     <Modal open={open} onClose={closeModal} title={title} wide>
@@ -153,12 +154,13 @@ export function WizardModal() {
       {needsSubscribe && widget ? (
         <div className="subscribe-gate">
           <p>
-            Le widget <b>{widget.name}</b> appartient au service{' '}
-            <b>{serviceLabel}</b>, auquel tu n&apos;es pas encore abonné(e).
+            <Trans
+              i18nKey="wizard.subscribeIntro"
+              values={{ widget: widgetName(t, widget.name), service: serviceLabel }}
+              components={{ b: <b /> }}
+            />
           </p>
-          <p className="auth-sub">
-            Abonne-toi d&apos;abord, puis reviens terminer l&apos;ajout du widget.
-          </p>
+          <p className="auth-sub">{t('wizard.subscribeHint')}</p>
           <div className="wiz-actions" style={{ marginTop: 20 }}>
             <button
               type="button"
@@ -168,7 +170,7 @@ export function WizardModal() {
                 setWidget(null);
               }}
             >
-              Choisir un autre widget
+              {t('wizard.chooseAnother')}
             </button>
             <button
               type="button"
@@ -182,49 +184,56 @@ export function WizardModal() {
                 }
               }}
             >
-              S&apos;abonner à {serviceLabel}
+              {t('wizard.subscribeTo', { service: serviceLabel })}
             </button>
           </div>
         </div>
       ) : (
         <>
           {step === 1 && (
-            <div>
-              <p className="wiz-hint">Choisis un widget dans le catalogue.</p>
-              <div className="wiz-cat-grid">
-                {CATALOG.map((w) => {
-                  const soon = Boolean(w.comingSoon);
-                  const locked = soon || !isSubscribed(w.service);
-                  return (
-                    <button
-                      key={w.id}
-                      type="button"
-                      className={`wiz-cat accent-${w.service}${widget?.id === w.id ? ' selected' : ''}${locked ? ' locked' : ''}`}
-                      disabled={soon}
-                      onClick={() => {
-                        if (soon) return;
-                        selectWidget(w);
-                      }}
-                    >
-                      <b>
-                        {w.name}
-                        {soon ? ' · bientôt' : locked ? ' · abonnement requis' : ''}
-                      </b>
-                      <span>{w.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="wiz-catalog">
+              {SERVICES.map((svc) => {
+                const subscribed = isSubscribed(svc);
+                const widgets = catalog.filter((w) => w.service === svc);
+                const svcLabel = t(`common.services.${svc}`);
+                return (
+                  <div key={svc} className="wiz-group" role="group" aria-label={svcLabel}>
+                    <div className="wiz-group-head">
+                      <span className={`wcard-svc svc-${ACCENT[svc]}`} aria-hidden="true">
+                        <ServiceIcon service={svc} />
+                      </span>
+                      <b>{svcLabel}</b>
+                      <span className={`wiz-group-status${subscribed ? ' on' : ''}`}>
+                        {subscribed ? t('wizard.available') : t('wizard.connectionRequired')}
+                      </span>
+                    </div>
+                    <div className="wiz-cat-grid">
+                      {widgets.map((w) => (
+                        <button
+                          key={w.name}
+                          type="button"
+                          className={`wiz-cat${widget?.name === w.name ? ' selected' : ''}${subscribed ? '' : ' locked'}`}
+                          aria-pressed={widget?.name === w.name}
+                          onClick={() => selectWidget(w)}
+                        >
+                          <b>{widgetName(t, w.name)}</b>
+                          <span>{widgetDescription(t, w.name, w.description)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {step === 2 && widget && (
             <div>
-              <p className="wiz-hint">Configure ses paramètres.</p>
+              <p className="wiz-hint">{t('wizard.configureHint')}</p>
               {widget.params.map((p) => (
                 <FormField
                   key={p.name}
-                  label={`${p.label} (${p.type})`}
+                  label={widgetParamLabel(t, widget.name, p.name, p.label)}
                   error={configErrors[p.name]}
                   htmlFor={`wiz-${p.name}`}
                 >
@@ -250,11 +259,11 @@ export function WizardModal() {
           {step === 3 && (
             <div>
               <p className="wiz-hint" style={{ marginBottom: 6 }}>
-                À quelle fréquence doit-il se rafraîchir ?
+                {t('wizard.frequencyHint')}
               </p>
               <div className="rate-chips">
                 {REFRESH_RATES.map((sec) => {
-                  const label = sec < 60 ? `${sec} s` : `${sec / 60} min`;
+                  const label = sec < 60 ? `${sec} ${t('wizard.secondsUnit')}` : `${sec / 60} ${t('wizard.minutesUnit')}`;
                   return (
                     <button
                       key={sec}
@@ -262,31 +271,50 @@ export function WizardModal() {
                       className={`rate-chip${rate === sec ? ' selected' : ''}`}
                       onClick={() => setRate(sec)}
                     >
-                      Toutes les {label}
+                      {t('wizard.every', { value: label })}
                     </button>
                   );
                 })}
+              </div>
+              <div style={{ marginTop: 16 }}>
+                <FormField label={t('wizard.customRate', { defaultValue: 'Ou saisissez une valeur personnalisée (secondes, min 30)' })} htmlFor="wiz-custom-rate">
+                  <input
+                    id="wiz-custom-rate"
+                    type="number"
+                    min="30"
+                    value={rate || ''}
+                    onChange={(e) => setRate(parseInt(e.target.value) || 0)}
+                    onBlur={() => setRate(Math.max(30, rate))}
+                  />
+                </FormField>
               </div>
             </div>
           )}
 
           {step === 4 && widget && (
             <div>
-              <p className="wiz-hint">Vérifie avant de confirmer.</p>
+              <p className="wiz-hint">{t('wizard.reviewHint')}</p>
+              {submitError && (
+                <div className="form-banner error" role="alert" style={{ marginBottom: 12 }}>
+                  {submitError}
+                </div>
+              )}
               <div className="review-box">
                 <div>
-                  <span>Widget</span>
-                  <b>{widget.name}</b>
+                  <span>{t('wizard.reviewWidget')}</span>
+                  <b>{widgetName(t, widget.name)}</b>
                 </div>
                 {Object.entries(config).map(([k, v]) => (
                   <div key={k}>
-                    <span>{k}</span>
+                    <span>
+                      {widgetParamLabel(t, widget.name, k, widget.params.find((p) => p.name === k)?.label ?? k)}
+                    </span>
                     <b>{String(v)}</b>
                   </div>
                 ))}
                 <div>
-                  <span>Rafraîchissement</span>
-                  <b>{rate} s</b>
+                  <span>{t('wizard.reviewRefresh')}</span>
+                  <b>{rate < 60 ? `${rate} ${t('wizard.secondsUnit')}` : `${rate / 60} ${t('wizard.minutesUnit')}`}</b>
                 </div>
               </div>
             </div>
@@ -299,14 +327,16 @@ export function WizardModal() {
               style={{ visibility: step === 1 ? 'hidden' : 'visible' }}
               onClick={() => setStep((s) => Math.max(1, s - 1))}
             >
-              Retour
+              {t('wizard.back')}
             </button>
-            <button type="button" className="btn btn-primary btn-sm" onClick={goNext}>
+            <button type="button" className="btn btn-primary btn-sm" onClick={goNext} disabled={submitting}>
               {step === 4
-                ? isEditing
-                  ? 'Enregistrer'
-                  : 'Ajouter au dashboard'
-                : 'Continuer'}
+                ? submitting
+                  ? t('wizard.saving')
+                  : isEditing
+                    ? t('wizard.saveEdit')
+                    : t('wizard.addToDashboard')
+                : t('wizard.continue')}
             </button>
           </div>
         </>

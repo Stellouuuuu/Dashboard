@@ -1,0 +1,14 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:../poc.sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Widget {
+  id     Int    @id @default(autoincrement())
+  name   String
+  config String
+}

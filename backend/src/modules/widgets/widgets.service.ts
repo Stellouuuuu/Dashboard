@@ -1,11 +1,28 @@
-import * as repo from "./widgets.repository.js";
+import { getWidgetDefinition, listWidgetDefinitions, type WidgetDefinition } from "../../widgets/registry.js";
 
-export async function getCatalog() {
-  return repo.findAll();
+interface PublicWidget {
+  name: string;
+  service: string;
+  description: string;
+  params: WidgetDefinition["params"];
 }
 
-export async function getWidget(id: number) {
-  const widget = await repo.findById(id);
+function toPublic(widget: WidgetDefinition): PublicWidget {
+  return {
+    name: widget.name,
+    service: widget.service,
+    description: widget.description,
+    params: widget.params,
+  };
+}
+
+/** Catalogue complet — sert la modale de config du front (PLAN.md §4.2). */
+export function getCatalog(): PublicWidget[] {
+  return listWidgetDefinitions().map(toPublic);
+}
+
+export function getWidget(name: string): PublicWidget {
+  const widget = getWidgetDefinition(name);
   if (!widget) throw new Error("Widget introuvable");
-  return widget;
+  return toPublic(widget);
 }

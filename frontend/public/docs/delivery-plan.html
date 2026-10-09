@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>Threshold — Delivery plan</title>
+ <link rel="stylesheet" href="./docs.css"/>
+ <style>:root{--bg-photo:url('/img/bg.jpg');}</style>
+</head>
+<body>
+ <div class="doc-cover">
+ <div class="doc-cover-top">
+ <div class="doc-cover-kicker">Threshold · G-WEB-500</div>
+ <h1>Delivery plan</h1>
+ <p>Short bilingual delivery summary — full audit lives in plan.html.</p>
+ </div>
+ <div class="doc-cover-bottom">
+ <div class="doc-cover-meta">
+ <strong>Document</strong>
+ Delivery · Summary · Status
+ </div>
+ <div class="lang-switch">
+ <a href="#english" class="active">EN</a>
+ <a href="#français">FR</a>
+ </div>
+ </div>
+ </div>
+
+ <div class="doc-shell">
+ <div id="english" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#en-intro">Summary</a>
+ <a href="#en-target">Target</a>
+ <a href="#en-shipped">Shipped</a>
+ <a href="#en-cut">Deferred</a>
+ <a href="#français">→ FR</a>
+ </nav>
+ <section id="en-intro" class="doc-section">
+ <h2>Summary</h2>
+ <p class="lead">Full French working notes live at the repo root as <code>PLAN.md</code> / <a href="./plan.html">plan.html</a>. This page is the short bilingual summary.</p>
+
+ </section>
+ <section id="en-target" class="doc-section">
+ <h2>Target</h2>
+ <ul>
+ <li>Module: <strong>G-WEB-500</strong> (group of 2 → ≥ 3 services, ≥ 6 widgets)</li>
+ <li>Deliverable: <code>docker compose up</code> on port <strong>8080</strong> with valid <code>/about.json</code></li>
+ <li>Auth (email confirm) + at least one OAuth 2.0 link (GitHub)</li>
+ <li>Persistable dashboard CRUD + per-widget refresh timers</li>
+ <li>Admin user management</li>
+ <li>Root README + <code>bonus/</code> for out-of-scope extras</li>
+ </ul>
+
+ </section>
+ <section id="en-shipped" class="doc-section">
+ <h2>What shipped in this repo</h2>
+ <table>
+ <thead><tr><th>Area</th><th>Status</th></tr></thead>
+ <tbody>
+ <tr><td>Docker / nginx / Mailpit</td><td class="status"><span class="badge badge-done">Done</span></td></tr>
+ <tr><td>Auth + OTP confirm + cookies</td><td class="status"><span class="badge badge-done">Done</span></td></tr>
+ <tr><td>Forgot / reset password (OTP)</td><td class="status"><span class="badge badge-done">Done</span></td></tr>
+ <tr><td>GitHub OAuth (optional env)</td><td class="status"><span class="badge badge-done">Done</span></td></tr>
+ <tr><td>5 services / 10 widgets</td><td class="status"><span class="badge badge-done">Done</span> <span style="font-size:.8rem;color:var(--muted)">(above minimum)</span></td></tr>
+ <tr><td>Dashboard CRUD + <code>/data</code> cache</td><td class="status"><span class="badge badge-done">Done</span></td></tr>
+ <tr><td>Admin + audit log</td><td class="status"><span class="badge badge-done">Done</span></td></tr>
+ <tr><td>Auto secrets + demo admin seed</td><td class="status"><span class="badge badge-done">Done</span></td></tr>
+ <tr><td>i18n fr/en</td><td class="status"><span class="badge badge-done">Done</span></td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="en-cut" class="doc-section">
+ <h2>Cut / deferred</h2>
+ <ul>
+ <li>Google OIDC, Steam, Redis workers, full CI — see <a href="./bonus.html">bonus/</a> if revisited</li>
+ <li>Tech-choice write-up — fill <a href="./tech-choices.html">TECH_CHOICES</a></li>
+ </ul>
+
+ </section>
+
+ </div>
+
+ <div class="doc-sep">EN · FR</div>
+
+ <div id="français" class="doc-panel">
+ <nav class="doc-toc">
+ <a href="#fr-intro">Résumé</a>
+ <a href="#fr-target">Objectif</a>
+ <a href="#fr-shipped">Livré</a>
+ <a href="#fr-cut">Reporté</a>
+ <a href="#english">→ EN</a>
+ </nav>
+ <section id="fr-intro" class="doc-section">
+ <h2>Résumé</h2>
+ <p class="lead">Les notes de travail détaillées sont dans <code>PLAN.md</code> / <a href="./plan.html">plan.html</a>. Cette page est le résumé bilingue court.</p>
+
+ </section>
+ <section id="fr-target" class="doc-section">
+ <h2>Objectif</h2>
+ <ul>
+ <li>Module : <strong>G-WEB-500</strong> (binôme → ≥ 3 services, ≥ 6 widgets)</li>
+ <li>Livrable : <code>docker compose up</code> sur le port <strong>8080</strong> avec un <code>/about.json</code> valide</li>
+ <li>Auth (confirmation email) + au moins un lien OAuth 2.0 (GitHub)</li>
+ <li>CRUD dashboard persisté + timers de rafraîchissement par widget</li>
+ <li>Gestion admin des utilisateurs</li>
+ <li>README racine + <code>bonus/</code> pour les extras hors périmètre</li>
+ </ul>
+
+ </section>
+ <section id="fr-shipped" class="doc-section">
+ <h2>Ce qui est livré dans ce dépôt</h2>
+ <table>
+ <thead><tr><th>Zone</th><th>Statut</th></tr></thead>
+ <tbody>
+ <tr><td>Docker / nginx / Mailpit</td><td class="status"><span class="badge badge-done">Fait</span></td></tr>
+ <tr><td>Auth + confirmation OTP + cookies</td><td class="status"><span class="badge badge-done">Fait</span></td></tr>
+ <tr><td>Mot de passe oublié / reset (OTP)</td><td class="status"><span class="badge badge-done">Fait</span></td></tr>
+ <tr><td>OAuth GitHub (env optionnelle)</td><td class="status"><span class="badge badge-done">Fait</span></td></tr>
+ <tr><td>5 services / 10 widgets</td><td class="status"><span class="badge badge-done">Fait</span> <span style="font-size:.8rem;color:var(--muted)">(au-dessus du minimum)</span></td></tr>
+ <tr><td>CRUD dashboard + cache <code>/data</code></td><td class="status"><span class="badge badge-done">Fait</span></td></tr>
+ <tr><td>Admin + journal d’audit</td><td class="status"><span class="badge badge-done">Fait</span></td></tr>
+ <tr><td>Secrets auto + seed admin démo</td><td class="status"><span class="badge badge-done">Fait</span></td></tr>
+ <tr><td>i18n fr/en</td><td class="status"><span class="badge badge-done">Fait</span></td></tr>
+ </tbody>
+ </table>
+
+ </section>
+ <section id="fr-cut" class="doc-section">
+ <h2>Coupé / reporté</h2>
+ <ul>
+ <li>OIDC Google, Steam, workers Redis, CI complète — voir <a href="./bonus.html">bonus/</a> si repris</li>
+ <li>Rédaction des choix tech — compléter <a href="./tech-choices.html">TECH_CHOICES</a></li>
+ </ul>
+
+ </section>
+
+ </div>
+
+ <footer class="doc-footer">
+ <span>© EPITECH · Threshold · G-WEB-500</span>
+ <span><a href="./index.html">Docs hub</a> · <a href="/">App</a></span>
+ </footer>
+ </div>
+</body>
+</html>
