@@ -30,6 +30,10 @@ const envSchema = z.object({
   SMTP_USER: z.preprocess(emptyToUndefined, z.string().optional()),
   SMTP_PASS: z.preprocess(emptyToUndefined, z.string().optional()),
   SMTP_FROM: z.string().default("Threshold <no-reply@dashboard.local>"),
+  // Render's free plan blocks outbound SMTP (25/465/587), so prod sends through
+  // Brevo's HTTP API (port 443) instead when this is set. SMTP_FROM's email
+  // must match a sender verified in Brevo.
+  BREVO_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
   APP_URL: z.string().url().default("http://localhost:8080"),
   SECRETS_DIR: z.preprocess(emptyToUndefined, z.string().optional()),
   ADMIN_EMAIL: z.preprocess(

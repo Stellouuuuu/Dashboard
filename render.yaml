@@ -36,6 +36,12 @@ services:
         sync: false
       - key: SMTP_FROM
         sync: false
+      # Render's free plan blocks outbound SMTP (25/465/587), so SMTP_HOST/USER/PASS
+      # above won't work here. Set this to send through Brevo's HTTP API instead
+      # (sender verification, no domain needed) - the email in SMTP_FROM must
+      # match the verified sender.
+      - key: BREVO_API_KEY
+        sync: false
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
