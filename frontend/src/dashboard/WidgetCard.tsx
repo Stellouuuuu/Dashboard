@@ -103,7 +103,7 @@ export function WidgetCard({
   const handleAction = (act: 'reconfigure' | 'refresh' | 'start' | 'end' | 'delete') => {
     setMenuOpen(false);
     if (act === 'reconfigure') openWizard(inst.uid);
-    if (act === 'refresh') void refresh(inst);
+    if (act === 'refresh') void refresh(inst, true);
     if (act === 'start') {
       move(true);
       toast(t('dashboard.card.movedFirst'));

@@ -121,6 +121,6 @@ export function apiDeleteDashboardWidget(id: number): Promise<void> {
   return request(`/dashboard/widgets/${id}`, { method: 'DELETE' });
 }
 
-export function apiGetDashboardWidgetData(id: number): Promise<ApiWidgetData> {
-  return request(`/dashboard/widgets/${id}/data`);
+export function apiGetDashboardWidgetData(id: number, force = false): Promise<ApiWidgetData> {
+  return request(`/dashboard/widgets/${id}/data${force ? '?force=true' : ''}`);
 }

@@ -106,14 +106,18 @@ export async function removeWidget(id: number, userId: number): Promise<void> {
  * Données d'un widget : sert le cache (table widget_cache) s'il a moins de
  * refresh_rate secondes, sinon appelle l'adapter du registre (PLAN.md §4.3).
  */
-export async function fetchWidgetData(id: number, userId: number): Promise<DataResult> {
+export async function fetchWidgetData(
+  id: number,
+  userId: number,
+  force = false,
+): Promise<DataResult> {
   const instance = await repo.findInstanceById(id, userId);
   if (!instance) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
 
   const widget = getWidgetDefinition(instance.widgetName);
   if (!widget) throw httpError(404, "DASHBOARD_ADAPTER_MISSING", "Aucun adaptateur pour ce widget");
 
-  const cached = await repo.getCachedPayload(id);
+  const cached = force ? null : await repo.getCachedPayload(id);
   if (cached) {
     const ageSec = (Date.now() - new Date(cached.fetchedAt).getTime()) / 1000;
     if (ageSec < instance.refreshRate) {

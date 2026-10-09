@@ -70,12 +70,17 @@ export async function deleteWidget(req: Request, res: Response) {
   }
 }
 
-/** GET /api/v1/dashboard/widgets/:id/data — données (cache ou adaptateur) */
+/**
+ * GET /api/v1/dashboard/widgets/:id/data — données (cache ou adaptateur).
+ * ?force=true ignore le cache (bouton "Rafraîchir" manuel) ; le Timer
+ * automatique n'envoie pas ce paramètre et respecte refresh_rate.
+ */
 export async function getWidgetData(req: Request, res: Response) {
   const userId = req.userId!;
   const id = Number(req.params.id);
+  const force = req.query.force === "true";
   try {
-    const result = await service.fetchWidgetData(id, userId);
+    const result = await service.fetchWidgetData(id, userId, force);
     res.json(result);
   } catch (err: any) {
     sendError(res, err);

@@ -9,10 +9,10 @@ export function useWidgetRefresh() {
   const { t } = useTranslation();
   const { setWidgetStatus, setWidgetData, resetLastRefresh } = useAppData();
   return useCallback(
-    async (inst: WidgetInstance) => {
+    async (inst: WidgetInstance, force = false) => {
       setWidgetStatus(inst.uid, 'loading');
       try {
-        const res = await apiGetDashboardWidgetData(inst.uid);
+        const res = await apiGetDashboardWidgetData(inst.uid, force);
         setWidgetData(inst.uid, res.data);
         setWidgetStatus(inst.uid, 'ok');
         resetLastRefresh();
