@@ -17,7 +17,11 @@ server {
     location = /about.json {
         proxy_pass ${API_ORIGIN}/about.json;
         proxy_ssl_server_name on;
-        proxy_set_header Host $host;
+        # $host (le Host de la requête entrante, donc le domaine du frontend)
+        # casse le routage par Host de Render entre services distincts et
+        # produit un 508 Loop Detected. $proxy_host (déduit de proxy_pass,
+        # donc le domaine de l'API) est ce qu'il faut transmettre ici.
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
@@ -25,7 +29,7 @@ server {
     location /api/ {
         proxy_pass ${API_ORIGIN}/api/;
         proxy_ssl_server_name on;
-        proxy_set_header Host $host;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
