@@ -5,6 +5,7 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { IconClose } from './Icons';
 
@@ -51,7 +52,11 @@ export function Modal({ open, onClose, title, wide, children }: ModalProps) {
 
   if (!open) return null;
 
-  return (
+  // Portal to document.body: a `.modal` nested inside a transformed ancestor
+  // (e.g. `.wtile:hover{transform:...}`) would otherwise make this fixed-position
+  // overlay size itself against that small ancestor instead of the viewport,
+  // clipping the content and breaking scroll.
+  return createPortal(
     <div className="overlay open" onClick={onOverlayClick}>
       <div
         ref={panelRef}
@@ -68,6 +73,7 @@ export function Modal({ open, onClose, title, wide, children }: ModalProps) {
         </div>
         <div className="modal-body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
