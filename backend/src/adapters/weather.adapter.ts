@@ -48,7 +48,8 @@ interface GeocodedPlace {
 async function geocode(city: string): Promise<GeocodedPlace> {
   const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`;
   const geoRes = await fetch(geoUrl);
-  if (!geoRes.ok) throw new Error("Géocodage impossible pour cette ville");
+  if (!geoRes.ok)
+    throw new Error(`Géocodage impossible pour cette ville (${geoRes.status}: ${await geoRes.text()})`);
   const geo = (await geoRes.json()) as GeocodingResult;
   const place = geo.results?.[0];
   if (!place) throw new Error(`Ville introuvable: ${city}`);
@@ -94,7 +95,7 @@ export async function fetchCityTemperature(config: CityTemperatureConfig): Promi
     `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
     `&current=temperature_2m,weather_code&timezone=auto&temperature_unit=${temperatureUnit}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Impossible de récupérer la météo");
+  if (!res.ok) throw new Error(`Impossible de récupérer la météo (${res.status}: ${await res.text()})`);
   const data = (await res.json()) as CurrentWeatherResponse;
   if (!data.current) throw new Error("Réponse météo invalide");
 
@@ -120,7 +121,8 @@ export async function fetchPrecipitationForecast(
     `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
     `&daily=precipitation_sum&timezone=auto&forecast_days=${days}`;
   const forecastRes = await fetch(forecastUrl);
-  if (!forecastRes.ok) throw new Error("Impossible de récupérer la météo");
+  if (!forecastRes.ok)
+    throw new Error(`Impossible de récupérer la météo (${forecastRes.status}: ${await forecastRes.text()})`);
   const data = (await forecastRes.json()) as ForecastResponse;
   if (!data.daily) throw new Error("Réponse météo invalide");
 
