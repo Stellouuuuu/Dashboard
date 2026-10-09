@@ -253,7 +253,10 @@
       "movedLast": "Widget moved to the end",
       "deleted": "Widget deleted",
       "deleteFailed": "Deletion failed",
-      "loadError": "Loading error"
+      "loadError": "Loading error",
+      "seeMore": "See more",
+      "openLink": "Open",
+      "detailEmpty": "No additional data"
     },
     "summary": {
       "noCommit": "No commits",

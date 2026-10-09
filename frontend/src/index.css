@@ -976,6 +976,17 @@ tr:last-child td{border-bottom:none;}
 }
 .modal-top h2{font-family:var(--font-d);font-size:1.25rem;font-weight:600;}
 .modal-body{overflow:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch;}
+.detail-list{display:flex;flex-direction:column;gap:2px;}
+.detail-row{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:12px 2px;border-bottom:1px solid var(--border-soft);
+}
+.detail-row:last-child{border-bottom:none;}
+.detail-row-text{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.detail-row-text b{font-size:.9rem;font-weight:600;line-height:1.35;}
+.detail-row-text span{font-size:.78rem;color:var(--text-dim);}
+.detail-row .link-btn{flex-shrink:0;font-size:.78rem;white-space:nowrap;}
+.detail-empty{color:var(--text-dim);font-size:.85rem;padding:12px 2px;}
 .modal-close{
   color:var(--text-faint);padding:0;border-radius:8px;
   width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;

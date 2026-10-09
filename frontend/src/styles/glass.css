@@ -227,7 +227,7 @@ body::after{
 .hero-nav{position:absolute;right:18px;bottom:24px;display:flex;gap:10px;}
 
 /* Cartes de widgets (tuiles) */
-.grid-widgets{display:grid;grid-template-columns:repeat(auto-fill, minmax(min(100%, 230px), 1fr));gap:14px;}
+.grid-widgets{display:grid;grid-template-columns:repeat(auto-fill, minmax(min(100%, 270px), 1fr));gap:14px;}
 .wtile{
   position:relative;min-width:0;min-height:300px;border-radius:20px;
   display:flex;flex-direction:column;justify-content:space-between;
@@ -268,6 +268,8 @@ body::after{
 .wtile-data.is-loading{opacity:.45;}
 .wtile-title{font-size:1.25rem;font-weight:700;line-height:1.15;letter-spacing:-.01em;}
 .wtile-data span{font-size:.7rem;line-height:1.35;color:var(--text-dim);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.wtile-more{align-self:flex-start;margin-top:2px;background:none;border:none;padding:0;font-size:.68rem;font-weight:600;color:#fff;text-decoration:underline;text-underline-offset:2px;cursor:pointer;opacity:.85;}
+.wtile-more:hover{opacity:1;}
 .wtile-error{font-size:.75rem;color:#ffd0d3;}
 .wtile.dragging{opacity:.4;transform:none;}
 .wtile.drop-target{outline:2px dashed #fff;outline-offset:3px;}
@@ -340,7 +342,12 @@ body::after{
   .hero-nav .round-glass{width:38px;height:38px;}
 }
 @media (max-width:560px){
-  .grid-widgets{grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px;}
+  /* 2 colonnes fixes rendait chaque tuile ~170-190px sur un petit téléphone,
+     trop étroit pour lire titre + description (retour jury défense : texte
+     illisible) - auto-fill avec un plancher de 220px retombe sur 1 colonne
+     pleine largeur tant que l'écran n'est pas assez large pour 2 tuiles
+     lisibles. */
+  .grid-widgets{grid-template-columns:repeat(auto-fill, minmax(min(100%, 220px), 1fr));gap:10px;}
   .wtile,.add-card{min-height:250px;}
   .wtile-bottom{padding:0 10px 12px;padding-right:10px;min-height:0;}
   .wtile-title{font-size:1.05rem;}

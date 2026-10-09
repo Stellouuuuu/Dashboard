@@ -12,24 +12,24 @@ export interface WidgetSummary {
 
 // Formes renvoyées par les adaptateurs backend (backend/src/adapters/*.ts) —
 // dupliquées ici côté front car le payload de GET .../data est `unknown` par design.
-interface CityTemperature {
+export interface CityTemperature {
   city: string;
   temperature: number;
   unit: string;
   description: string;
 }
-interface PrecipitationDay {
+export interface PrecipitationDay {
   day: string;
   precipitation_mm: number;
 }
-interface CommitSummary {
+export interface CommitSummary {
   sha: string;
   message: string;
   author: string;
   date: string;
   url: string;
 }
-interface SecurityAlertSummary {
+export interface SecurityAlertSummary {
   number: number;
   package: string;
   summary: string;
@@ -38,26 +38,26 @@ interface SecurityAlertSummary {
   url: string;
   createdAt: string;
 }
-interface FeedItem {
+export interface FeedItem {
   title: string;
   link: string;
   pubDate: string | null;
   description: string | null;
   source: string;
 }
-interface ExchangeRate {
+export interface ExchangeRate {
   base: string;
   target: string;
   rate: number;
   date: string;
 }
-interface CryptoPrice {
+export interface CryptoPrice {
   coin: string;
   currency: string;
   price: number;
   change24h: number | null;
 }
-interface HnStory {
+export interface HnStory {
   objectID: string;
   title: string;
   url: string | null;

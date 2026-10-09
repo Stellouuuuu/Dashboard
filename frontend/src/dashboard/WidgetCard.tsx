@@ -9,6 +9,7 @@ import { IconMore } from '../components/Icons';
 import { TimerRing } from './TimerRing';
 import { summarizeData } from './summary';
 import { useWidgetRefresh } from './useWidgetRefresh';
+import { WidgetDetailModal } from './WidgetDetailModal';
 
 interface WidgetCardProps {
   inst: WidgetInstance;
@@ -49,6 +50,7 @@ export function WidgetCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [canDrag, setCanDrag] = useState(true);
+  const [detailOpen, setDetailOpen] = useState(false);
   const def = catalog.find((w) => w.name === inst.widgetId);
 
   useEffect(() => {
@@ -221,9 +223,27 @@ export function WidgetCard({
             {data.lines.slice(0, 2).map((l) => (
               <span key={l}>{l}</span>
             ))}
+            <button
+              type="button"
+              className="wtile-more"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDetailOpen(true);
+              }}
+            >
+              {t('dashboard.card.seeMore')}
+            </button>
           </div>
         )}
       </div>
+
+      <WidgetDetailModal
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        widgetId={inst.widgetId}
+        title={displayName}
+        data={inst.data}
+      />
     </article>
   );
 }
