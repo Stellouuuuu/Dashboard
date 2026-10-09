@@ -7,6 +7,11 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+    environment:
+      # Local docker-compose network address. On Render, the nginx/frontend
+      # service instead sets this to the api service's public URL, e.g.
+      # https://threshold-api.onrender.com (see nginx/nginx.conf.template).
+      API_ORIGIN: http://api:3000
     ports:
       - "8080:80"
     depends_on:

@@ -7,4 +7,7 @@ RUN npm run build
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+# Template (not a static file): the official nginx entrypoint runs envsubst on
+# /etc/nginx/templates/*.template at container start, substituting ${API_ORIGIN}
+# from the environment — same image works locally (docker-compose) and on Render.
+COPY nginx/nginx.conf.template /etc/nginx/templates/default.conf.template
