@@ -38,7 +38,25 @@ interface CityTemperatureConfig {
 }
 
 interface GeocodingResult {
-  results?: { latitude: number; longitude: number; name?: string }[];
+  results?: { latitude: number; longitude: number; name?: string; admin1?: string; country?: string }[];
+}
+
+interface WeatherApiSearchResult {
+  name: string;
+  region?: string;
+  country?: string;
+}
+
+interface ReverseGeocodeResult {
+  city?: string;
+  locality?: string;
+  countryName?: string;
+}
+
+export interface CitySuggestion {
+  name: string;
+  region?: string;
+  country?: string;
 }
 
 interface ForecastResponse {
@@ -83,6 +101,54 @@ async function geocode(city: string): Promise<GeocodedPlace> {
   const place = geo.results?.[0];
   if (!place) throw new Error(`Ville introuvable: ${city}`);
   return { latitude: place.latitude, longitude: place.longitude, name: place.name ?? city };
+}
+
+/**
+ * Suggestions de villes pour l'autocomplétion du wizard (PLAN.md — amélioration
+ * UX : éviter les fautes de frappe en laissant choisir dans une liste plutôt que
+ * taper le nom en entier).
+ */
+export async function searchCities(query: string): Promise<CitySuggestion[]> {
+  if (query.trim().length < 2) return [];
+
+  if (env.WEATHERAPI_KEY) {
+    const url = `https://api.weatherapi.com/v1/search.json?key=${env.WEATHERAPI_KEY}&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = (await res.json()) as WeatherApiSearchResult[];
+    return data.map((d) => ({ name: d.name, region: d.region, country: d.country }));
+  }
+
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=fr`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = (await res.json()) as GeocodingResult;
+  return (data.results ?? []).map((r) => ({ name: r.name ?? query, region: r.admin1, country: r.country }));
+}
+
+/**
+ * Résout des coordonnées GPS (géolocalisation navigateur) en nom de ville, pour
+ * le bouton « Utiliser ma position » du wizard.
+ */
+export async function reverseGeocodeCity(lat: number, lon: number): Promise<string> {
+  if (env.WEATHERAPI_KEY) {
+    const url = `https://api.weatherapi.com/v1/current.json?key=${env.WEATHERAPI_KEY}&q=${lat},${lon}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Localisation impossible (${res.status}: ${await res.text()})`);
+    const data = (await res.json()) as WeatherApiCurrentResponse;
+    if (!data.location) throw new Error("Position introuvable");
+    return resolvedCityName(data.location, `${lat},${lon}`);
+  }
+
+  // Pas de clé : Open-Meteo n'a pas d'endpoint de géocodage inverse, on utilise
+  // BigDataCloud (gratuit, sans clé) pour rester cohérent avec le dev local sans secret.
+  const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=fr`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Localisation impossible (${res.status}: ${await res.text()})`);
+  const data = (await res.json()) as ReverseGeocodeResult;
+  const city = data.city || data.locality;
+  if (!city) throw new Error("Position introuvable");
+  return data.countryName ? `${city}, ${data.countryName}` : city;
 }
 
 // Sous-ensemble des codes météo WMO utilisés par Open-Meteo — suffisant pour une

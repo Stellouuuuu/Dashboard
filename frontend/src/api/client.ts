@@ -90,6 +90,20 @@ export function apiListWidgetCatalog(): Promise<ApiWidgetDefinition[]> {
   return request('/widgets');
 }
 
+export interface ApiCitySuggestion {
+  name: string;
+  region?: string;
+  country?: string;
+}
+
+export function apiSearchWeatherCities(query: string): Promise<ApiCitySuggestion[]> {
+  return request(`/widgets/weather/cities?q=${encodeURIComponent(query)}`);
+}
+
+export function apiReverseGeocodeWeatherCity(lat: number, lon: number): Promise<{ city: string }> {
+  return request(`/widgets/weather/here?lat=${lat}&lon=${lon}`);
+}
+
 export function apiListDashboard(): Promise<ApiWidgetInstance[]> {
   return request('/dashboard');
 }

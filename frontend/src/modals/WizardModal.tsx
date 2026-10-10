@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { Modal } from '../components/Modal';
@@ -6,8 +6,123 @@ import { ACCENT, REFRESH_RATES, SERVICES } from '../data/catalog';
 import { widgetName, widgetDescription, widgetParamLabel } from '../i18n/widgets';
 import { ServiceIcon } from '../components/Icons';
 import { useAppData, toWidgetInstance } from '../context/AppDataContext';
-import { apiAddDashboardWidget, apiReconfigureDashboardWidget, ApiError, type ApiWidgetDefinition } from '../api/client';
+import {
+  apiAddDashboardWidget,
+  apiReconfigureDashboardWidget,
+  apiSearchWeatherCities,
+  apiReverseGeocodeWeatherCity,
+  ApiError,
+  type ApiCitySuggestion,
+  type ApiWidgetDefinition,
+} from '../api/client';
 import { FormField } from '../components/FormField';
+
+/**
+ * Champ ville des widgets météo : autocomplétion (debounce 300ms) + bouton
+ * géolocalisation, pour éviter les fautes de frappe qui résolvent silencieusement
+ * vers une mauvaise ville (ex: "Abomay-Calvi" → Calvi, Bolivie).
+ */
+function CityField({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const { t } = useTranslation();
+  const [suggestions, setSuggestions] = useState<ApiCitySuggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState<string | null>(null);
+  const debounceRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    if (value.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    debounceRef.current = window.setTimeout(() => {
+      apiSearchWeatherCities(value)
+        .then(setSuggestions)
+        .catch(() => setSuggestions([]));
+    }, 300);
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [value]);
+
+  const pick = (s: ApiCitySuggestion) => {
+    onChange(s.country ? `${s.name}, ${s.country}` : s.name);
+    setSuggestions([]);
+    setOpen(false);
+  };
+
+  const useLocation = () => {
+    setLocError(null);
+    if (!navigator.geolocation) {
+      setLocError(t('wizard.locationUnsupported'));
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        apiReverseGeocodeWeatherCity(pos.coords.latitude, pos.coords.longitude)
+          .then((res) => {
+            onChange(res.city);
+            setSuggestions([]);
+            setOpen(false);
+          })
+          .catch(() => setLocError(t('wizard.locationDenied')))
+          .finally(() => setLocating(false));
+      },
+      () => {
+        setLocError(t('wizard.locationDenied'));
+        setLocating(false);
+      },
+      { timeout: 10000 },
+    );
+  };
+
+  return (
+    <div className="city-field">
+      <div className="city-field-row">
+        <input
+          id={id}
+          type="text"
+          autoComplete="off"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+        />
+        <button
+          type="button"
+          className="btn-locate"
+          onClick={useLocation}
+          disabled={locating}
+          title={t('wizard.useMyLocation')}
+          aria-label={t('wizard.useMyLocation')}
+        >
+          {locating ? '…' : '📍'}
+        </button>
+      </div>
+      {open && suggestions.length > 0 && (
+        <ul className="city-suggestions">
+          {suggestions.map((s) => (
+            <li key={`${s.name}-${s.region ?? ''}-${s.country ?? ''}`}>
+              <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(s)}>
+                {[s.name, s.region, s.country].filter(Boolean).join(', ')}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {locError && (
+        <p className="field-error-msg" role="alert">
+          {locError}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export function WizardModal() {
   const { t } = useTranslation();
@@ -237,20 +352,28 @@ export function WizardModal() {
                   error={configErrors[p.name]}
                   htmlFor={`wiz-${p.name}`}
                 >
-                  <input
-                    id={`wiz-${p.name}`}
-                    type={p.type === 'integer' ? 'number' : 'text'}
-                    value={config[p.name] ?? ''}
-                    onChange={(e) =>
-                      setConfig((c) => ({
-                        ...c,
-                        [p.name]:
-                          p.type === 'integer'
-                            ? Number(e.target.value)
-                            : e.target.value,
-                      }))
-                    }
-                  />
+                  {p.name === 'city' ? (
+                    <CityField
+                      id={`wiz-${p.name}`}
+                      value={String(config[p.name] ?? '')}
+                      onChange={(v) => setConfig((c) => ({ ...c, [p.name]: v }))}
+                    />
+                  ) : (
+                    <input
+                      id={`wiz-${p.name}`}
+                      type={p.type === 'integer' ? 'number' : 'text'}
+                      value={config[p.name] ?? ''}
+                      onChange={(e) =>
+                        setConfig((c) => ({
+                          ...c,
+                          [p.name]:
+                            p.type === 'integer'
+                              ? Number(e.target.value)
+                              : e.target.value,
+                        }))
+                      }
+                    />
+                  )}
                 </FormField>
               ))}
             </div>
