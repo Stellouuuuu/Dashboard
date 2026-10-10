@@ -20,7 +20,7 @@ import {
   type ApiWidgetInstance,
 } from '../api/client';
 import { apiListServices, apiSubscribeService, ServiceApiError } from '../api/services';
-import { apiUnlinkGithub, ApiAuthError } from '../api/auth';
+import { apiUnlinkGithub, apiRefresh, ApiAuthError } from '../api/auth';
 
 export type ModalId = 'oauth' | 'wizard' | null;
 
@@ -207,6 +207,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   // Vraie redirection OAuth (PLAN.md §6.1) : on quitte la page vers GitHub, impossible
   // à faire dans une modale. `state` signé côté serveur, pas de code client à saisir.
   const connectGithub = useCallback(async () => {
+    // Navigation plein-page : contrairement aux appels via api/client.ts, elle ne passe
+    // pas par le retry-on-401 qui rafraîchit l'access token (15 min) silencieusement.
+    // Sans ça, une session restée ouverte plus de 15 min tombe en AUTH_UNAUTHENTICATED
+    // alors que le refresh cookie (30 jours) est encore valide.
+    try {
+      await apiRefresh();
+    } catch {
+      // Refresh cookie lui-même expiré : on navigue quand même, l'utilisateur sera
+      // redirigé vers le login par le même AUTH_UNAUTHENTICATED qu'avant ce correctif.
+    }
     window.location.assign('/api/v1/auth/oauth/github');
   }, []);
 
