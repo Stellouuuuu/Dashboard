@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import type { ServiceId, WidgetInstance } from '../data/catalog';
 import type { ToastItem } from '../components/Toasts';
 import {
+  apiGetDashboardWidgetData,
   apiListDashboard,
   apiListWidgetCatalog,
   apiMoveDashboardWidget,
@@ -244,8 +245,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setGithubError(e instanceof ServiceApiError ? t(`errors.${e.code}`, { defaultValue: t('errors.INTERNAL_ERROR') }) : t('errors.INTERNAL_ERROR'));
     } finally {
       await loadServices();
+      // Un widget GitHub resté en erreur (ex: ancien token invalide) ne doit pas attendre
+      // le prochain cycle du Timer pour se rétablir : on le force dès que le lien OAuth
+      // est (re)confirmé, pour que l'utilisateur n'ait jamais à rafraîchir lui-même.
+      const githubInstances = instances.filter(
+        (inst) => catalog.find((w) => w.name === inst.widgetId)?.service === 'github',
+      );
+      await Promise.all(
+        githubInstances.map(async (inst) => {
+          setWidgetStatus(inst.uid, 'loading');
+          try {
+            const res = await apiGetDashboardWidgetData(inst.uid, true);
+            setWidgetData(inst.uid, res.data);
+            setWidgetStatus(inst.uid, 'ok');
+          } catch (err) {
+            const message =
+              err instanceof ApiError
+                ? t(`errors.${err.code}`, { defaultValue: t('dashboard.card.loadError') })
+                : t('dashboard.card.loadError');
+            setWidgetStatus(inst.uid, 'error', message);
+          }
+        }),
+      );
     }
-  }, [loadServices, toast, t]);
+  }, [instances, catalog, loadServices, setWidgetStatus, setWidgetData, toast, t]);
 
   // weather et rss sont disponibles par défaut, sans abonnement (PLAN.md §5) —
   // seul github exige une liaison OAuth avant de pouvoir s'y abonner.
