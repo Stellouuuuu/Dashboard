@@ -1014,9 +1014,10 @@ tr:last-child td{border-bottom:none;}
 .btn-locate:hover{border-color:var(--text-dim);}
 .btn-locate:disabled{opacity:.6;cursor:default;}
 .city-suggestions{
-  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:30;
+  position:fixed;z-index:300;
   background:var(--panel);border:1px solid var(--border);border-radius:var(--r-sm);
   box-shadow:var(--card-shadow);max-height:220px;overflow:auto;
+  backdrop-filter:blur(24px) saturate(1.3);
 }
 .city-suggestions li button{
   display:block;width:100%;text-align:left;padding:9px 13px;font-size:.85rem;

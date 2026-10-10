@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { Modal } from '../components/Modal';
@@ -28,7 +29,27 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
   const [open, setOpen] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState<string | null>(null);
+  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const debounceRef = useRef<number | null>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  // Portail vers document.body (voir Modal.tsx) : la modale a overflow:hidden et
+  // le body overflow:auto, donc une liste position:absolute se faisait tronquer
+  // et perdait la bataille de z-index contre les boutons "Retour"/"Continuer".
+  useEffect(() => {
+    if (!open || suggestions.length === 0) return;
+    const update = () => {
+      const r = rowRef.current?.getBoundingClientRect();
+      if (r) setRect({ top: r.bottom + 4, left: r.left, width: r.width });
+    };
+    update();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [open, suggestions.length]);
 
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
@@ -67,11 +88,25 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
             setSuggestions([]);
             setOpen(false);
           })
-          .catch(() => setLocError(t('wizard.locationDenied')))
+          .catch((err) =>
+            setLocError(
+              err instanceof ApiError
+                ? `${t('wizard.locationLookupFailed')} (${err.message})`
+                : t('wizard.locationLookupFailed'),
+            ),
+          )
           .finally(() => setLocating(false));
       },
-      () => {
-        setLocError(t('wizard.locationDenied'));
+      (err) => {
+        // Distingue le refus de permission (cas le plus courant) d'une vraie panne
+        // GPS/réseau, pour pouvoir diagnostiquer au lieu d'un message générique.
+        const message =
+          err.code === err.PERMISSION_DENIED
+            ? t('wizard.locationPermissionDenied')
+            : err.code === err.TIMEOUT
+              ? t('wizard.locationTimeout')
+              : t('wizard.locationDenied');
+        setLocError(message);
         setLocating(false);
       },
       { timeout: 10000 },
@@ -80,7 +115,7 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
 
   return (
     <div className="city-field">
-      <div className="city-field-row">
+      <div className="city-field-row" ref={rowRef}>
         <input
           id={id}
           type="text"
@@ -104,17 +139,21 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
           {locating ? '…' : '📍'}
         </button>
       </div>
-      {open && suggestions.length > 0 && (
-        <ul className="city-suggestions">
-          {suggestions.map((s) => (
-            <li key={`${s.name}-${s.region ?? ''}-${s.country ?? ''}`}>
-              <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(s)}>
-                {[s.name, s.region, s.country].filter(Boolean).join(', ')}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {open &&
+        suggestions.length > 0 &&
+        rect &&
+        createPortal(
+          <ul className="city-suggestions" style={{ top: rect.top, left: rect.left, width: rect.width }}>
+            {suggestions.map((s) => (
+              <li key={`${s.name}-${s.region ?? ''}-${s.country ?? ''}`}>
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(s)}>
+                  {[s.name, s.region, s.country].filter(Boolean).join(', ')}
+                </button>
+              </li>
+            ))}
+          </ul>,
+          document.body,
+        )}
       {locError && (
         <p className="field-error-msg" role="alert">
           {locError}
