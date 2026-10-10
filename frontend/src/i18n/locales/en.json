@@ -318,6 +318,7 @@
     "locationPermissionDenied": "Location access denied: allow location for this site in your browser settings.",
     "locationTimeout": "Locating took too long, try again.",
     "locationLookupFailed": "Position found but couldn't be converted to a city",
+    "locationApprox": "Approximate position (±{{km}} km): check and correct the city if needed.",
     "frequencyHint": "How often should it refresh?",
     "every": "Every {{value}}",
     "reviewHint": "Review before confirming.",

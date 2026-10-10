@@ -29,6 +29,7 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
   const [open, setOpen] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState<string | null>(null);
+  const [locHint, setLocHint] = useState<string | null>(null);
   const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const debounceRef = useRef<number | null>(null);
   const rowRef = useRef<HTMLDivElement>(null);
@@ -75,6 +76,7 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
 
   const useLocation = () => {
     setLocError(null);
+    setLocHint(null);
     if (!navigator.geolocation) {
       setLocError(t('wizard.locationUnsupported'));
       return;
@@ -82,6 +84,13 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        // Position réseau (sans GPS) : l'erreur peut atteindre plusieurs km, assez
+        // pour tomber sur la ville voisine plutôt que la bonne (vécu : Cadjehoun au
+        // lieu d'Abomey-Calavi, ~10km d'écart). On prévient plutôt que de laisser
+        // croire que le résultat est exact — le champ reste modifiable ensuite.
+        if (pos.coords.accuracy > 3000) {
+          setLocHint(t('wizard.locationApprox', { km: Math.round(pos.coords.accuracy / 1000) }));
+        }
         apiReverseGeocodeWeatherCity(pos.coords.latitude, pos.coords.longitude)
           .then((res) => {
             onChange(res.city);
@@ -129,6 +138,7 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
           onChange={(e) => {
             onChange(e.target.value);
             setOpen(true);
+            setLocHint(null);
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => window.setTimeout(() => setOpen(false), 150)}
@@ -164,6 +174,7 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
           {locError}
         </p>
       )}
+      {!locError && locHint && <p className="field-hint">{locHint}</p>}
     </div>
   );
 }
