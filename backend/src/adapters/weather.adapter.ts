@@ -1,11 +1,30 @@
 import { env } from "../config/env.js";
 
+interface WeatherApiLocation {
+  name: string;
+  region?: string;
+  country?: string;
+}
+
 interface WeatherApiCurrentResponse {
+  location?: WeatherApiLocation;
   current?: { temp_c: number; temp_f: number; condition?: { text: string } };
 }
 
 interface WeatherApiForecastResponse {
+  location?: WeatherApiLocation;
   forecast?: { forecastday: { date: string; day: { totalprecip_mm: number } }[] };
+}
+
+/**
+ * WeatherAPI's `q=` fait une correspondance approximative : une ville mal
+ * orthographiée renvoie quand même un résultat, mais pour un autre lieu. On
+ * affiche donc toujours `location.name` (ce qui a été réellement trouvé),
+ * jamais `config.city` tel quel — sinon un mismatch silencieux passe inaperçu.
+ */
+function resolvedCityName(location: WeatherApiLocation | undefined, fallback: string): string {
+  if (!location) return fallback;
+  return location.country ? `${location.name}, ${location.country}` : location.name;
 }
 
 interface PrecipitationConfig {
@@ -106,7 +125,7 @@ export async function fetchCityTemperature(config: CityTemperatureConfig): Promi
     const data = (await res.json()) as WeatherApiCurrentResponse;
     if (!data.current) throw new Error("Réponse météo invalide");
     return {
-      city: config.city,
+      city: resolvedCityName(data.location, config.city),
       temperature: Math.round((unit === "F" ? data.current.temp_f : data.current.temp_c) * 10) / 10,
       unit,
       description: data.current.condition?.text ?? "Conditions inconnues",
