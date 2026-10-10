@@ -109,7 +109,10 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
         setLocError(message);
         setLocating(false);
       },
-      { timeout: 10000 },
+      // Desktop/Linux sans GPS passe par la géoloc réseau du navigateur, souvent
+      // plus lente que 10s. maximumAge accepte une position récente déjà connue
+      // au lieu d'en redemander une, pour les clics suivants.
+      { timeout: 20000, maximumAge: 300000 },
     );
   };
 
