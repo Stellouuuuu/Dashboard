@@ -1,10 +1,11 @@
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormField } from '../components/FormField';
 import { useAuth } from '../auth/AuthContext';
-import { ApiAuthError } from '../api/auth';
+import { ApiAuthError, googleOAuthStartUrl } from '../api/auth';
+import { IconGoogle } from '../components/Icons';
 
 function IconEye({ off }: { off?: boolean }) {
   if (off) {
@@ -35,6 +36,16 @@ export function LoginPage() {
   const [remember, setRemember] = useState(true);
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const [submitting, setSubmitting] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('google') === 'error') {
+      setErrors({ form: t('auth.googleError') });
+      searchParams.delete('google');
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!bootstrapping && isAuthenticated) {
     return <Navigate to={from} replace />;
@@ -77,6 +88,14 @@ export function LoginPage() {
       <div className="auth-glass">
         <h1 className="auth-glass-title">{t('auth.login.title')}</h1>
         <p className="auth-glass-lead">{t('auth.login.lead')}</p>
+
+        <div className="oauth-row">
+          <a className="oauth-btn" href={googleOAuthStartUrl()}>
+            <IconGoogle />
+            {t('auth.googleButton')}
+          </a>
+        </div>
+        <div className="rule">{t('auth.orDivider')}</div>
 
         <form className="auth-glass-form" onSubmit={onSubmit} noValidate>
           {errors.form && (

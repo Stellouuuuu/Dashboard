@@ -17,7 +17,9 @@ import {
   apiMe,
   apiRefresh,
   apiRegister,
+  apiUnlinkGoogle,
   apiUpdateProfile,
+  googleOAuthStartUrl,
   type RealUser,
 } from '../api/auth';
 import i18n from '../i18n';
@@ -40,6 +42,8 @@ function adaptRealUser(u: RealUser): PublicUser {
     confirmed: u.emailConfirmed,
     role: u.role,
     createdAt: u.createdAt.slice(0, 10),
+    hasPassword: u.hasPassword,
+    googleLinked: u.googleLinked,
   };
 }
 
@@ -61,6 +65,9 @@ interface AuthContextValue {
   deleteAccount: (password: string) => Promise<void>;
   updateProfile: (name: string) => Promise<void>;
   sessionRemainingMs: number;
+  connectGoogle: () => void;
+  disconnectGoogle: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -163,6 +170,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applyUser],
   );
 
+  // Navigation plein-page : ne passe pas par le retry-on-401 qui rafraîchit l'access
+  // token (15 min) silencieusement (même piège que connectGithub, voir AppDataContext).
+  // On rafraîchit explicitement avant de naviguer, pour que la liaison depuis Services
+  // fonctionne même après une session restée ouverte plus de 15 min.
+  const connectGoogle = useCallback(() => {
+    apiRefresh()
+      .catch(() => undefined)
+      .finally(() => window.location.assign(googleOAuthStartUrl()));
+  }, []);
+
+  const disconnectGoogle = useCallback(async () => {
+    await apiUnlinkGoogle();
+    const me = await apiMe();
+    applyUser(me);
+  }, [applyUser]);
+
+  const refreshUser = useCallback(async () => {
+    const me = await apiMe();
+    applyUser(me);
+  }, [applyUser]);
+
   const sessionRemainingMs = accessIssuedAtRef.current
     ? Math.max(0, ACCESS_TOKEN_TTL_MS - (now - accessIssuedAtRef.current))
     : 0;
@@ -181,6 +209,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       deleteAccount,
       updateProfile,
       sessionRemainingMs,
+      connectGoogle,
+      disconnectGoogle,
+      refreshUser,
     }),
     [
       user,
@@ -193,6 +224,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       deleteAccount,
       updateProfile,
       sessionRemainingMs,
+      connectGoogle,
+      disconnectGoogle,
+      refreshUser,
     ],
   );
 

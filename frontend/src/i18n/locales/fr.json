@@ -46,6 +46,9 @@
     "addWidgetLabel": "Ajouter un widget"
   },
   "auth": {
+    "googleButton": "Continuer avec Google",
+    "orDivider": "Ou",
+    "googleError": "La connexion avec Google a échoué. Réessaie.",
     "emailLabel": "Email",
     "emailPlaceholder": "toi@exemple.com",
     "nameLabel": "Nom",
@@ -356,6 +359,14 @@
       "disconnected": "GitHub déconnecté",
       "connectedToast": "GitHub connecté"
     },
+    "google": {
+      "title": "Google",
+      "connected": "Connecté comme {{email}}.",
+      "notConnected": "Lie ton compte Google pour te connecter plus vite.",
+      "connect": "Connecter Google",
+      "disconnect": "Délier",
+      "linkFailed": "La liaison du compte Google a échoué."
+    },
     "rss": { "title": "RSS", "desc": "Aucun compte requis — indique l’URL du flux directement sur chaque widget." },
     "finance": { "title": "Finance", "desc": "Aucun compte requis, taux de change et cours crypto en direct." },
     "hackernews": { "title": "Hacker News", "desc": "Aucun compte requis, meilleures publications et recherche par mot-clé." },
@@ -392,6 +403,7 @@
     "auditEvent": {
       "AUTH_LOGIN": "Connexion : {{email}}",
       "OAUTH_GITHUB_LINKED": "GitHub connecté par {{email}}",
+      "OAUTH_GOOGLE_LINKED": "Google connecté par {{email}}",
       "WIDGET_ADDED": "Widget ajouté : {{widgetName}} par {{email}}",
       "WIDGET_REMOVED": "Widget supprimé : {{widgetName}} par {{email}}",
       "ADMIN_USER_SUSPENDED": "Utilisateur suspendu : {{targetEmail}}",
@@ -530,6 +542,12 @@
     "AUTH_FORBIDDEN": "Action non autorisée.",
     "AUTH_CURRENT_PASSWORD_INCORRECT": "Mot de passe actuel incorrect.",
     "AUTH_USER_NOT_FOUND": "Utilisateur introuvable.",
+    "AUTH_GOOGLE_EMAIL_TAKEN": "Cet email est déjà lié à un autre compte Google.",
+    "AUTH_GOOGLE_EMAIL_UNVERIFIED": "L'email de ce compte Google n'est pas vérifié.",
+    "AUTH_GOOGLE_ALREADY_LINKED": "Ce compte Google est déjà lié à un autre utilisateur.",
+    "AUTH_GOOGLE_NOT_CONFIGURED": "La connexion Google n’est pas disponible pour le moment.",
+    "AUTH_NO_PASSWORD_SET": "Ce compte n'a pas de mot de passe (connecté via Google).",
+    "AUTH_GOOGLE_UNLINK_REQUIRES_PASSWORD": "Définis d'abord un mot de passe (Profil) avant de délier Google, sinon tu perds l'accès à ton compte.",
     "OAUTH_NOT_CONFIGURED": "La connexion GitHub n’est pas disponible pour le moment.",
     "OAUTH_STATE_INVALID": "La demande d’autorisation a expiré, réessaie.",
     "OAUTH_EXCHANGE_FAILED": "La connexion à GitHub a échoué, réessaie.",

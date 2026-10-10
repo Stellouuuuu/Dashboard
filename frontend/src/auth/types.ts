@@ -6,4 +6,6 @@ export interface PublicUser {
   confirmed: boolean;
   role: 'user' | 'admin';
   createdAt: string;
+  hasPassword: boolean;
+  googleLinked: boolean;
 }

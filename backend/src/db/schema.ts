@@ -15,7 +15,10 @@ import {
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
+  // Nullable : un compte créé via "Se connecter avec Google" n'a pas de mot de
+  // passe tant que l'utilisateur n'en définit pas un explicitement.
+  passwordHash: text("password_hash"),
+  googleId: text("google_id").unique(), // sub OAuth Google, si le compte est lié
   name: text("name"), // nom affiché, optionnel — édité depuis le profil (PATCH /auth/profile)
   role: text("role").notNull().default("user"), // 'user' | 'admin'
   emailConfirmed: boolean("email_confirmed").notNull().default(false),

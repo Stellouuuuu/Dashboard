@@ -46,6 +46,9 @@
     "addWidgetLabel": "Add a widget"
   },
   "auth": {
+    "googleButton": "Continue with Google",
+    "orDivider": "Or",
+    "googleError": "Google sign-in failed. Try again.",
     "emailLabel": "Email",
     "emailPlaceholder": "you@example.com",
     "nameLabel": "Name",
@@ -356,6 +359,14 @@
       "disconnected": "GitHub disconnected",
       "connectedToast": "GitHub connected"
     },
+    "google": {
+      "title": "Google",
+      "connected": "Connected as {{email}}.",
+      "notConnected": "Link your Google account to sign in faster.",
+      "connect": "Connect Google",
+      "disconnect": "Unlink",
+      "linkFailed": "Linking your Google account failed."
+    },
     "rss": { "title": "RSS", "desc": "No account needed — enter the feed URL directly on each widget." },
     "finance": { "title": "Finance", "desc": "No account needed, live exchange rates and crypto prices." },
     "hackernews": { "title": "Hacker News", "desc": "No account needed, top stories and keyword search." },
@@ -392,6 +403,7 @@
     "auditEvent": {
       "AUTH_LOGIN": "Sign in: {{email}}",
       "OAUTH_GITHUB_LINKED": "GitHub connected by {{email}}",
+      "OAUTH_GOOGLE_LINKED": "Google connected by {{email}}",
       "WIDGET_ADDED": "Widget added: {{widgetName}} by {{email}}",
       "WIDGET_REMOVED": "Widget removed: {{widgetName}} by {{email}}",
       "ADMIN_USER_SUSPENDED": "User suspended: {{targetEmail}}",
@@ -530,6 +542,12 @@
     "AUTH_FORBIDDEN": "Action not allowed.",
     "AUTH_CURRENT_PASSWORD_INCORRECT": "Current password is incorrect.",
     "AUTH_USER_NOT_FOUND": "User not found.",
+    "AUTH_GOOGLE_EMAIL_TAKEN": "This email is already linked to another Google account.",
+    "AUTH_GOOGLE_EMAIL_UNVERIFIED": "This Google account's email isn't verified.",
+    "AUTH_GOOGLE_ALREADY_LINKED": "This Google account is already linked to another user.",
+    "AUTH_GOOGLE_NOT_CONFIGURED": "Google sign-in is not available right now.",
+    "AUTH_NO_PASSWORD_SET": "This account has no password (signed in with Google).",
+    "AUTH_GOOGLE_UNLINK_REQUIRES_PASSWORD": "Set a password first (Profile) before unlinking Google, or you'll lose access to your account.",
     "OAUTH_NOT_CONFIGURED": "GitHub sign-in is not available right now.",
     "OAUTH_STATE_INVALID": "The authorization request expired, try again.",
     "OAUTH_EXCHANGE_FAILED": "Connecting to GitHub failed, try again.",

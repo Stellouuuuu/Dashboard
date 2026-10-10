@@ -14,6 +14,33 @@ export async function findUserById(id: number): Promise<UserRow | null> {
   return row ?? null;
 }
 
+export async function findUserByGoogleId(googleId: string): Promise<UserRow | null> {
+  const [row] = await db.select().from(users).where(eq(users.googleId, googleId));
+  return row ?? null;
+}
+
+/** Compte créé via "Se connecter avec Google" — pas de mot de passe, email déjà vérifié par Google. */
+export async function createUserFromGoogle(
+  email: string,
+  googleId: string,
+  name: string | undefined,
+  language: string,
+): Promise<UserRow> {
+  const [row] = await db
+    .insert(users)
+    .values({ email, googleId, name, language, emailConfirmed: true })
+    .returning();
+  return row;
+}
+
+export async function linkGoogleId(userId: number, googleId: string): Promise<void> {
+  await db.update(users).set({ googleId }).where(eq(users.id, userId));
+}
+
+export async function unlinkGoogleId(userId: number): Promise<void> {
+  await db.update(users).set({ googleId: null }).where(eq(users.id, userId));
+}
+
 export async function createUser(
   email: string,
   passwordHash: string,

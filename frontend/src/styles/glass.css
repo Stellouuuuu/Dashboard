@@ -395,6 +395,8 @@ body::after{
 }
 .svc-row .dash-svc-thumb{width:64px;height:64px;border-radius:14px;overflow:hidden;flex-shrink:0;}
 .svc-row .dash-svc-thumb img{width:100%;height:100%;object-fit:cover;}
+.svc-row .svc-thumb-icon{display:flex;align-items:center;justify-content:center;background:var(--bg-2);}
+.svc-row .svc-thumb-icon .icon{width:28px;height:28px;}
 .badge-on{background:var(--accent);color:#fff;}
 .pill-status{border-radius:var(--r-pill);}
 .pill-confirmed,.pill-status.pill-confirmed{background:rgba(108,198,240,.3);color:#fff;}

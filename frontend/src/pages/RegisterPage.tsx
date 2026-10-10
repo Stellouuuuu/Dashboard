@@ -4,7 +4,8 @@ import { useTranslation, Trans } from 'react-i18next';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormField } from '../components/FormField';
 import { useAuth } from '../auth/AuthContext';
-import { ApiAuthError } from '../api/auth';
+import { ApiAuthError, googleOAuthStartUrl } from '../api/auth';
+import { IconGoogle } from '../components/Icons';
 
 export function RegisterPage() {
   const { t } = useTranslation();
@@ -51,6 +52,13 @@ export function RegisterPage() {
         {!done ? (
           <>
             <p className="auth-glass-lead">{t('auth.register.lead')}</p>
+            <div className="oauth-row">
+              <a className="oauth-btn" href={googleOAuthStartUrl()}>
+                <IconGoogle />
+                {t('auth.googleButton')}
+              </a>
+            </div>
+            <div className="rule">{t('auth.orDivider')}</div>
             <form className="auth-glass-form" onSubmit={onSubmit} noValidate>
               {errors.form && (
                 <div className="form-banner error" role="alert">

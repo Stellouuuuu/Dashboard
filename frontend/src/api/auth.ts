@@ -10,6 +10,8 @@ export interface RealUser {
   emailConfirmed: boolean;
   language: 'fr' | 'en';
   createdAt: string;
+  hasPassword: boolean;
+  googleLinked: boolean;
 }
 
 export class ApiAuthError extends Error {
@@ -113,4 +115,13 @@ export function apiUpdateProfile(name: string): Promise<RealUser> {
 /** GET /api/v1/auth/oauth/github — pas un appel fetch, une vraie navigation. */
 export function githubOAuthStartUrl(): string {
   return '/api/v1/auth/oauth/github';
+}
+
+export function apiUnlinkGoogle(): Promise<void> {
+  return request('/auth/oauth/google', { method: 'DELETE' });
+}
+
+/** GET /api/v1/auth/oauth/google — vraie navigation, sert aussi bien la connexion/inscription que la liaison. */
+export function googleOAuthStartUrl(): string {
+  return '/api/v1/auth/oauth/google';
 }

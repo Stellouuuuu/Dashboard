@@ -1,7 +1,9 @@
 import type { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import { env } from "../../config/env.js";
 import * as service from "./auth.service.js";
 import * as githubOAuth from "./github-oauth.service.js";
+import * as googleOAuth from "./google-oauth.service.js";
 
 function sendError(res: Response, err: any) {
   res.status(err.status ?? 500).json({ error: err.message, code: err.code ?? "INTERNAL_ERROR" });
@@ -158,6 +160,61 @@ export async function oauthGithubCallback(req: Request, res: Response) {
 export async function oauthGithubUnlink(req: Request, res: Response) {
   await githubOAuth.unlink(req.userId!);
   res.status(204).send();
+}
+
+/** Déduit un éventuel utilisateur connecté sans faire échouer la requête (pas de requireAuth ici). */
+function tryGetUserId(req: Request): number | undefined {
+  const token = req.cookies?.access_token;
+  if (!token) return undefined;
+  try {
+    return (jwt.verify(token, env.JWT_SECRET) as unknown as { sub: number }).sub;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * GET /api/v1/auth/oauth/google — connexion/inscription si pas de session, ou
+ * liaison du compte Google à la session en cours (ex: depuis Services).
+ */
+export async function oauthGoogleStart(req: Request, res: Response) {
+  try {
+    const linkUserId = tryGetUserId(req);
+    const url = googleOAuth.buildAuthorizeUrl(linkUserId);
+    res.redirect(url);
+  } catch (err: any) {
+    sendError(res, err);
+  }
+}
+
+/** GET /api/v1/auth/oauth/google/callback — identité et intention (login/link) portées par `state`. */
+export async function oauthGoogleCallback(req: Request, res: Response) {
+  const { code, state } = req.query;
+  if (typeof code !== "string" || typeof state !== "string") {
+    return res.redirect(`${env.APP_URL}/login?google=error`);
+  }
+  try {
+    const { profile, statePayload } = await googleOAuth.completeAuth(code, state);
+    if (statePayload.purpose === "google-link" && statePayload.sub) {
+      await service.linkGoogleAccount(statePayload.sub, profile);
+      return res.redirect(`${env.APP_URL}/services?google=linked`);
+    }
+    const { accessToken, refreshToken } = await service.loginWithGoogle(profile, "fr");
+    setAccessCookie(res, accessToken);
+    setRefreshCookie(res, refreshToken);
+    res.redirect(`${env.APP_URL}/dashboard`);
+  } catch (err: any) {
+    res.redirect(`${env.APP_URL}/login?google=error`);
+  }
+}
+
+export async function oauthGoogleUnlink(req: Request, res: Response) {
+  try {
+    await service.unlinkGoogleAccount(req.userId!);
+    res.status(204).send();
+  } catch (err: any) {
+    sendError(res, err);
+  }
 }
 
 export async function changePassword(req: Request, res: Response) {

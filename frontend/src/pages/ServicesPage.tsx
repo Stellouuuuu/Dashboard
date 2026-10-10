@@ -1,8 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppData } from '../context/AppDataContext';
+import { useAuth } from '../auth/AuthContext';
+import { ApiAuthError } from '../api/auth';
 import { IMG } from '../data/images';
+import { IconGoogle } from '../components/Icons';
 
 export function ServicesPage() {
   const { t } = useTranslation();
@@ -15,23 +18,52 @@ export function ServicesPage() {
     loadServices,
     completeGithubLink,
   } = useAppData();
+  const { user, connectGoogle, disconnectGoogle, refreshUser } = useAuth();
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   // Retour de redirection OAuth GitHub (PLAN.md §6.1) : /services?github=linked|error.
+  // Et Google (liaison depuis Services, pas la connexion initiale) : ?google=linked|error.
   useEffect(() => {
     const github = searchParams.get('github');
+    const google = searchParams.get('google');
     if (github === 'linked') {
       void completeGithubLink();
     } else {
       void loadServices();
     }
-    if (github) {
+    if (google === 'linked') {
+      void refreshUser();
+    } else if (google === 'error') {
+      setGoogleError(t('services.google.linkFailed'));
+    }
+    if (github || google) {
       searchParams.delete('github');
+      searchParams.delete('google');
       setSearchParams(searchParams, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleGoogleToggle = async () => {
+    if (user?.googleLinked) {
+      setGoogleLoading(true);
+      setGoogleError(null);
+      try {
+        await disconnectGoogle();
+      } catch (e) {
+        setGoogleError(
+          e instanceof ApiAuthError ? t(`errors.${e.code}`, { defaultValue: t('errors.INTERNAL_ERROR') }) : t('errors.INTERNAL_ERROR'),
+        );
+      } finally {
+        setGoogleLoading(false);
+      }
+    } else {
+      connectGoogle();
+    }
+  };
 
   return (
     <div className="app-pane">
@@ -83,6 +115,30 @@ export function ServicesPage() {
                 : githubConnected
                   ? t('services.github.disconnect')
                   : t('services.github.connect')}
+            </button>
+          </div>
+        </div>
+
+        <div className="svc-row">
+          <span className="dash-svc-thumb svc-thumb-icon" aria-hidden="true">
+            <IconGoogle />
+          </span>
+          <div className="svc-row-info">
+            <h3>{t('services.google.title')}</h3>
+            <p>{user?.googleLinked ? t('services.google.connected', { email: user.email }) : t('services.google.notConnected')}</p>
+            {googleError && !user?.googleLinked && (
+              <p className="field-error-msg" role="alert">
+                {googleError}
+              </p>
+            )}
+          </div>
+          <div className="svc-row-actions">
+            <button type="button" className="btn btn-ghost btn-sm" disabled={googleLoading} onClick={() => void handleGoogleToggle()}>
+              {googleLoading
+                ? '…'
+                : user?.googleLinked
+                  ? t('services.google.disconnect')
+                  : t('services.google.connect')}
             </button>
           </div>
         </div>

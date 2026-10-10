@@ -48,6 +48,10 @@ const envSchema = z.object({
   GITHUB_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
   GITHUB_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
   GITHUB_TOKEN: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Connexion/inscription via Google (distinct de GitHub : utilisé pour l'auth elle-même,
+  // pas pour un widget) — optionnel, désactivé si absent.
+  GOOGLE_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
+  GOOGLE_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
 });
 
 function formatZodError(err: z.ZodError): string {
@@ -75,4 +79,12 @@ export const isGithubOAuthConfigured = Boolean(
 
 if (!isGithubOAuthConfigured) {
   console.log("[config] GitHub OAuth disabled (GITHUB_CLIENT_ID/SECRET not set)");
+}
+
+export const isGoogleOAuthConfigured = Boolean(
+  env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET,
+);
+
+if (!isGoogleOAuthConfigured) {
+  console.log("[config] Google sign-in disabled (GOOGLE_CLIENT_ID/SECRET not set)");
 }

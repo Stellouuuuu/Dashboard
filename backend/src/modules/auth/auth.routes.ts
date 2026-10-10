@@ -37,4 +37,11 @@ router.get("/oauth/github", requireAuth, ctrl.oauthGithubStart);
 router.get("/oauth/github/callback", ctrl.oauthGithubCallback);
 router.delete("/oauth/github", requireAuth, ctrl.oauthGithubUnlink);
 
+// Pas de requireAuth sur /oauth/google : sert à la fois la connexion/inscription
+// (utilisateur pas encore authentifié) et la liaison depuis Services (authentifié) —
+// le contrôleur détecte lui-même lequel des deux cas s'applique.
+router.get("/oauth/google", ctrl.oauthGoogleStart);
+router.get("/oauth/google/callback", ctrl.oauthGoogleCallback);
+router.delete("/oauth/google", requireAuth, ctrl.oauthGoogleUnlink);
+
 export default router;
