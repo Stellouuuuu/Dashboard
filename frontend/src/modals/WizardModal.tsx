@@ -109,10 +109,12 @@ function CityField({ id, value, onChange }: { id: string; value: string; onChang
         setLocError(message);
         setLocating(false);
       },
-      // Desktop/Linux sans GPS passe par la géoloc réseau du navigateur, souvent
-      // plus lente que 10s. maximumAge accepte une position récente déjà connue
-      // au lieu d'en redemander une, pour les clics suivants.
-      { timeout: 20000, maximumAge: 300000 },
+      // La position réseau (WiFi/antennes) s'appuie sur une base Google/Mozilla
+      // bien moins dense hors Europe/Amérique du Nord, donc lente ou en échec
+      // dans certaines régions. enableHighAccuracy force le GPS du device quand
+      // il existe (mobile), indépendant de cette base. maximumAge réutilise une
+      // position récente pour les clics suivants au lieu d'en redemander une.
+      { timeout: 20000, maximumAge: 300000, enableHighAccuracy: true },
     );
   };
 
