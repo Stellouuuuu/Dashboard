@@ -37,6 +37,8 @@
 | **Spotify** | OAuth 2.0 (required) | `player` | `uri` *(string, Spotify link)* — embedded player to listen |
 | **LinkedIn** | OAuth 2.0 (required) | `job_search` | `keywords`, `location` *(string)*, `job_type`, `period` *(string, dropdown)* |
 | | | `hashtag_watch` | `hashtags` *(string, comma-separated)* |
+| **YouTube** | None | `channel_latest_videos` | `channel` *(string, @handle/ID/URL)*, `number` *(integer)* |
+| | | `video_stats` | `video` *(string, link or ID)* |
 
 Parameter types in `/about.json` are only `string` and `integer` (subject requirement).
 
@@ -171,6 +173,7 @@ Minimum refresh rate per widget: **30 seconds** (enforced server-side).
 ├── backend/  # Express API + Drizzle migrations
 ├── nginx/  # nginx.conf (about.json + /api proxy)
 ├── docs/  # Architecture, API, credits, …
+├── poc/  # Proof of concept (subject requirement): one widget, real stack, real API
 ├── bonus/  # Out-of-scope extras
 ├── docker-compose.yml
 ├── .env.example
@@ -263,7 +266,7 @@ Styled HTML (open in the browser when the stack is running):
 | [/docs/delivery-plan.html](http://localhost:8080/docs/delivery-plan.html) | Short plan summary |
 | [/docs/bonus.html](http://localhost:8080/docs/bonus.html) | Out-of-scope extras |
 
-Markdown sources (same content, for GitHub): [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Tech choices](docs/TECH_CHOICES.md) · [Accessibility](docs/ACCESSIBILITY.md) · [Credits](docs/CREDITS.md) · [Plan](docs/PLAN.md)
+Markdown sources (same content, for GitHub): [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Tech choices](docs/TECH_CHOICES.md) · [Accessibility](docs/ACCESSIBILITY.md) · [Credits](docs/CREDITS.md) · [Plan](docs/PLAN.md) · [Proof of concept](poc/README.md)
 
 ### License
 
@@ -304,6 +307,8 @@ Student project — Epitech module **G-WEB-500**.
 | **Spotify** | OAuth 2.0 (requis) | `player` | `uri` *(string, lien Spotify)* — lecteur intégré pour écouter |
 | **LinkedIn** | OAuth 2.0 (requis) | `job_search` | `keywords`, `location` *(string)*, `job_type`, `period` *(string, liste)* |
 | | | `hashtag_watch` | `hashtags` *(string, séparés par des virgules)* |
+| **YouTube** | Aucune | `channel_latest_videos` | `channel` *(string, @pseudo/ID/URL)*, `number` *(integer)* |
+| | | `video_stats` | `video` *(string, lien ou ID)* |
 
 Les types de paramètres dans `/about.json` sont uniquement `string` et `integer` (exigence du sujet).
 
@@ -438,6 +443,7 @@ Taux de rafraîchissement minimum par widget : **30 secondes** (imposé côté s
 ├── backend/  # API Express + migrations Drizzle
 ├── nginx/  # nginx.conf (about.json + proxy /api)
 ├── docs/  # Architecture, API, crédits, …
+├── poc/  # Preuve de concept (exigence du sujet) : un widget, stack réelle, vraie API
 ├── bonus/  # Extras hors périmètre
 ├── docker-compose.yml
 ├── .env.example
@@ -474,7 +480,7 @@ Docs HTML stylées (navigateur, stack démarrée) :
 | [/docs/delivery-plan.html](http://localhost:8080/docs/delivery-plan.html) | Résumé court du plan |
 | [/docs/bonus.html](http://localhost:8080/docs/bonus.html) | Extras hors périmètre |
 
-Sources Markdown (même contenu, pour GitHub) : [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Choix tech](docs/TECH_CHOICES.md) · [Accessibilité](docs/ACCESSIBILITY.md) · [Crédits](docs/CREDITS.md) · [Plan](docs/PLAN.md)
+Sources Markdown (même contenu, pour GitHub) : [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Choix tech](docs/TECH_CHOICES.md) · [Accessibilité](docs/ACCESSIBILITY.md) · [Crédits](docs/CREDITS.md) · [Plan](docs/PLAN.md) · [Preuve de concept](poc/README.md)
 
 ### Licence
 

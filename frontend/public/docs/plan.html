@@ -212,11 +212,11 @@
  <table>
  <thead><tr><th>Requirement</th><th>Detail</th><th>Real status (24/09)</th></tr></thead>
  <tbody>
- <tr><td>Services</td><td>≥ 3 (1 + X) — 5 delivered (weather, github, rss, finance, hackernews)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
- <tr><td>Widgets</td><td>≥ 6 (3 × X), each with ≥ 1 parameter — 10 delivered</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Services</td><td>≥ 3 (1 + X) — 8 delivered as of 14/10 (weather, github, rss, finance, hackernews, spotify, linkedin, youtube)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Widgets</td><td>≥ 6 (3 × X), each with ≥ 1 parameter — 14 delivered as of 14/10</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td>Registration + confirmation</td><td>Form, confirmation before access (6-digit OTP email code)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td>Authentication</td><td>Credentials or OIDC</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
- <tr><td>Authorization</td><td>OAuth 2.0, third-party account linked to the user</td><td class="status"><span class="badge badge-partial">PARTIAL</span></td></tr>
+ <tr><td>Authorization</td><td>OAuth 2.0, third-party account linked to the user — GitHub, Spotify, LinkedIn all verified live (14/10)</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td>Service subscription</td><td>Without account by default, others after subscription</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td>Dashboard</td><td>Add, reconfigure, move, delete</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td>Multiple instances</td><td>Two instances of the same widget, different configs, distinct data</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
@@ -225,6 +225,7 @@
  <tr><td>Docker</td><td><code>docker-compose build</code> then <code>up</code>, file at the root</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td><code>/about.json</code></td><td>GET on http://localhost:8080/about.json</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td>Root README.md</td><td>Features, install, usage, stack, structure</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
+ <tr><td>Proof of concept</td><td>One configurable widget, chosen stack, real external API, in a <code>poc/</code> folder at the root</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td><code>bonus/</code> folder</td><td>Everything out of subject scope</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  <tr><td>UX</td><td>Responsive, accessible interface</td><td class="status"><span class="badge badge-done">DONE</span></td></tr>
  </tbody>
@@ -793,11 +794,11 @@ location /  { root /usr/share/nginx/html; try_files $uri /index.html; }</code></
  <table>
  <thead><tr><th>Exigence</th><th>Détail</th><th>Statut réel (24/09)</th></tr></thead>
  <tbody>
- <tr><td>Services</td><td>≥ 3 (1 + X) — 5 livrés (weather, github, rss, finance, hackernews)</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
- <tr><td>Widgets</td><td>≥ 6 (3 × X), chacun avec ≥ 1 paramètre — 10 livrés</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Services</td><td>≥ 3 (1 + X) — 8 livrés au 14/10 (weather, github, rss, finance, hackernews, spotify, linkedin, youtube)</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Widgets</td><td>≥ 6 (3 × X), chacun avec ≥ 1 paramètre — 14 livrés au 14/10</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td>Inscription + confirmation</td><td>Formulaire, confirmation avant accès (code OTP email à 6 chiffres)</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td>Authentification</td><td>Identifiants ou OIDC</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
- <tr><td>Autorisation</td><td>OAuth 2.0, compte tiers lié à l'utilisateur</td><td class="status"><span class="badge badge-partial">PARTIEL</span></td></tr>
+ <tr><td>Autorisation</td><td>OAuth 2.0, compte tiers lié à l'utilisateur — GitHub, Spotify, LinkedIn tous vérifiés en live (14/10)</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td>Abonnement aux services</td><td>Sans compte par défaut, les autres après abonnement</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td>Dashboard</td><td>Ajouter, reconfigurer, déplacer, supprimer</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td>Instances multiples</td><td>Deux instances du même widget, configs différentes, données distinctes</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
@@ -806,6 +807,7 @@ location /  { root /usr/share/nginx/html; try_files $uri /index.html; }</code></
  <tr><td>Docker</td><td><code>docker-compose build</code> puis <code>up</code>, fichier à la racine</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td><code>/about.json</code></td><td>GET sur http://localhost:8080/about.json</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td>README.md racine</td><td>Features, install, usage, stack, structure</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
+ <tr><td>Preuve de concept</td><td>Un widget configurable, stack réelle, vraie API externe, dans un dossier <code>poc/</code> à la racine</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td>Dossier <code>bonus/</code></td><td>Tout ce qui est hors sujet</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  <tr><td>UX</td><td>Interface responsive, accessible</td><td class="status"><span class="badge badge-done">FAIT</span></td></tr>
  </tbody>

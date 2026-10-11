@@ -1,0 +1,71 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0f1115;
+  color: #e8e8ea;
+}
+.poc-main {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 0 20px;
+}
+.poc-sub {
+  opacity: 0.75;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.poc-form {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+.poc-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+.poc-form input,
+.poc-form select,
+.poc-form button {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1a1d24;
+  color: inherit;
+  font-size: 0.95rem;
+}
+.poc-form button {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  cursor: pointer;
+  font-weight: 600;
+}
+.poc-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.poc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #1a1d24;
+  border: 1px solid #2a2d35;
+}
+.poc-error {
+  border-color: #dc2626;
+  color: #fca5a5;
+}
+.poc-kicker {
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+.poc-temp {
+  font-size: 2.2rem;
+  font-weight: 700;
+}
