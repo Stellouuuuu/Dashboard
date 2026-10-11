@@ -47,7 +47,7 @@ interface TopStoriesConfig {
 export async function fetchTopStories(config: TopStoriesConfig): Promise<HnStory[]> {
   const n = Math.min(Math.max(config.number, 1), 30);
   const url = `https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=${n}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`Hacker News indisponible (${res.status})`);
   const data = (await res.json()) as AlgoliaResponse;
   return data.hits.map(toStory);
@@ -62,7 +62,7 @@ interface StorySearchConfig {
 export async function fetchStorySearch(config: StorySearchConfig): Promise<HnStory[]> {
   const n = Math.min(Math.max(config.number, 1), 30);
   const url = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(config.query)}&tags=story&hitsPerPage=${n}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`Hacker News indisponible (${res.status})`);
   const data = (await res.json()) as AlgoliaResponse;
   return data.hits.map(toStory);

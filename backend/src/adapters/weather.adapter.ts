@@ -57,7 +57,7 @@ interface GeocodedPlace {
 /** Géocodage partagé par tous les widgets weather — Open-Meteo, gratuit, sans clé API. */
 async function geocode(city: string): Promise<GeocodedPlace> {
   const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`;
-  const geoRes = await fetch(geoUrl);
+  const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
   if (!geoRes.ok)
     throw new Error(`Géocodage impossible pour cette ville (${geoRes.status}: ${await geoRes.text()})`);
   const geo = (await geoRes.json()) as GeocodingResult;
@@ -101,7 +101,7 @@ export async function fetchCityTemperature(config: CityTemperatureConfig): Promi
 
   if (env.WEATHERAPI_KEY) {
     const url = `https://api.weatherapi.com/v1/current.json?key=${env.WEATHERAPI_KEY}&q=${encodeURIComponent(config.city)}`;
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) throw new Error(`Impossible de récupérer la météo (${res.status}: ${await res.text()})`);
     const data = (await res.json()) as WeatherApiCurrentResponse;
     if (!data.current) throw new Error("Réponse météo invalide");
@@ -119,7 +119,7 @@ export async function fetchCityTemperature(config: CityTemperatureConfig): Promi
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
     `&current=temperature_2m,weather_code&timezone=auto&temperature_unit=${temperatureUnit}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`Impossible de récupérer la météo (${res.status}: ${await res.text()})`);
   const data = (await res.json()) as CurrentWeatherResponse;
   if (!data.current) throw new Error("Réponse météo invalide");
@@ -143,7 +143,7 @@ export async function fetchPrecipitationForecast(
 
   if (env.WEATHERAPI_KEY) {
     const url = `https://api.weatherapi.com/v1/forecast.json?key=${env.WEATHERAPI_KEY}&q=${encodeURIComponent(config.city)}&days=${days}`;
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) throw new Error(`Impossible de récupérer la météo (${res.status}: ${await res.text()})`);
     const data = (await res.json()) as WeatherApiForecastResponse;
     if (!data.forecast) throw new Error("Réponse météo invalide");
@@ -158,7 +158,7 @@ export async function fetchPrecipitationForecast(
   const forecastUrl =
     `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
     `&daily=precipitation_sum&timezone=auto&forecast_days=${days}`;
-  const forecastRes = await fetch(forecastUrl);
+  const forecastRes = await fetch(forecastUrl, { signal: AbortSignal.timeout(10_000) });
   if (!forecastRes.ok)
     throw new Error(`Impossible de récupérer la météo (${forecastRes.status}: ${await forecastRes.text()})`);
   const data = (await forecastRes.json()) as ForecastResponse;

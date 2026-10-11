@@ -25,7 +25,7 @@ export async function fetchExchangeRate(config: ExchangeRateConfig): Promise<Exc
   const base = config.base.toUpperCase();
   const target = config.target.toUpperCase();
   const url = `https://api.frankfurter.app/latest?amount=1&from=${base}&to=${target}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`Taux de change indisponible (${res.status})`);
   const data = (await res.json()) as FrankfurterResponse;
   const rate = data.rates?.[target];
@@ -55,7 +55,7 @@ export async function fetchCryptoPrice(config: CryptoPriceConfig): Promise<Crypt
   const coin = config.coin.toLowerCase().trim();
   const currency = config.currency.toLowerCase().trim();
   const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(coin)}&vs_currencies=${encodeURIComponent(currency)}&include_24hr_change=true`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`Prix crypto indisponible (${res.status})`);
   const data = (await res.json()) as CoinGeckoResponse;
   const entry = data[coin];
