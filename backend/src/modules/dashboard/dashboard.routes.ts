@@ -13,4 +13,12 @@ router.patch("/widgets/:id/position", ctrl.moveWidget);
 router.get("/widgets/:id/data", ctrl.getWidgetData);
 router.delete("/widgets/:id", ctrl.deleteWidget);
 
+// Historique (sparkline) + alerte de seuil — bonus, voir docs/TECH_CHOICES.md.
+router.get("/widgets/:id/history", ctrl.getWidgetHistory);
+router.get("/widgets/:id/alert", ctrl.getWidgetAlert);
+router.put("/widgets/:id/alert", ctrl.setWidgetAlert);
+router.delete("/widgets/:id/alert", ctrl.clearWidgetAlert);
+
+router.get("/brief", ctrl.getDailyBrief);
+
 export default router;

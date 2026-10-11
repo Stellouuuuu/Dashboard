@@ -7,10 +7,14 @@ import {
   timestamp,
   jsonb,
   primaryKey,
+  doublePrecision,
+  date,
 } from "drizzle-orm/pg-core";
 
-// 8 tables — voir PLAN.md §4.4. Pas de tables `services`/`widgets` : le registre
-// en code (src/widgets/registry.ts) est la seule source de vérité pour le catalogue.
+// 8 tables du périmètre obligatoire (PLAN.md §4.4) + 3 tables bonus (widget_history,
+// widget_alerts, daily_briefs — voir docs/TECH_CHOICES.md §"Bonus features" et
+// PLAN.md §11). Pas de tables `services`/`widgets` : le registre en code
+// (src/widgets/registry.ts) est la seule source de vérité pour le catalogue.
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -81,6 +85,43 @@ export const widgetCache = pgTable("widget_cache", {
   payload: jsonb("payload").notNull(),
   fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Historique de valeurs numériques par instance (sparkline) — au-delà du périmètre
+// obligatoire du sujet (PLAN.md §3 "bonus" dans le sens notation, pas dossier :
+// voir docs/TECH_CHOICES.md). Un seul chiffre par widget (lib/metrics.ts), pas le
+// payload complet — widget_cache garde déjà la dernière réponse brute.
+export const widgetHistory = pgTable("widget_history", {
+  id: serial("id").primaryKey(),
+  widgetInstanceId: integer("widget_instance_id")
+    .notNull()
+    .references(() => widgetInstances.id, { onDelete: "cascade" }),
+  value: doublePrecision("value").notNull(),
+  recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Alerte seuil optionnelle sur un widget à valeur numérique (bonus — voir plus haut).
+// Un seul seuil par instance : plus simple à configurer/afficher qu'une liste.
+export const widgetAlerts = pgTable("widget_alerts", {
+  widgetInstanceId: integer("widget_instance_id")
+    .primaryKey()
+    .references(() => widgetInstances.id, { onDelete: "cascade" }),
+  operator: text("operator").notNull(), // 'above' | 'below'
+  threshold: doublePrecision("threshold").notNull(),
+  lastNotifiedAt: timestamp("last_notified_at", { withTimezone: true }),
+});
+
+// Brief quotidien généré par IA (bonus — voir plus haut) : un par utilisateur et par
+// jour, régénéré au plus une fois par jour pour limiter les appels à l'API Gemini.
+export const dailyBriefs = pgTable(
+  "daily_briefs",
+  {
+    userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    briefDate: date("brief_date").notNull(),
+    text: text("text").notNull(),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.briefDate] })],
+);
 
 export const auditLogs = pgTable("audit_logs", {
   id: serial("id").primaryKey(),

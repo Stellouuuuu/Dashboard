@@ -2,9 +2,15 @@ import { getWidgetDefinition } from "../../widgets/registry.js";
 import { CONSTANTS } from "../../config/constants.js";
 import { httpError, HttpError } from "../../lib/httpError.js";
 import { logAudit, AUDIT_ACTIONS } from "../../lib/audit.js";
+import { extractMetric, describeWidgetForBrief } from "../../lib/metrics.js";
+import { sendMail } from "../../lib/mailer.js";
+import { alertEmailContent } from "../../lib/emailTemplates.js";
+import { generateText } from "../../lib/gemini.js";
+import { isGeminiConfigured } from "../../config/env.js";
 import { isLinked as isGithubLinked } from "../auth/github-oauth.service.js";
+import { findUserById } from "../auth/auth.repository.js";
 import * as repo from "./dashboard.repository.js";
-import type { WidgetInstanceRow } from "./dashboard.repository.js";
+import type { WidgetInstanceRow, WidgetHistoryRow, WidgetAlertRow } from "./dashboard.repository.js";
 
 interface EnrichedInstance extends WidgetInstanceRow {
   widget: { service: string; description: string; params: unknown } | null;
@@ -102,6 +108,112 @@ export async function removeWidget(id: number, userId: number): Promise<void> {
   void logAudit(userId, AUDIT_ACTIONS.WIDGET_REMOVED, { widgetName: existing?.widgetName });
 }
 
+const ALERT_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6h — évite un email à chaque refresh tant que le seuil reste franchi.
+
+/** Envoie l'email d'alerte si le seuil est franchi et que le cooldown est passé (bonus). */
+async function checkAlert(instance: WidgetInstanceRow, value: number): Promise<void> {
+  const alert = await repo.getAlert(instance.id);
+  if (!alert) return;
+
+  const crossed = alert.operator === "above" ? value > alert.threshold : value < alert.threshold;
+  if (!crossed) return;
+
+  if (alert.lastNotifiedAt) {
+    const sinceLast = Date.now() - new Date(alert.lastNotifiedAt).getTime();
+    if (sinceLast < ALERT_COOLDOWN_MS) return;
+  }
+
+  const user = await findUserById(instance.userId);
+  if (!user) return;
+
+  const content = alertEmailContent(user.language, instance.widgetName, value, alert.operator as "above" | "below", alert.threshold);
+  try {
+    await sendMail(user.email, content.subject, content.html);
+    await repo.markAlertNotified(instance.id);
+  } catch {
+    // Best-effort, comme logAudit : un envoi raté ne doit pas faire échouer le refresh du widget.
+  }
+}
+
+export async function getWidgetHistory(id: number, userId: number): Promise<WidgetHistoryRow[]> {
+  const instance = await repo.findInstanceById(id, userId);
+  if (!instance) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
+  return repo.getHistory(id);
+}
+
+export async function getWidgetAlert(id: number, userId: number): Promise<WidgetAlertRow | null> {
+  const instance = await repo.findInstanceById(id, userId);
+  if (!instance) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
+  return repo.getAlert(id);
+}
+
+const ALERTABLE_WIDGETS = new Set(["city_temperature", "crypto_price", "exchange_rate", "precipitation_forecast"]);
+
+export async function setWidgetAlert(
+  id: number,
+  userId: number,
+  operator: "above" | "below",
+  threshold: number,
+): Promise<void> {
+  const instance = await repo.findInstanceById(id, userId);
+  if (!instance) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
+  if (!ALERTABLE_WIDGETS.has(instance.widgetName)) {
+    throw httpError(400, "DASHBOARD_ALERT_UNSUPPORTED", "Ce widget n'a pas de valeur numérique à surveiller");
+  }
+  await repo.setAlert(id, operator, threshold);
+}
+
+export async function clearWidgetAlert(id: number, userId: number): Promise<void> {
+  const instance = await repo.findInstanceById(id, userId);
+  if (!instance) throw httpError(404, "DASHBOARD_INSTANCE_NOT_FOUND", "Instance introuvable ou non autorisée");
+  await repo.clearAlert(id);
+}
+
+/**
+ * Brief quotidien généré par IA (bonus, voir docs/TECH_CHOICES.md) : agrège le
+ * dernier payload en cache de chaque widget en un court résumé via Gemini.
+ * Un seul appel LLM par utilisateur et par jour (table daily_briefs), pour rester
+ * dans le tier gratuit même avec plusieurs ouvertures du dashboard dans la journée.
+ */
+export async function getDailyBrief(
+  userId: number,
+  force = false,
+): Promise<{ text: string; generatedAt: Date; cached: boolean }> {
+  if (!isGeminiConfigured) {
+    throw httpError(503, "AI_BRIEF_NOT_CONFIGURED", "GEMINI_API_KEY n'est pas configurée");
+  }
+
+  const existing = force ? null : await repo.getTodayBrief(userId);
+  if (existing) return { ...existing, cached: true };
+
+  const instances = await repo.getInstancesWithCache(userId);
+  const lines = instances
+    .map((i) => describeWidgetForBrief(i.widgetName, i.payload))
+    .filter((l): l is string => Boolean(l));
+
+  if (!lines.length) {
+    throw httpError(400, "AI_BRIEF_NO_DATA", "Pas encore assez de données widgets pour générer un brief");
+  }
+
+  const user = await findUserById(userId);
+  const language = user?.language === "en" ? "English" : "French";
+  const prompt =
+    `You are writing a short, friendly daily briefing for a personal dashboard app, in ${language}. ` +
+    `Summarize the following live data points into 2-4 natural sentences, highlighting anything notable ` +
+    `(big price moves, bad weather, security alerts). No markdown, no bullet points, just prose.\n\n` +
+    lines.join("\n");
+
+  let text: string;
+  try {
+    text = await generateText(prompt);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Échec de génération du brief";
+    throw httpError(502, "AI_BRIEF_FAILED", message);
+  }
+  await repo.saveTodayBrief(userId, text);
+  return { text, generatedAt: new Date(), cached: false };
+}
+
 /**
  * Données d'un widget : sert le cache (table widget_cache) s'il a moins de
  * refresh_rate secondes, sinon appelle l'adapter du registre (PLAN.md §4.3).
@@ -129,6 +241,15 @@ export async function fetchWidgetData(
     const data = await widget.fetch(instance.config, { userId });
     await repo.upsertCachedPayload(id, data);
     await repo.updateRefreshStatus(id, "ok");
+
+    // Historique + alerte (bonus, voir docs/TECH_CHOICES.md) : seulement pour les
+    // widgets à valeur numérique (extractMetric renvoie null pour les widgets liste).
+    const value = extractMetric(instance.widgetName, data);
+    if (value != null) {
+      void repo.recordHistoryPoint(id, value);
+      void checkAlert(instance, value);
+    }
+
     return { data, cached: false, lastRefreshedAt: new Date() };
   } catch (err) {
     await repo.updateRefreshStatus(id, "error");

@@ -536,3 +536,32 @@ On la déroule le 30/09 sur un clone propre, sans aucun fichier local.
 - [ ] Fichiers bonus uniquement dans `bonus/`
 - [ ] README racine : features, install, usage, stack, structure, schéma
 - [ ] Vidéo de démo enregistrée
+
+---
+
+## 11. Addendum post-livraison (11/10)
+
+Écart assumé par rapport à la règle du §9 ("bonus dans des branches séparées") et du
+§10/checklist ("fichiers bonus uniquement dans `bonus/`") : les ajouts ci-dessous sont
+de vraies fonctionnalités du dashboard déployé, pas des POC isolés — elles doivent
+tourner dans l'app réelle pour avoir un sens, donc elles vivent dans `frontend/` et
+`backend/` comme le reste du code obligatoire, pas dans `bonus/` (qui reste réservé
+aux POC comparatifs de `docs/TECH_CHOICES.md`). Détail de chacune, choix et
+alternatives écartées : `docs/TECH_CHOICES.md` §"Bonus features".
+
+- **Google OIDC** — explicitement listé comme candidat bonus au §1 ("Coupé") et dans
+  `bonus/README.md` : implémenté comme deuxième méthode d'auth (`users.google_id`,
+  `password_hash` devenu nullable), avec liaison possible depuis Services en plus de
+  l'inscription.
+- **Historique + alertes de seuil par widget** (sparkline, email si un seuil est
+  franchi) — `widget_history`, `widget_alerts`.
+- **Brief quotidien généré par IA** (Gemini, gratuit) agrégeant tous les widgets —
+  `daily_briefs`.
+- **PWA installable** — `manifest.webmanifest` + service worker fait main.
+- **Autocomplétion de ville + géolocalisation** pour les widgets météo — corrige au
+  passage un bug réel (faute de frappe résolvant silencieusement vers la mauvaise
+  ville, voir `docs/TECH_CHOICES.md`).
+
+Le BullMQ/Redis mentionné au §1 comme autre candidat bonus n'a pas été repris — pas
+de besoin de rafraîchissement proactif hors ouverture du dashboard, et déjà
+explicitement écarté en §4.3 (PLAN.md original) pour la même raison.

@@ -5,6 +5,7 @@ import { useAppData } from '../context/AppDataContext';
 import { SERVICES, type ServiceId } from '../data/catalog';
 import { WidgetGrid } from '../dashboard/WidgetGrid';
 import { DashHero } from '../dashboard/DashHero';
+import { DailyBrief } from '../dashboard/DailyBrief';
 import { DashLeft } from '../dashboard/DashLeft';
 import { DashPlanning } from '../dashboard/DashPlanning';
 import { summarizeData } from '../dashboard/summary';
@@ -54,6 +55,7 @@ export function DashboardPage() {
 
         <div className="dash-main">
           <DashHero />
+          <DailyBrief />
 
           <section id="mes-widgets" aria-labelledby="widgets-title">
             <div className="section-head">

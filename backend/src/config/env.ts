@@ -52,6 +52,9 @@ const envSchema = z.object({
   // pas pour un widget) — optionnel, désactivé si absent.
   GOOGLE_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
   GOOGLE_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Brief quotidien généré par IA (bonus, voir docs/TECH_CHOICES.md) — clé gratuite
+  // sans CB sur aistudio.google.com. Fonctionnalité désactivée si absente.
+  GEMINI_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
 });
 
 function formatZodError(err: z.ZodError): string {
@@ -87,4 +90,10 @@ export const isGoogleOAuthConfigured = Boolean(
 
 if (!isGoogleOAuthConfigured) {
   console.log("[config] Google sign-in disabled (GOOGLE_CLIENT_ID/SECRET not set)");
+}
+
+export const isGeminiConfigured = Boolean(env.GEMINI_API_KEY);
+
+if (!isGeminiConfigured) {
+  console.log("[config] Daily AI brief disabled (GEMINI_API_KEY not set)");
 }

@@ -240,6 +240,7 @@ export function WidgetCard({
       <WidgetDetailModal
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
+        uid={inst.uid}
         widgetId={inst.widgetId}
         title={displayName}
         data={inst.data}

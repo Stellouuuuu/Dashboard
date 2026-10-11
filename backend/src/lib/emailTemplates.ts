@@ -44,3 +44,30 @@ export function confirmEmailContent(language: string): OtpEmailContent {
 export function resetEmailContent(language: string): OtpEmailContent {
   return RESET_EMAIL[lang(language)];
 }
+
+interface AlertEmailContent {
+  subject: string;
+  html: string;
+}
+
+/** Email d'alerte de seuil franchi (bonus — voir docs/TECH_CHOICES.md). */
+export function alertEmailContent(
+  language: string,
+  widgetLabel: string,
+  value: number,
+  operator: "above" | "below",
+  threshold: number,
+): AlertEmailContent {
+  if (lang(language) === "en") {
+    const cmp = operator === "above" ? "above" : "below";
+    return {
+      subject: `Threshold alert: ${widgetLabel}`,
+      html: `<p>Your widget <b>${widgetLabel}</b> just crossed your alert threshold.</p><p>Current value: <b>${value}</b> (${cmp} ${threshold})</p>`,
+    };
+  }
+  const cmp = operator === "above" ? "au-dessus de" : "en-dessous de";
+  return {
+    subject: `Alerte Threshold : ${widgetLabel}`,
+    html: `<p>Ton widget <b>${widgetLabel}</b> vient de franchir le seuil que tu as défini.</p><p>Valeur actuelle : <b>${value}</b> (${cmp} ${threshold})</p>`,
+  };
+}

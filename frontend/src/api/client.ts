@@ -138,3 +138,42 @@ export function apiDeleteDashboardWidget(id: number): Promise<void> {
 export function apiGetDashboardWidgetData(id: number, force = false): Promise<ApiWidgetData> {
   return request(`/dashboard/widgets/${id}/data${force ? '?force=true' : ''}`);
 }
+
+// ---- Historique (sparkline) + alertes de seuil + brief IA — bonus, voir
+// docs/TECH_CHOICES.md. ----
+
+export interface ApiHistoryPoint {
+  value: number;
+  recordedAt: string;
+}
+
+export function apiGetWidgetHistory(id: number): Promise<ApiHistoryPoint[]> {
+  return request(`/dashboard/widgets/${id}/history`);
+}
+
+export interface ApiWidgetAlert {
+  operator: 'above' | 'below';
+  threshold: number;
+}
+
+export function apiGetWidgetAlert(id: number): Promise<ApiWidgetAlert | null> {
+  return request(`/dashboard/widgets/${id}/alert`);
+}
+
+export function apiSetWidgetAlert(id: number, operator: 'above' | 'below', threshold: number): Promise<void> {
+  return request(`/dashboard/widgets/${id}/alert`, { method: 'PUT', body: JSON.stringify({ operator, threshold }) });
+}
+
+export function apiClearWidgetAlert(id: number): Promise<void> {
+  return request(`/dashboard/widgets/${id}/alert`, { method: 'DELETE' });
+}
+
+export interface ApiDailyBrief {
+  text: string;
+  generatedAt: string;
+  cached: boolean;
+}
+
+export function apiGetDailyBrief(force = false): Promise<ApiDailyBrief> {
+  return request(`/dashboard/brief${force ? '?force=true' : ''}`);
+}

@@ -1,6 +1,15 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '../components/Modal';
+import { Sparkline } from '../components/Sparkline';
 import { formatNumber } from '../i18n/format';
+import {
+  apiClearWidgetAlert,
+  apiGetWidgetAlert,
+  apiGetWidgetHistory,
+  apiSetWidgetAlert,
+  ApiError,
+} from '../api/client';
 import type {
   CityTemperature,
   CommitSummary,
@@ -15,9 +24,110 @@ import type {
 interface WidgetDetailModalProps {
   open: boolean;
   onClose: () => void;
+  uid: number;
   widgetId: string;
   title: string;
   data: unknown;
+}
+
+// Mêmes widgets que ALERTABLE_WIDGETS côté backend (dashboard.service.ts) — ont une
+// valeur numérique suivie dans le temps (bonus : sparkline + alerte de seuil).
+const TRACKABLE_WIDGETS = new Set(['city_temperature', 'crypto_price', 'exchange_rate', 'precipitation_forecast']);
+
+/** Historique (sparkline) + alerte de seuil d'une instance de widget (bonus). */
+function TrackingSection({ uid }: { uid: number }) {
+  const { t } = useTranslation();
+  const [history, setHistory] = useState<number[] | null>(null);
+  const [alert, setAlertState] = useState<{ operator: 'above' | 'below'; threshold: number } | null | undefined>(
+    undefined,
+  );
+  const [operator, setOperator] = useState<'above' | 'below'>('above');
+  const [threshold, setThreshold] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiGetWidgetHistory(uid)
+      .then((points) => setHistory(points.map((p) => p.value)))
+      .catch(() => setHistory([]));
+    apiGetWidgetAlert(uid)
+      .then((a) => {
+        setAlertState(a);
+        if (a) {
+          setOperator(a.operator);
+          setThreshold(String(a.threshold));
+        }
+      })
+      .catch(() => setAlertState(null));
+  }, [uid]);
+
+  const saveAlert = async () => {
+    const value = Number(threshold);
+    if (!Number.isFinite(value)) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await apiSetWidgetAlert(uid, operator, value);
+      setAlertState({ operator, threshold: value });
+    } catch (e) {
+      setError(e instanceof ApiError ? t(`errors.${e.code}`, { defaultValue: t('errors.INTERNAL_ERROR') }) : t('errors.INTERNAL_ERROR'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeAlert = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      await apiClearWidgetAlert(uid);
+      setAlertState(null);
+      setThreshold('');
+    } catch (e) {
+      setError(e instanceof ApiError ? t(`errors.${e.code}`, { defaultValue: t('errors.INTERNAL_ERROR') }) : t('errors.INTERNAL_ERROR'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="tracking-section">
+      {history && history.length >= 2 && (
+        <div className="tracking-sparkline">
+          <Sparkline values={history} />
+        </div>
+      )}
+      <div className="tracking-alert">
+        <span className="tracking-alert-label">{t('dashboard.alert.label')}</span>
+        <div className="tracking-alert-row">
+          <select value={operator} onChange={(e) => setOperator(e.target.value as 'above' | 'below')}>
+            <option value="above">{t('dashboard.alert.above')}</option>
+            <option value="below">{t('dashboard.alert.below')}</option>
+          </select>
+          <input
+            type="number"
+            value={threshold}
+            onChange={(e) => setThreshold(e.target.value)}
+            placeholder={t('dashboard.alert.thresholdPlaceholder')}
+          />
+          <button type="button" className="btn btn-primary btn-sm" disabled={saving || !threshold} onClick={() => void saveAlert()}>
+            {t('dashboard.alert.save')}
+          </button>
+          {alert && (
+            <button type="button" className="btn btn-ghost btn-sm" disabled={saving} onClick={() => void removeAlert()}>
+              {t('dashboard.alert.remove')}
+            </button>
+          )}
+        </div>
+        {alert && <p className="field-hint">{t('dashboard.alert.active', { operator: t(`dashboard.alert.${alert.operator}`), threshold: alert.threshold })}</p>}
+        {error && (
+          <p className="field-error-msg" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function Row({ title, meta, href }: { title: string; meta?: string; href?: string | null }) {
@@ -38,7 +148,7 @@ function Row({ title, meta, href }: { title: string; meta?: string; href?: strin
 }
 
 /** Contenu complet (non tronqué) d'un widget — ouvert depuis le bouton « Voir plus » de la tuile. */
-export function WidgetDetailModal({ open, onClose, widgetId, title, data }: WidgetDetailModalProps) {
+export function WidgetDetailModal({ open, onClose, uid, widgetId, title, data }: WidgetDetailModalProps) {
   const { t, i18n } = useTranslation();
   const lng = i18n.resolvedLanguage ?? i18n.language ?? 'fr';
 
@@ -104,6 +214,7 @@ export function WidgetDetailModal({ open, onClose, widgetId, title, data }: Widg
 
   return (
     <Modal open={open} onClose={onClose} title={title}>
+      {open && TRACKABLE_WIDGETS.has(widgetId) && <TrackingSection uid={uid} />}
       <div className="detail-list">{renderBody()}</div>
     </Modal>
   );

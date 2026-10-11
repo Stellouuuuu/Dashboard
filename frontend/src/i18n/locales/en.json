@@ -261,6 +261,23 @@
       "openLink": "Open",
       "detailEmpty": "No additional data"
     },
+    "alert": {
+      "label": "Alert",
+      "above": "Above",
+      "below": "Below",
+      "thresholdPlaceholder": "Threshold",
+      "save": "Enable",
+      "remove": "Disable",
+      "active": "Alert active: {{operator}} {{threshold}}"
+    },
+    "brief": {
+      "title": "Daily brief",
+      "generate": "Generate",
+      "regenerate": "Regenerate",
+      "loading": "Generating…",
+      "cachedHint": "Generated today, cached.",
+      "empty": "No brief yet for today."
+    },
     "summary": {
       "noCommit": "No commits",
       "noAlert": "No alerts",
@@ -559,6 +576,10 @@
     "DASHBOARD_INSTANCE_NOT_FOUND": "Widget not found or not authorized.",
     "DASHBOARD_ADAPTER_MISSING": "No adapter for this widget.",
     "DASHBOARD_FETCH_FAILED": "Failed to fetch widget data.",
+    "DASHBOARD_ALERT_UNSUPPORTED": "This widget has no numeric value to monitor.",
+    "AI_BRIEF_NOT_CONFIGURED": "The daily brief isn't available right now.",
+    "AI_BRIEF_NO_DATA": "Not enough widget data yet to generate a brief — add or refresh some widgets.",
+    "AI_BRIEF_FAILED": "Generating the brief failed.",
     "ADMIN_USER_NOT_FOUND": "User not found.",
     "ADMIN_SELF_ROLE_CHANGE_FORBIDDEN": "You can’t remove your own admin rights.",
     "ADMIN_SELF_DELETE_FORBIDDEN": "You can’t delete your own account.",

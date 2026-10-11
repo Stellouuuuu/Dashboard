@@ -12,12 +12,13 @@
 
 ### What you can do
 
-- Register with email + password (6-digit confirmation code by email)
+- Register with email + password (6-digit confirmation code by email), or sign in with Google *(bonus)*
 - Reset a forgotten password with the same OTP flow
 - Build a dashboard with multiple instances of the same widget and different configs
 - Reconfigure, drag-reorder, and delete widgets — all persisted server-side
 - Link a GitHub account (optional) to unlock repository widgets
 - Administer users (suspend / delete) from an admin account
+- *(bonus)* Track a numeric widget's history as a sparkline, set a threshold alert (emailed when crossed), read an AI-generated daily brief, and install the dashboard as a PWA — see [`docs/TECH_CHOICES.md`](docs/TECH_CHOICES.md#bonus-features-beyond-the-mandatory-subject-scope)
 
 ### Services & widgets
 
@@ -82,6 +83,10 @@ Copy `.env.example` to `.env` only if you need overrides. Everything has a safe 
 | `ADMIN_PASSWORD` | *(random, logged once)* | Set to pin a known password |
 | `GITHUB_CLIENT_ID` / `SECRET` | empty | OAuth disabled when omitted |
 | `GITHUB_TOKEN` | empty | Optional server token for rate limits |
+| `BREVO_API_KEY` | empty | *(bonus)* Sends transactional email via Brevo's HTTP API instead of SMTP — needed on hosts that block outbound SMTP (e.g. Render's free tier); falls back to `SMTP_*` when unset |
+| `WEATHERAPI_KEY` | empty | *(bonus)* Switches the weather widgets to WeatherAPI.com (quota per key, not per IP); falls back to Open-Meteo (no key) when unset |
+| `GOOGLE_CLIENT_ID` / `SECRET` | empty | *(bonus)* Enables "Sign in with Google" — disabled when omitted |
+| `GEMINI_API_KEY` | empty | *(bonus)* Enables the AI daily brief (Gemini, free tier) — disabled when omitted |
 
 Invalid config produces a clear Zod error at API startup instead of a cryptic crash.
 
@@ -95,6 +100,18 @@ Invalid config produces a clear Zod error at API startup instead of a cryptic cr
 5. `docker compose up -d --force-recreate api`
 
 Without these variables, GitHub widgets stay locked behind `SERVICE_OAUTH_REQUIRED` / `OAUTH_NOT_CONFIGURED` — the rest of the app works normally.
+
+#### Google OAuth client (optional, bonus)
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → **APIs & Services → OAuth consent screen** (External, fill the required fields — "Testing" mode is enough for local/demo use, just add your own account under **Test users**)
+2. **APIs & Services → Credentials → Create Credentials → OAuth client ID** (Web application)
+3. **Authorized redirect URI:** `http://localhost:8080/api/v1/auth/oauth/google/callback`
+4. Copy Client ID + Client Secret into `.env` as `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+5. `docker compose up -d --force-recreate api`
+
+#### Gemini API key (optional, bonus — daily AI brief)
+
+Free key, no credit card: [aistudio.google.com](https://aistudio.google.com) → **Get API key** → copy into `.env` as `GEMINI_API_KEY`.
 
 ### Useful URLs
 
@@ -257,12 +274,13 @@ Student project — Epitech module **G-WEB-500**.
 
 ### Ce que tu peux faire
 
-- S’inscrire avec email + mot de passe (code de confirmation à 6 chiffres par email)
+- S’inscrire avec email + mot de passe (code de confirmation à 6 chiffres par email), ou se connecter avec Google *(bonus)*
 - Réinitialiser un mot de passe oublié avec le même flux OTP
 - Composer un dashboard avec plusieurs instances du même widget et des configs différentes
 - Reconfigurer, réordonner (drag & drop) et supprimer des widgets — tout est persisté côté serveur
 - Lier un compte GitHub (optionnel) pour débloquer les widgets de dépôt
 - Administrer les utilisateurs (suspendre / supprimer) depuis un compte admin
+- *(bonus)* Suivre l’historique d’un widget numérique sous forme de sparkline, définir une alerte de seuil (email quand franchi), lire un brief quotidien généré par IA, et installer le dashboard en PWA — voir [`docs/TECH_CHOICES.md`](docs/TECH_CHOICES.md#fonctionnalités-bonus-au-delà-du-périmètre-obligatoire-du-sujet)
 
 ### Services & widgets
 
@@ -327,6 +345,10 @@ Copie `.env.example` vers `.env` seulement si tu as besoin de surcharges. Tout a
 | `ADMIN_PASSWORD` | *(aléatoire, logué une fois)* | Fixer pour un mot de passe connu |
 | `GITHUB_CLIENT_ID` / `SECRET` | vide | OAuth désactivé si omis |
 | `GITHUB_TOKEN` | vide | Token serveur optionnel (rate limits) |
+| `BREVO_API_KEY` | vide | *(bonus)* Envoie les emails transactionnels via l'API HTTP de Brevo au lieu de SMTP — nécessaire sur les hébergeurs qui bloquent le SMTP sortant (ex: le tier gratuit de Render) ; repli sur `SMTP_*` si absent |
+| `WEATHERAPI_KEY` | vide | *(bonus)* Bascule les widgets météo vers WeatherAPI.com (quota par clé, pas par IP) ; repli sur Open-Meteo (sans clé) si absent |
+| `GOOGLE_CLIENT_ID` / `SECRET` | vide | *(bonus)* Active « Se connecter avec Google » — désactivé si omis |
+| `GEMINI_API_KEY` | vide | *(bonus)* Active le brief quotidien IA (Gemini, tier gratuit) — désactivé si omis |
 
 Une config invalide produit une erreur Zod claire au démarrage de l’API.
 
@@ -340,6 +362,18 @@ Une config invalide produit une erreur Zod claire au démarrage de l’API.
 5. `docker compose up -d --force-recreate api`
 
 Sans ces variables, les widgets GitHub restent bloqués (`SERVICE_OAUTH_REQUIRED` / `OAUTH_NOT_CONFIGURED`) — le reste de l’app fonctionne.
+
+#### Client OAuth Google (optionnel, bonus)
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → **APIs & Services → OAuth consent screen** (External, remplir les champs requis — le mode « Testing » suffit en local/démo, ajouter juste ton propre compte dans **Test users**)
+2. **APIs & Services → Credentials → Create Credentials → OAuth client ID** (Web application)
+3. **Authorized redirect URI :** `http://localhost:8080/api/v1/auth/oauth/google/callback`
+4. Copier Client ID + Client Secret dans `.env` (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`)
+5. `docker compose up -d --force-recreate api`
+
+#### Clé API Gemini (optionnel, bonus — brief quotidien IA)
+
+Clé gratuite, sans carte bancaire : [aistudio.google.com](https://aistudio.google.com) → **Get API key** → copier dans `.env` (`GEMINI_API_KEY`).
 
 ### URLs utiles
 

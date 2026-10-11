@@ -1,0 +1,13 @@
+{
+  "name": "Threshold — dashboard",
+  "short_name": "Threshold",
+  "description": "Dashboard personnel : météo, GitHub, RSS, finance, Hacker News.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0908",
+  "theme_color": "#0b0908",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

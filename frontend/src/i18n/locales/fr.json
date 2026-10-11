@@ -261,6 +261,23 @@
       "openLink": "Ouvrir",
       "detailEmpty": "Aucune donnée supplémentaire"
     },
+    "alert": {
+      "label": "Alerte",
+      "above": "Au-dessus de",
+      "below": "En-dessous de",
+      "thresholdPlaceholder": "Seuil",
+      "save": "Activer",
+      "remove": "Désactiver",
+      "active": "Alerte active : {{operator}} {{threshold}}"
+    },
+    "brief": {
+      "title": "Brief du jour",
+      "generate": "Générer",
+      "regenerate": "Régénérer",
+      "loading": "Génération en cours…",
+      "cachedHint": "Généré aujourd'hui, mis en cache.",
+      "empty": "Pas encore de brief pour aujourd'hui."
+    },
     "summary": {
       "noCommit": "Aucun commit",
       "noAlert": "Aucune alerte",
@@ -559,6 +576,10 @@
     "DASHBOARD_INSTANCE_NOT_FOUND": "Widget introuvable ou non autorisé.",
     "DASHBOARD_ADAPTER_MISSING": "Aucun adaptateur pour ce widget.",
     "DASHBOARD_FETCH_FAILED": "Échec de récupération des données du widget.",
+    "DASHBOARD_ALERT_UNSUPPORTED": "Ce widget n'a pas de valeur numérique à surveiller.",
+    "AI_BRIEF_NOT_CONFIGURED": "Le brief quotidien n'est pas disponible pour le moment.",
+    "AI_BRIEF_NO_DATA": "Pas encore assez de données pour générer un brief — ajoute ou rafraîchis des widgets.",
+    "AI_BRIEF_FAILED": "La génération du brief a échoué.",
     "ADMIN_USER_NOT_FOUND": "Utilisateur introuvable.",
     "ADMIN_SELF_ROLE_CHANGE_FORBIDDEN": "Tu ne peux pas te retirer tes propres droits admin.",
     "ADMIN_SELF_DELETE_FORBIDDEN": "Tu ne peux pas supprimer ton propre compte.",
