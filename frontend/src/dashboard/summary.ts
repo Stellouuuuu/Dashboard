@@ -8,6 +8,27 @@ export interface WidgetSummary {
   title: string;
   /** Détails (2 à 3 lignes max). */
   lines: string[];
+  /** Vignette (pochette, photo de profil). */
+  image?: string | null;
+  /** Lecteur Spotify intégré (URL déjà validée). */
+  embedUrl?: string;
+  /** Bouton d'action sur la tuile (ex. partager sur LinkedIn). */
+  action?: { label: string; href: string };
+}
+
+/** N'autorise que le lecteur officiel Spotify dans une iframe — le payload vient de l'API, jamais de confiance aveugle. */
+export function safeSpotifyEmbed(url: unknown): string | null {
+  return typeof url === 'string' && /^https:\/\/open\.spotify\.com\/embed\/[a-z]+\/[A-Za-z0-9]+$/.test(url) ? url : null;
+}
+
+/** Lien externe restreint à un préfixe d'origine connu. */
+export function safeLink(url: unknown, prefix: string): string | null {
+  return typeof url === 'string' && url.startsWith(prefix) ? url : null;
+}
+
+/** Images distantes : https uniquement. */
+export function safeImage(url: unknown): string | null {
+  return typeof url === 'string' && url.startsWith('https://') ? url : null;
 }
 
 // Formes renvoyées par les adaptateurs backend (backend/src/adapters/*.ts) —
@@ -65,6 +86,33 @@ export interface HnStory {
   author: string;
   commentsCount: number;
   createdAt: string;
+}
+
+export interface SpotifyTrack {
+  id: string;
+  name: string;
+  artists: string;
+  album: string;
+  cover: string | null;
+  url: string;
+  durationMs: number;
+}
+export interface SpotifyEmbed {
+  kind: string;
+  id: string;
+  embedUrl: string;
+  url: string;
+}
+export interface LinkedinJobSearch {
+  keywords: string;
+  location: string;
+  jobType: string;
+  period: string;
+  url: string;
+}
+export interface LinkedinHashtag {
+  tag: string;
+  url: string;
 }
 
 const EMPTY: WidgetSummary = { kicker: '', title: '—', lines: [] };
@@ -147,6 +195,33 @@ export function summarizeData(widgetId: string, data: unknown): WidgetSummary {
         kicker: i18n.t('dashboard.summary.stories', { count: stories.length }),
         title: stories[0].title,
         lines: stories.slice(1, 3).map((s) => s.title),
+      };
+    }
+    case 'player': {
+      const d = data as SpotifyEmbed;
+      return { kicker: d.kind, title: i18n.t('dashboard.summary.playerTitle'), lines: [], embedUrl: safeSpotifyEmbed(d.embedUrl) ?? undefined };
+    }
+    case 'job_search': {
+      const d = data as LinkedinJobSearch;
+      const href = safeLink(d.url, 'https://www.linkedin.com/jobs/search/');
+      return {
+        kicker: d.location || i18n.t('dashboard.summary.anywhere'),
+        title: d.keywords,
+        lines: [
+          i18n.t(`wizard.options.${d.jobType}`),
+          d.period !== 'any' ? i18n.t('dashboard.summary.postedSince', { period: i18n.t(`wizard.options.${d.period}`) }) : '',
+        ].filter(Boolean),
+        action: href ? { label: i18n.t('dashboard.summary.seeJobs'), href } : undefined,
+      };
+    }
+    case 'hashtag_watch': {
+      const tags = data as LinkedinHashtag[];
+      const href = tags.length ? safeLink(tags[0].url, 'https://www.linkedin.com/feed/hashtag/') : null;
+      return {
+        kicker: i18n.t('dashboard.summary.hashtags', { count: tags.length }),
+        title: tags.length ? `#${tags[0].tag}` : '—',
+        lines: tags.slice(0, 4).map((x) => `#${x.tag}`),
+        action: href ? { label: i18n.t('dashboard.summary.seeHashtag', { tag: tags[0].tag }), href } : undefined,
       };
     }
     default:

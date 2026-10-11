@@ -4,6 +4,9 @@ import type { ServiceId } from './catalog';
  * Toutes les images de l'interface, à un seul endroit.
  * Les fichiers vivent dans `public/img/` ; voir `IMAGES.md` pour la liste à télécharger.
  */
+/** Widgets Spotify / LinkedIn : illustrations vectorielles (pas de photo fournie). */
+const NEW_WIDGET_IMAGES = new Set(['player', 'job_search', 'hashtag_watch']);
+
 export const IMG = {
   background: '/img/bg.jpg',
   auth: '/img/auth.jpg',
@@ -13,6 +16,8 @@ export const IMG = {
     rss: '/img/hero-rss.jpg',
     finance: '/img/hero-finance.jpg',
     hackernews: '/img/hero-hackernews.jpg',
+    spotify: '/img/hero-spotify.svg',
+    linkedin: '/img/hero-linkedin.svg',
   } satisfies Record<ServiceId, string>,
   /** Ambiances en rotation sur la colonne gauche auth (login / inscription). */
   atmosphere: [
@@ -28,6 +33,9 @@ export const IMG = {
     rss: '/img/svc-rss.jpg',
     finance: '/img/svc-finance.jpg',
     hackernews: '/img/svc-hackernews.jpg',
+    spotify: '/img/svc-spotify.svg',
+    linkedin: '/img/svc-linkedin.svg',
   } satisfies Record<ServiceId, string>,
-  widget: (widgetId: string) => `/img/widget-${widgetId}.jpg`,
+  widget: (widgetId: string) =>
+    NEW_WIDGET_IMAGES.has(widgetId) ? `/img/widget-${widgetId}.svg` : `/img/widget-${widgetId}.jpg`,
 };
