@@ -105,6 +105,7 @@ export async function resetPassword(email: string, code: string, newPassword: st
   const passwordHash = await bcrypt.hash(newPassword, 12);
   await repo.updatePasswordHash(user.id, passwordHash);
   await repo.deleteEmailTokensForUser(user.id, "reset");
+  await repo.revokeAllRefreshTokens(user.id);
 }
 
 /** Connexion : refuse si email non confirmé ou compte suspendu (PLAN.md §6.1). */
@@ -165,6 +166,7 @@ export async function changePassword(
 
   const passwordHash = await bcrypt.hash(newPassword, 12);
   await repo.updatePasswordHash(userId, passwordHash);
+  await repo.revokeAllRefreshTokens(userId);
 }
 
 /** Mémorise la langue choisie sur le compte (PLAN.md — persistance i18n). */

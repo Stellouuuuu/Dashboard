@@ -106,6 +106,11 @@ export async function findValidRefreshToken(tokenHash: string) {
   return row ?? null;
 }
 
+/** Révoque toutes les sessions d'un utilisateur (changement / réinitialisation de mot de passe). */
+export async function revokeAllRefreshTokens(userId: number): Promise<void> {
+  await db.update(refreshTokens).set({ revoked: true }).where(eq(refreshTokens.userId, userId));
+}
+
 export async function revokeRefreshToken(tokenHash: string): Promise<void> {
   await db.update(refreshTokens).set({ revoked: true }).where(eq(refreshTokens.tokenHash, tokenHash));
 }
