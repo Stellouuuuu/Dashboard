@@ -39,6 +39,9 @@ Base path: `/api/v1` (via nginx). JSON bodies. Auth uses httpOnly cookies unless
 | `GET` | `/api/v1/auth/oauth/github` | Start GitHub OAuth (redirect) |
 | `GET` | `/api/v1/auth/oauth/github/callback` | OAuth callback |
 | `DELETE` | `/api/v1/auth/oauth/github` | Unlink GitHub |
+| `GET` | `/api/v1/auth/oauth/:provider` | Start Spotify / LinkedIn OAuth (`spotify` \| `linkedin`, redirect) |
+| `GET` | `/api/v1/auth/oauth/:provider/callback` | Spotify / LinkedIn OAuth callback → `/services?<provider>=linked\|error` |
+| `DELETE` | `/api/v1/auth/oauth/:provider` | Unlink Spotify / LinkedIn |
 | `GET` | `/api/v1/services` | List services + subscription state |
 | `POST` | `/api/v1/services/:name/subscribe` | Subscribe (GitHub requires OAuth) |
 | `DELETE` | `/api/v1/services/:name/subscribe` | Unsubscribe |

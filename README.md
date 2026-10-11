@@ -33,6 +33,9 @@
 | | | `crypto_price` | `coin` *(string)*, `currency` *(string)* |
 | **Hacker News** | None | `top_stories` | `number` *(integer)* |
 | | | `story_search` | `query` *(string)*, `number` *(integer)* |
+| **Spotify** | OAuth 2.0 (required) | `player` | `uri` *(string, Spotify link)* — embedded player to listen |
+| **LinkedIn** | OAuth 2.0 (required) | `job_search` | `keywords`, `location` *(string)*, `job_type`, `period` *(string, dropdown)* |
+| | | `hashtag_watch` | `hashtags` *(string, comma-separated)* |
 
 Parameter types in `/about.json` are only `string` and `integer` (subject requirement).
 
@@ -81,6 +84,8 @@ Copy `.env.example` to `.env` only if you need overrides. Everything has a safe 
 | `ADMIN_EMAIL` | `admin@threshold.local` | Demo admin |
 | `ADMIN_PASSWORD` | *(random, logged once)* | Set to pin a known password |
 | `GITHUB_CLIENT_ID` / `SECRET` | empty | OAuth disabled when omitted |
+| `SPOTIFY_CLIENT_ID` / `SECRET` | empty | Spotify disabled when omitted. Redirect URI `http://127.0.0.1:8080/api/v1/auth/oauth/spotify/callback` (Spotify refuses `localhost`: browse and set `APP_URL` on `127.0.0.1`). Dev-mode apps only accept users added in the Spotify dashboard |
+| `LINKEDIN_CLIENT_ID` / `SECRET` | empty | LinkedIn disabled when omitted. Redirect URL `…/api/v1/auth/oauth/linkedin/callback`; enable the product *Sign In with LinkedIn using OpenID Connect* (profile, name, photo, email only — LinkedIn gives no feed access without partner approval) |
 | `GITHUB_TOKEN` | empty | Optional server token for rate limits |
 
 Invalid config produces a clear Zod error at API startup instead of a cryptic crash.
@@ -278,6 +283,9 @@ Student project — Epitech module **G-WEB-500**.
 | | | `crypto_price` | `coin` *(string)*, `currency` *(string)* |
 | **Hacker News** | Aucune | `top_stories` | `number` *(integer)* |
 | | | `story_search` | `query` *(string)*, `number` *(integer)* |
+| **Spotify** | OAuth 2.0 (requis) | `player` | `uri` *(string, lien Spotify)* — lecteur intégré pour écouter |
+| **LinkedIn** | OAuth 2.0 (requis) | `job_search` | `keywords`, `location` *(string)*, `job_type`, `period` *(string, liste)* |
+| | | `hashtag_watch` | `hashtags` *(string, séparés par des virgules)* |
 
 Les types de paramètres dans `/about.json` sont uniquement `string` et `integer` (exigence du sujet).
 
@@ -326,6 +334,8 @@ Copie `.env.example` vers `.env` seulement si tu as besoin de surcharges. Tout a
 | `ADMIN_EMAIL` | `admin@threshold.local` | Admin de démo |
 | `ADMIN_PASSWORD` | *(aléatoire, logué une fois)* | Fixer pour un mot de passe connu |
 | `GITHUB_CLIENT_ID` / `SECRET` | vide | OAuth désactivé si omis |
+| `SPOTIFY_CLIENT_ID` / `SECRET` | vide | Spotify désactivé si omis. Redirect URI `http://127.0.0.1:8080/api/v1/auth/oauth/spotify/callback` (Spotify refuse `localhost` : naviguer et définir `APP_URL` sur `127.0.0.1`). Une app en mode développement n’accepte que les utilisateurs ajoutés dans le dashboard Spotify |
+| `LINKEDIN_CLIENT_ID` / `SECRET` | vide | LinkedIn désactivé si omis. Redirect URL `…/api/v1/auth/oauth/linkedin/callback` ; activer le produit *Sign In with LinkedIn using OpenID Connect* (profil, nom, photo, email uniquement — pas d’accès au fil sans validation partenaire LinkedIn) |
 | `GITHUB_TOKEN` | vide | Token serveur optionnel (rate limits) |
 
 Une config invalide produit une erreur Zod claire au démarrage de l’API.
