@@ -48,6 +48,11 @@ const envSchema = z.object({
   GITHUB_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
   GITHUB_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
   GITHUB_TOKEN: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Spotify exige https ou une IP loopback (http://127.0.0.1:8080) comme redirect URI — pas « localhost ».
+  SPOTIFY_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
+  SPOTIFY_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
+  LINKEDIN_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
+  LINKEDIN_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
 });
 
 function formatZodError(err: z.ZodError): string {
