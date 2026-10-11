@@ -8,11 +8,13 @@ export interface ApiWidgetParam {
   name: string;
   type: 'string' | 'integer';
   label: string;
+  /** Valeurs possibles : le formulaire affiche alors une liste déroulante. */
+  options?: string[];
 }
 
 export interface ApiWidgetDefinition {
   name: string;
-  service: 'weather' | 'github' | 'rss' | 'finance' | 'hackernews';
+  service: 'weather' | 'github' | 'rss' | 'finance' | 'hackernews' | 'spotify' | 'linkedin';
   description: string;
   params: ApiWidgetParam[];
 }

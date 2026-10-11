@@ -87,6 +87,10 @@ export function apiRefresh(): Promise<{ ok: boolean }> {
   return request('/auth/refresh', { method: 'POST' });
 }
 
+export function apiUnlinkProvider(provider: 'spotify' | 'linkedin'): Promise<void> {
+  return request(`/auth/oauth/${provider}`, { method: 'DELETE' });
+}
+
 export function apiUnlinkGithub(): Promise<void> {
   return request('/auth/oauth/github', { method: 'DELETE' });
 }

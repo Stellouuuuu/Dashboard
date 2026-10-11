@@ -20,7 +20,10 @@ import {
   type ApiWidgetInstance,
 } from '../api/client';
 import { apiListServices, apiSubscribeService, ServiceApiError } from '../api/services';
-import { apiUnlinkGithub, ApiAuthError } from '../api/auth';
+import { apiUnlinkGithub, apiUnlinkProvider, ApiAuthError } from '../api/auth';
+
+/** Services OAuth ajoutés après GitHub (état générique ; GitHub garde ses propres champs). */
+export type ExtraProvider = 'spotify' | 'linkedin';
 
 export type ModalId = 'oauth' | 'wizard' | null;
 
@@ -69,6 +72,14 @@ interface AppDataContextValue {
   disconnectGithub: () => Promise<void>;
   loadServices: () => Promise<void>;
   completeGithubLink: () => Promise<void>;
+  /** Spotify / LinkedIn : même flux OAuth que GitHub, état indexé par fournisseur. */
+  providerConnected: Record<ExtraProvider, boolean>;
+  providerError: Record<ExtraProvider, string | null>;
+  providerLoading: Record<ExtraProvider, boolean>;
+  connectProvider: (p: ExtraProvider) => void;
+  disconnectProvider: (p: ExtraProvider) => Promise<void>;
+  completeProviderLink: (p: ExtraProvider) => Promise<void>;
+  setProviderError: (p: ExtraProvider, code: string | null) => void;
   isSubscribed: (service: ServiceId) => boolean;
   wizardEditUid: number | null;
   /** Widget présélectionné à l'ouverture de l'assistant (ex. depuis « Widgets disponibles »). */
@@ -97,6 +108,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [githubUsername, setGithubUsername] = useState<string | null>(null);
   const [githubError, setGithubError] = useState<string | null>(null);
   const [githubLoading, setGithubLoading] = useState(false);
+  const [providerConnected, setProviderConnected] = useState<Record<ExtraProvider, boolean>>({ spotify: false, linkedin: false });
+  const [providerError, setProviderErrorState] = useState<Record<ExtraProvider, string | null>>({ spotify: null, linkedin: null });
+  const [providerLoading, setProviderLoading] = useState<Record<ExtraProvider, boolean>>({ spotify: false, linkedin: false });
   const [wizardEditUid, setWizardEditUid] = useState<number | null>(null);
   const [wizardPresetId, setWizardPresetId] = useState<string | null>(null);
   const [flashUid, setFlashUid] = useState<number | null>(null);
@@ -198,6 +212,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const services = await apiListServices();
       const github = services.find((s) => s.name === 'github');
       setGithubConnected(Boolean(github?.subscribed));
+      setProviderConnected({
+        spotify: Boolean(services.find((s) => s.name === 'spotify')?.subscribed),
+        linkedin: Boolean(services.find((s) => s.name === 'linkedin')?.subscribed),
+      });
     } catch {
       // API indisponible (dev sans Docker, ou pas encore connecté) : on garde l'état
       // local par défaut plutôt que de bloquer la page Services.
@@ -237,14 +255,60 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   }, [loadServices, toast, t]);
 
+  const setProviderError = useCallback(
+    (p: ExtraProvider, code: string | null) =>
+      setProviderErrorState((s) => ({
+        ...s,
+        [p]: code ? t(`errors.${code}`, { defaultValue: t('errors.INTERNAL_ERROR') }) : null,
+      })),
+    [t],
+  );
+
+  // Redirection pleine page vers le fournisseur (impossible dans une modale), puis retour sur /services?<provider>=linked.
+  const connectProvider = useCallback((p: ExtraProvider) => {
+    window.location.assign(`/api/v1/auth/oauth/${p}`);
+  }, []);
+
+  const disconnectProvider = useCallback(
+    async (p: ExtraProvider) => {
+      setProviderLoading((s) => ({ ...s, [p]: true }));
+      setProviderError(p, null);
+      try {
+        await apiUnlinkProvider(p);
+        setProviderConnected((s) => ({ ...s, [p]: false }));
+        toast(t(`services.${p}.disconnected`));
+      } catch (e) {
+        setProviderError(p, e instanceof ApiAuthError ? e.code : 'INTERNAL_ERROR');
+      } finally {
+        setProviderLoading((s) => ({ ...s, [p]: false }));
+      }
+    },
+    [toast, t, setProviderError],
+  );
+
+  const completeProviderLink = useCallback(
+    async (p: ExtraProvider) => {
+      try {
+        await apiSubscribeService(p);
+        toast(t(`services.${p}.connectedToast`));
+      } catch (e) {
+        setProviderError(p, e instanceof ServiceApiError ? e.code : 'INTERNAL_ERROR');
+      } finally {
+        await loadServices();
+      }
+    },
+    [loadServices, toast, t, setProviderError],
+  );
+
   // weather et rss sont disponibles par défaut, sans abonnement (PLAN.md §5) —
   // seul github exige une liaison OAuth avant de pouvoir s'y abonner.
   const isSubscribed = useCallback(
     (service: ServiceId) => {
       if (service === 'github') return githubConnected;
+      if (service === 'spotify' || service === 'linkedin') return providerConnected[service];
       return true;
     },
-    [githubConnected],
+    [githubConnected, providerConnected],
   );
 
   const value = useMemo(
@@ -276,6 +340,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       disconnectGithub,
       loadServices,
       completeGithubLink,
+      providerConnected,
+      providerError,
+      providerLoading,
+      connectProvider,
+      disconnectProvider,
+      completeProviderLink,
+      setProviderError,
       isSubscribed,
       wizardEditUid,
       wizardPresetId,
@@ -313,6 +384,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       disconnectGithub,
       loadServices,
       completeGithubLink,
+      providerConnected,
+      providerError,
+      providerLoading,
+      connectProvider,
+      disconnectProvider,
+      completeProviderLink,
+      setProviderError,
       isSubscribed,
       wizardEditUid,
       wizardPresetId,
