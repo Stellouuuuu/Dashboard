@@ -540,8 +540,8 @@ ul{list-style:none;}
 
 .grid-widgets{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  gap:18px;
+  grid-template-columns:repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  gap:20px;
   width:100%;
 }
 .grid-widgets-span{display:contents;}
@@ -1523,3 +1523,4 @@ tr:last-child td{border-bottom:none;}
   }
   html{scroll-behavior:auto;}
 }
+.detail-back{margin-top:14px;width:100%;}
