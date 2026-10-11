@@ -1,6 +1,8 @@
 import { env } from "../config/env.js";
 
-const MODEL = "gemini-2.5-flash-lite";
+// gemini-2.5-flash-lite a été retiré pour les nouvelles clés (déc. 2026) au profit
+// de la série 3.5 — vérifié en direct avec une vraie clé avant de coder en dur.
+const MODEL = "gemini-3.5-flash-lite";
 
 interface GeminiResponse {
   candidates?: { content?: { parts?: { text?: string }[] } }[];
