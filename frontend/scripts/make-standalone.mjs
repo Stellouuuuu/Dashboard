@@ -4,7 +4,7 @@
  * that works offline (fonts still load from CDN when online).
  * Uses HashRouter for file:// / double-click opens.
  */
-import { readFileSync, writeFileSync, copyFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';

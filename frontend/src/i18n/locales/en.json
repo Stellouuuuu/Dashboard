@@ -13,7 +13,9 @@
       "github": "GitHub",
       "rss": "RSS",
       "finance": "Finance",
-      "hackernews": "Hacker News"
+      "hackernews": "Hacker News",
+      "spotify": "Spotify",
+      "linkedin": "LinkedIn"
     }
   },
   "language": {
@@ -34,7 +36,12 @@
     "searchPlaceholder": "Search a widget…",
     "searchLabel": "Search a widget",
     "sectionsLabel": "Sections",
-    "tabs": { "home": "Home", "services": "Services", "admin": "Admin", "profile": "Profile" },
+    "tabs": {
+      "home": "Home",
+      "services": "Services",
+      "admin": "Admin",
+      "profile": "Profile"
+    },
     "bellLabel": "Recent activity",
     "userMenu": {
       "roleAdmin": "Admin",
@@ -54,7 +61,9 @@
     "confirmPasswordLabel": "Confirm password",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "layout": { "quote": "One dashboard for the weather, your repos and your feeds." },
+    "layout": {
+      "quote": "One dashboard for the weather, your repos and your feeds."
+    },
     "login": {
       "title": "Welcome back.",
       "lead": "Sign in to find your dashboard, your widgets and your connected services.",
@@ -159,19 +168,46 @@
       "kicker": "Services",
       "title": "Five doors, ten widgets.",
       "lead": "Each widget has its own settings: two instances of the same widget can track two cities, two repos or two different feeds.",
-      "weather": { "access": "No account needed", "pitch": "Temperature and rain for the cities that matter to you." },
-      "github": { "access": "OAuth 2.0", "pitch": "Commits and security alerts from your repositories." },
-      "rss": { "access": "Just a URL", "pitch": "The latest articles from your favorite blogs and media." },
-      "finance": { "access": "No account needed", "pitch": "Live exchange rates and crypto prices." },
-      "hackernews": { "access": "No account needed", "pitch": "Top stories and search on Hacker News." }
+      "weather": {
+        "access": "No account needed",
+        "pitch": "Temperature and rain for the cities that matter to you."
+      },
+      "github": {
+        "access": "OAuth 2.0",
+        "pitch": "Commits and security alerts from your repositories."
+      },
+      "rss": {
+        "access": "Just a URL",
+        "pitch": "The latest articles from your favorite blogs and media."
+      },
+      "finance": {
+        "access": "No account needed",
+        "pitch": "Live exchange rates and crypto prices."
+      },
+      "hackernews": {
+        "access": "No account needed",
+        "pitch": "Top stories and search on Hacker News."
+      }
     },
     "steps": {
       "kicker": "How it works",
       "title": "Four steps, then it runs on its own.",
-      "step1": { "title": "Create your account", "text": "Sign up by email, confirmed before first access." },
-      "step2": { "title": "Connect your services", "text": "Weather is included. GitHub links via OAuth, RSS with a URL." },
-      "step3": { "title": "Compose your dashboard", "text": "Pick a widget, set its parameters and its frequency." },
-      "step4": { "title": "Let it run", "text": "The timer refreshes each widget at its own pace." }
+      "step1": {
+        "title": "Create your account",
+        "text": "Sign up by email, confirmed before first access."
+      },
+      "step2": {
+        "title": "Connect your services",
+        "text": "Weather is included. GitHub links via OAuth, RSS with a URL."
+      },
+      "step3": {
+        "title": "Compose your dashboard",
+        "text": "Pick a widget, set its parameters and its frequency."
+      },
+      "step4": {
+        "title": "Let it run",
+        "text": "The timer refreshes each widget at its own pace."
+      }
     },
     "preview": {
       "kicker": "Preview",
@@ -191,7 +227,9 @@
     "home": "Home",
     "dashboard": "Dashboard"
   },
-  "boot": { "loadingSession": "Loading session…" },
+  "boot": {
+    "loadingSession": "Loading session…"
+  },
   "dashboard": {
     "hero": {
       "emptyBadge": "Welcome",
@@ -255,8 +293,11 @@
       "deleteFailed": "Deletion failed",
       "loadError": "Loading error",
       "seeMore": "See more",
+      "backToDashboard": "Back to dashboard",
       "openLink": "Open",
-      "detailEmpty": "No additional data"
+      "detailEmpty": "No additional data",
+      "listen": "Listen",
+      "hidePlayer": "Hide"
     },
     "summary": {
       "noCommit": "No commits",
@@ -270,7 +311,24 @@
       "alerts_other": "{{count}} alerts",
       "noStory": "No stories",
       "stories_one": "{{count}} story",
-      "stories_other": "{{count}} stories"
+      "stories_other": "{{count}} stories",
+      "nothingPlaying": "Nothing playing",
+      "noTrack": "No tracks",
+      "tracks_one": "{{count}} track",
+      "tracks_other": "{{count}} tracks",
+      "playerTitle": "Spotify player",
+      "playState": {
+        "playing": "Playing",
+        "paused": "Paused",
+        "recent": "Last played",
+        "idle": "Idle"
+      },
+      "anywhere": "Anywhere",
+      "postedSince": "Posted: {{period}}",
+      "seeJobs": "See jobs",
+      "hashtags_one": "{{count}} hashtag",
+      "hashtags_other": "{{count}} hashtags",
+      "seeHashtag": "Open #{{tag}}"
     },
     "planning": {
       "title": "Planning",
@@ -280,7 +338,11 @@
       "refreshesPlanned_one": "{{formatted}} refresh planned",
       "refreshesPlanned_other": "{{formatted}} refreshes planned",
       "today": "Today",
-      "groups": { "start": "Getting started", "dashboard": "Your dashboard", "further": "Going further" },
+      "groups": {
+        "start": "Getting started",
+        "dashboard": "Your dashboard",
+        "further": "Going further"
+      },
       "items": {
         "createAccount": "Create and confirm your account",
         "connectGithub": "Connect your GitHub account",
@@ -325,7 +387,22 @@
     "reconfigured": "Widget reconfigured",
     "added": "Widget added to dashboard",
     "minutesUnit": "min",
-    "secondsUnit": "s"
+    "secondsUnit": "s",
+    "options": {
+      "yes": "Yes",
+      "no": "No",
+      "short": "Last 4 weeks",
+      "medium": "Last 6 months",
+      "long": "All time",
+      "any": "Any",
+      "full_time": "Full-time",
+      "part_time": "Part-time",
+      "contract": "Contract",
+      "internship": "Internship",
+      "day": "Last 24 hours",
+      "week": "Last week",
+      "month": "Last month"
+    }
   },
   "oauthModal": {
     "title": "Authorize Threshold",
@@ -338,7 +415,10 @@
   "services": {
     "title": "My services",
     "lead": "Connect your accounts to unlock their widgets.",
-    "weather": { "title": "Weather", "desc": "No account needed, available to every signed-in user." },
+    "weather": {
+      "title": "Weather",
+      "desc": "No account needed, available to every signed-in user."
+    },
     "github": {
       "title": "GitHub",
       "connected": "GitHub account connected.",
@@ -348,10 +428,37 @@
       "disconnected": "GitHub disconnected",
       "connectedToast": "GitHub connected"
     },
-    "rss": { "title": "RSS", "desc": "No account needed — enter the feed URL directly on each widget." },
-    "finance": { "title": "Finance", "desc": "No account needed, live exchange rates and crypto prices." },
-    "hackernews": { "title": "Hacker News", "desc": "No account needed, top stories and keyword search." },
-    "active": "Active"
+    "rss": {
+      "title": "RSS",
+      "desc": "No account needed — enter the feed URL directly on each widget."
+    },
+    "finance": {
+      "title": "Finance",
+      "desc": "No account needed, live exchange rates and crypto prices."
+    },
+    "hackernews": {
+      "title": "Hacker News",
+      "desc": "No account needed, top stories and keyword search."
+    },
+    "active": "Active",
+    "spotify": {
+      "title": "Spotify",
+      "connected": "Spotify account connected — your tracks and player are available.",
+      "notConnected": "Connect your account to see what you listen to and play your music.",
+      "connect": "Connect Spotify",
+      "disconnect": "Disconnect",
+      "disconnected": "Spotify disconnected",
+      "connectedToast": "Spotify connected"
+    },
+    "linkedin": {
+      "title": "LinkedIn",
+      "connected": "LinkedIn account connected.",
+      "notConnected": "Connect your account to show your profile and share links.",
+      "connect": "Connect LinkedIn",
+      "disconnect": "Disconnect",
+      "disconnected": "LinkedIn disconnected",
+      "connectedToast": "LinkedIn connected"
+    }
   },
   "admin": {
     "title": "Administration",
@@ -361,9 +468,23 @@
       "widgets": "widget instances",
       "activeUsers": "active users"
     },
-    "table": { "email": "Email", "status": "Status", "role": "Role", "registered": "Registered on", "actions": "Actions" },
-    "status": { "confirmed": "Confirmed", "pending": "Pending", "suspended": "Suspended" },
-    "action": { "reactivate": "Reactivate", "suspend": "Suspend", "delete": "Delete" },
+    "table": {
+      "email": "Email",
+      "status": "Status",
+      "role": "Role",
+      "registered": "Registered on",
+      "actions": "Actions"
+    },
+    "status": {
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "suspended": "Suspended"
+    },
+    "action": {
+      "reactivate": "Reactivate",
+      "suspend": "Suspend",
+      "delete": "Delete"
+    },
     "toast": {
       "suspended": "User suspended",
       "reactivated": "User reactivated",
@@ -373,7 +494,10 @@
       "loadFailed": "Could not load users."
     },
     "confirmDelete": "Permanently delete {{email}}?",
-    "audit": { "title": "Activity log", "activeWidgets": "Active widgets on your dashboard: {{count}}" },
+    "audit": {
+      "title": "Activity log",
+      "activeWidgets": "Active widgets on your dashboard: {{count}}"
+    },
     "userNotFound": "User not found.",
     "backToList": "Back to the list",
     "breadcrumb": "Administration",
@@ -389,14 +513,18 @@
       "ADMIN_USER_SUSPENDED": "User suspended: {{targetEmail}}",
       "ADMIN_USER_REACTIVATED": "User reactivated: {{targetEmail}}",
       "ADMIN_USER_ROLE_CHANGED": "Role changed: {{targetEmail}} → {{role}}",
-      "ADMIN_USER_DELETED": "User deleted: {{targetEmail}}"
+      "ADMIN_USER_DELETED": "User deleted: {{targetEmail}}",
+      "OAUTH_LINKED": "{{provider}} connected by {{email}}"
     }
   },
   "profile": {
     "title": "Profile",
     "lead": "Update your information and account security.",
     "tabsLabel": "Profile sections",
-    "tabs": { "general": "General", "security": "Security" },
+    "tabs": {
+      "general": "General",
+      "security": "Security"
+    },
     "saved": "Profile saved.",
     "saveFailed": "Saving failed.",
     "avatarHint": "Avatar generated from your initials.",
@@ -458,57 +586,116 @@
     "city_temperature": {
       "name": "Temperature",
       "description": "Current temperature for a city.",
-      "params": { "city": "City", "unit": "Unit (C/F)" }
+      "params": {
+        "city": "City",
+        "unit": "Unit (C/F)"
+      }
     },
     "precipitation_forecast": {
       "name": "Rain forecast",
       "description": "Precipitation forecast for the next days.",
-      "params": { "city": "City", "days": "Days" }
+      "params": {
+        "city": "City",
+        "days": "Days"
+      }
     },
     "recent_commits": {
       "name": "Recent commits",
       "description": "Recent commits of a GitHub repository.",
-      "params": { "repository": "Repository (owner/repo or GitHub URL)", "limit": "Limit" }
+      "params": {
+        "repository": "Repository (owner/repo or GitHub URL)",
+        "limit": "Limit"
+      }
     },
     "security_alerts": {
       "name": "Security alerts",
       "description": "Security alerts of a GitHub repository.",
-      "params": { "repository": "Repository (owner/repo or GitHub URL)", "severity": "Severity" }
+      "params": {
+        "repository": "Repository (owner/repo or GitHub URL)",
+        "severity": "Severity"
+      }
     },
     "article_list": {
       "name": "Latest articles",
       "description": "List of the last articles from a feed.",
-      "params": { "link": "Feed URL", "number": "Number of articles" }
+      "params": {
+        "link": "Feed URL",
+        "number": "Number of articles"
+      }
     },
     "feed_summary": {
       "name": "Feed summary",
       "description": "Latest articles merged from several feeds.",
-      "params": { "links": "Feed URLs (comma-separated)", "number": "Number of articles" }
+      "params": {
+        "links": "Feed URLs (comma-separated)",
+        "number": "Number of articles"
+      }
     },
     "exchange_rate": {
       "name": "Exchange rate",
       "description": "Exchange rate between two currencies.",
-      "params": { "base": "Base currency", "target": "Target currency" }
+      "params": {
+        "base": "Base currency",
+        "target": "Target currency"
+      }
     },
     "crypto_price": {
       "name": "Crypto price",
       "description": "Current price of a cryptocurrency.",
-      "params": { "coin": "Cryptocurrency", "currency": "Currency" }
+      "params": {
+        "coin": "Cryptocurrency",
+        "currency": "Currency"
+      }
     },
     "top_stories": {
       "name": "Top stories",
       "description": "Top stories from Hacker News.",
-      "params": { "number": "Number of stories" }
+      "params": {
+        "number": "Number of stories"
+      }
     },
     "story_search": {
       "name": "Story search",
       "description": "Search Hacker News stories by keyword.",
-      "params": { "query": "Search query", "number": "Number of results" }
+      "params": {
+        "query": "Search query",
+        "number": "Number of results"
+      }
+    },
+    "player": {
+      "name": "Spotify player",
+      "description": "Listen to a playlist, album, track or artist.",
+      "params": {
+        "uri": "Spotify link (playlist, album, track, artist)"
+      }
+    },
+    "job_search": {
+      "name": "LinkedIn job search",
+      "description": "Your job search on LinkedIn, one click away.",
+      "params": {
+        "keywords": "Keywords (e.g. React developer)",
+        "location": "Location (e.g. Paris, France)",
+        "job_type": "Contract type",
+        "period": "Posted since"
+      }
+    },
+    "hashtag_watch": {
+      "name": "LinkedIn hashtags",
+      "description": "Follow your LinkedIn hashtags in one click.",
+      "params": {
+        "hashtags": "Hashtags (comma-separated)"
+      }
     }
   },
-  "modal": { "close": "Close" },
-  "skeleton": { "loadingWidgets": "Loading widgets" },
-  "skipLink": { "label": "Skip to content" },
+  "modal": {
+    "close": "Close"
+  },
+  "skeleton": {
+    "loadingWidgets": "Loading widgets"
+  },
+  "skipLink": {
+    "label": "Skip to content"
+  },
   "errors": {
     "AUTH_EMAIL_TAKEN": "An account already exists with this email.",
     "AUTH_INVALID_CREDENTIALS": "Invalid credentials.",
@@ -522,9 +709,11 @@
     "AUTH_FORBIDDEN": "Action not allowed.",
     "AUTH_CURRENT_PASSWORD_INCORRECT": "Current password is incorrect.",
     "AUTH_USER_NOT_FOUND": "User not found.",
-    "OAUTH_NOT_CONFIGURED": "GitHub sign-in is not available right now.",
+    "OAUTH_NOT_CONFIGURED": "This connection is not configured on the server (missing keys).",
     "OAUTH_STATE_INVALID": "The authorization request expired, try again.",
-    "OAUTH_EXCHANGE_FAILED": "Connecting to GitHub failed, try again.",
+    "OAUTH_EXCHANGE_FAILED": "Connecting to the service failed, try again.",
+    "OAUTH_PREMIUM_REQUIRED": "Spotify requires an active Premium subscription for the owner of the Spotify Developer app.",
+    "OAUTH_USER_NOT_REGISTERED": "This Spotify account isn't allowed: add its email under “User Management” of your app on developer.spotify.com, then try again.",
     "SERVICE_UNKNOWN": "Unknown service.",
     "SERVICE_OAUTH_REQUIRED": "Connect your account first to subscribe to this service.",
     "SERVICE_CANNOT_UNSUBSCRIBE_DEFAULT": "This service can’t be unsubscribed from.",
@@ -536,6 +725,7 @@
     "ADMIN_USER_NOT_FOUND": "User not found.",
     "ADMIN_SELF_ROLE_CHANGE_FORBIDDEN": "You can’t remove your own admin rights.",
     "ADMIN_SELF_DELETE_FORBIDDEN": "You can’t delete your own account.",
+    "ADMIN_SELF_SUSPEND_FORBIDDEN": "You can’t suspend your own account.",
     "VALIDATION_ERROR": "Some information is invalid.",
     "RATE_LIMITED": "Too many attempts, try again shortly.",
     "INTERNAL_ERROR": "Something went wrong. Try again."
