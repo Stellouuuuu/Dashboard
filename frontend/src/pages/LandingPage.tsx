@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { useAuth } from '../auth/AuthContext';
-import { IconChevron, IconFinance, IconGithub, IconHackerNews, IconRss, IconWeather } from '../components/Icons';
+import { IconChevron, IconFinance, IconGithub, IconHackerNews, IconLinkedin, IconRss, IconSpotify, IconWeather } from '../components/Icons';
 import type { ServiceId } from '../data/catalog';
 import { IMG } from '../data/images';
 import { widgetName } from '../i18n/widgets';
@@ -21,6 +21,9 @@ const WIDGETS_PREVIEW: { id: string; service: ServiceId; params: string[] }[] = 
   { id: 'crypto_price', service: 'finance', params: ['coin', 'currency'] },
   { id: 'top_stories', service: 'hackernews', params: ['number'] },
   { id: 'story_search', service: 'hackernews', params: ['query', 'number'] },
+  { id: 'player', service: 'spotify', params: ['uri'] },
+  { id: 'job_search', service: 'linkedin', params: ['keywords', 'location', 'job_type', 'period'] },
+  { id: 'hashtag_watch', service: 'linkedin', params: ['hashtags'] },
 ];
 
 const SERVICE_ICON: Record<ServiceId, ReactNode> = {
@@ -29,6 +32,8 @@ const SERVICE_ICON: Record<ServiceId, ReactNode> = {
   rss: <IconRss />,
   finance: <IconFinance />,
   hackernews: <IconHackerNews />,
+  spotify: <IconSpotify />,
+  linkedin: <IconLinkedin />,
 };
 
 export function LandingPage() {
@@ -61,6 +66,8 @@ export function LandingPage() {
     { id: 'rss', image: IMG.service.rss },
     { id: 'finance', image: IMG.service.finance },
     { id: 'hackernews', image: IMG.service.hackernews },
+    { id: 'spotify', image: IMG.service.spotify },
+    { id: 'linkedin', image: IMG.service.linkedin },
   ];
 
   const serviceCount = catalog ? new Set(catalog.map((w) => w.service)).size : null;

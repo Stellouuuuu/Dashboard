@@ -9,6 +9,10 @@ import { useAppData, toWidgetInstance } from '../context/AppDataContext';
 import { apiAddDashboardWidget, apiReconfigureDashboardWidget, ApiError, type ApiWidgetDefinition } from '../api/client';
 import { FormField } from '../components/FormField';
 
+function defaultConfig(w: ApiWidgetDefinition): Record<string, string | number> {
+  return Object.fromEntries(w.params.filter((p) => p.options?.length).map((p) => [p.name, p.options![0]]));
+}
+
 export function WizardModal() {
   const { t } = useTranslation();
   const {
@@ -56,7 +60,7 @@ export function WizardModal() {
     }
     const preset = wizardPresetId ? (catalog.find((w) => w.name === wizardPresetId) ?? null) : null;
     setWidget(preset);
-    setConfig({});
+    setConfig(preset ? defaultConfig(preset) : {});
     setRate(REFRESH_RATES[0]);
     setStep(1);
     if (preset && !isSubscribed(preset.service)) setNeedsSubscribe(true);
@@ -71,7 +75,8 @@ export function WizardModal() {
 
   const selectWidget = (w: ApiWidgetDefinition) => {
     setWidget(w);
-    setConfig({});
+    // Paramètres à choix : première option présélectionnée.
+    setConfig(defaultConfig(w));
     setConfigErrors({});
     if (!isEditing && !isSubscribed(w.service)) {
       setNeedsSubscribe(true);
@@ -123,7 +128,7 @@ export function WizardModal() {
             setFlashUid(wizardEditUid);
             toast(t('wizard.reconfigured'));
           } else {
-            setInstances((list) => [...list, inst]);
+            setInstances((list) => [inst, ...list]);
             setAddedUid(inst.uid);
             toast(t('wizard.added'));
           }
@@ -237,6 +242,19 @@ export function WizardModal() {
                   error={configErrors[p.name]}
                   htmlFor={`wiz-${p.name}`}
                 >
+                  {p.options?.length ? (
+                    <select
+                      id={`wiz-${p.name}`}
+                      value={config[p.name] ?? p.options[0]}
+                      onChange={(e) => setConfig((c) => ({ ...c, [p.name]: e.target.value }))}
+                    >
+                      {p.options.map((o) => (
+                        <option key={o} value={o}>
+                          {t(`wizard.options.${o}`, { defaultValue: o })}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
                   <input
                     id={`wiz-${p.name}`}
                     type={p.type === 'integer' ? 'number' : 'text'}
@@ -251,6 +269,7 @@ export function WizardModal() {
                       }))
                     }
                   />
+                  )}
                 </FormField>
               ))}
             </div>
@@ -309,7 +328,7 @@ export function WizardModal() {
                     <span>
                       {widgetParamLabel(t, widget.name, k, widget.params.find((p) => p.name === k)?.label ?? k)}
                     </span>
-                    <b>{String(v)}</b>
+                    <b>{t(`wizard.options.${String(v)}`, { defaultValue: String(v) })}</b>
                   </div>
                 ))}
                 <div>
