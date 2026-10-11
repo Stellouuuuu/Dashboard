@@ -1,7 +1,7 @@
 // Appels réels vers /api/v1/services (PLAN.md §6.2).
 
 export interface ApiService {
-  name: 'weather' | 'github' | 'rss' | 'finance' | 'hackernews' | 'spotify' | 'linkedin';
+  name: 'weather' | 'github' | 'rss' | 'finance' | 'hackernews' | 'spotify' | 'linkedin' | 'youtube';
   requiresOAuth: boolean;
   subscribed: boolean;
 }

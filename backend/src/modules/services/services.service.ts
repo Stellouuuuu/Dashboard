@@ -5,7 +5,7 @@ import * as repo from "./services.repository.js";
 // PLAN.md §5 : weather, rss, finance et hackernews sont disponibles par défaut (pas
 // d'abonnement requis, pas de clé/compte tiers), github exige une liaison OAuth avant
 // de pouvoir s'y abonner.
-const SERVICE_NAMES = ["weather", "github", "rss", "finance", "hackernews", "spotify", "linkedin"] as const;
+const SERVICE_NAMES = ["weather", "github", "rss", "finance", "hackernews", "spotify", "linkedin", "youtube"] as const;
 export type ServiceName = (typeof SERVICE_NAMES)[number];
 export const OAUTH_REQUIRED = new Set<ServiceName>(["github", "spotify", "linkedin"]);
 

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { useAuth } from '../auth/AuthContext';
-import { IconChevron, IconFinance, IconGithub, IconHackerNews, IconLinkedin, IconRss, IconSpotify, IconWeather } from '../components/Icons';
+import { IconChevron, IconFinance, IconGithub, IconHackerNews, IconLinkedin, IconRss, IconSpotify, IconWeather, IconYoutube } from '../components/Icons';
 import type { ServiceId } from '../data/catalog';
 import { IMG } from '../data/images';
 import { widgetName } from '../i18n/widgets';
@@ -24,6 +24,8 @@ const WIDGETS_PREVIEW: { id: string; service: ServiceId; params: string[] }[] = 
   { id: 'player', service: 'spotify', params: ['uri'] },
   { id: 'job_search', service: 'linkedin', params: ['keywords', 'location', 'job_type', 'period'] },
   { id: 'hashtag_watch', service: 'linkedin', params: ['hashtags'] },
+  { id: 'channel_latest_videos', service: 'youtube', params: ['channel', 'number'] },
+  { id: 'video_stats', service: 'youtube', params: ['video'] },
 ];
 
 const SERVICE_ICON: Record<ServiceId, ReactNode> = {
@@ -34,6 +36,7 @@ const SERVICE_ICON: Record<ServiceId, ReactNode> = {
   hackernews: <IconHackerNews />,
   spotify: <IconSpotify />,
   linkedin: <IconLinkedin />,
+  youtube: <IconYoutube />,
 };
 
 export function LandingPage() {
@@ -68,6 +71,7 @@ export function LandingPage() {
     { id: 'hackernews', image: IMG.service.hackernews },
     { id: 'spotify', image: IMG.service.spotify },
     { id: 'linkedin', image: IMG.service.linkedin },
+    { id: 'youtube', image: IMG.service.youtube },
   ];
 
   const serviceCount = catalog ? new Set(catalog.map((w) => w.service)).size : null;

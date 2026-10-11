@@ -114,6 +114,25 @@ export interface LinkedinHashtag {
   tag: string;
   url: string;
 }
+export interface YoutubeVideo {
+  videoId: string;
+  title: string;
+  channelTitle: string;
+  publishedAt: string;
+  thumbnail: string | null;
+  url: string;
+}
+export interface YoutubeVideoStats {
+  id: string;
+  title: string;
+  channelTitle: string;
+  thumbnail: string | null;
+  viewCount: number;
+  likeCount: number | null;
+  commentCount: number | null;
+  publishedAt: string;
+  url: string;
+}
 
 const EMPTY: WidgetSummary = { kicker: '', title: '—', lines: [] };
 
@@ -222,6 +241,32 @@ export function summarizeData(widgetId: string, data: unknown): WidgetSummary {
         title: tags.length ? `#${tags[0].tag}` : '—',
         lines: tags.slice(0, 4).map((x) => `#${x.tag}`),
         action: href ? { label: i18n.t('dashboard.summary.seeHashtag', { tag: tags[0].tag }), href } : undefined,
+      };
+    }
+    case 'channel_latest_videos': {
+      const videos = data as YoutubeVideo[];
+      if (!videos.length) return { kicker: '', title: i18n.t('dashboard.summary.noVideo'), lines: [] };
+      const href = safeLink(videos[0].url, 'https://www.youtube.com/watch?v=');
+      return {
+        kicker: i18n.t('dashboard.summary.videos', { count: videos.length }),
+        title: videos[0].title,
+        lines: videos.slice(1, 3).map((v) => v.title),
+        image: safeImage(videos[0].thumbnail) ?? undefined,
+        action: href ? { label: i18n.t('dashboard.summary.watchVideo'), href } : undefined,
+      };
+    }
+    case 'video_stats': {
+      const d = data as YoutubeVideoStats;
+      const href = safeLink(d.url, 'https://www.youtube.com/watch?v=');
+      return {
+        kicker: d.channelTitle,
+        title: d.title,
+        lines: [
+          `${formatNumber(d.viewCount, currentLng())} ${i18n.t('dashboard.summary.viewsUnit')}`,
+          d.likeCount != null ? `${formatNumber(d.likeCount, currentLng())} ${i18n.t('dashboard.summary.likesUnit')}` : '',
+        ].filter(Boolean),
+        image: safeImage(d.thumbnail) ?? undefined,
+        action: href ? { label: i18n.t('dashboard.summary.watchVideo'), href } : undefined,
       };
     }
     default:

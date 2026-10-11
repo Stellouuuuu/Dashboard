@@ -6,6 +6,7 @@ import { fetchExchangeRate, fetchCryptoPrice } from "../adapters/finance.adapter
 import { fetchTopStories, fetchStorySearch } from "../adapters/hackernews.adapter.js";
 import { fetchPlayer, parseSpotifyEmbed } from "../adapters/spotify.adapter.js";
 import { fetchJobSearch, fetchHashtagWatch, parseHashtags, JOB_TYPES, JOB_PERIODS } from "../adapters/linkedin.adapter.js";
+import { fetchChannelLatestVideos, fetchVideoStats, parseYoutubeVideoId } from "../adapters/youtube.adapter.js";
 
 export interface WidgetParam {
   name: string;
@@ -20,7 +21,7 @@ export interface WidgetContext {
 }
 
 export interface WidgetDefinition<C = any> {
-  service: "weather" | "github" | "rss" | "finance" | "hackernews" | "spotify" | "linkedin";
+  service: "weather" | "github" | "rss" | "finance" | "hackernews" | "spotify" | "linkedin" | "youtube";
   name: string;
   description: string;
   params: WidgetParam[];
@@ -222,6 +223,33 @@ export const WIDGET_REGISTRY = {
       hashtags: z.string().trim().max(300).refine((v) => parseHashtags(v).length > 0, "Au moins un hashtag valide requis"),
     }),
     fetch: (config) => fetchHashtagWatch(config),
+  },
+  channel_latest_videos: {
+    service: "youtube",
+    name: "channel_latest_videos",
+    description: "Display the latest videos uploaded by a YouTube channel",
+    params: [
+      { name: "channel", type: "string", label: "Chaîne (@pseudo, ID ou URL)" },
+      { name: "number", type: "integer", label: "Nombre de vidéos" },
+    ],
+    schema: z.object({
+      channel: z.string().trim().min(1),
+      number: z.number().int().min(1).max(10),
+    }),
+    fetch: (config) => fetchChannelLatestVideos(config),
+  },
+  video_stats: {
+    service: "youtube",
+    name: "video_stats",
+    description: "Display the statistics of a YouTube video",
+    params: [{ name: "video", type: "string", label: "Lien ou ID de la vidéo" }],
+    schema: z.object({
+      video: z
+        .string()
+        .trim()
+        .refine((v) => parseYoutubeVideoId(v) !== null, "Lien ou ID de vidéo YouTube invalide"),
+    }),
+    fetch: (config) => fetchVideoStats(config),
   },
 } satisfies Record<string, WidgetDefinition<any>>;
 

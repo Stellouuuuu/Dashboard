@@ -15,7 +15,8 @@
       "finance": "Finance",
       "hackernews": "Hacker News",
       "spotify": "Spotify",
-      "linkedin": "LinkedIn"
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube"
     }
   },
   "language": {
@@ -351,7 +352,13 @@
       "seeJobs": "Voir les offres",
       "hashtags_one": "{{count}} hashtag",
       "hashtags_other": "{{count}} hashtags",
-      "seeHashtag": "Ouvrir #{{tag}}"
+      "seeHashtag": "Ouvrir #{{tag}}",
+      "noVideo": "Aucune vidéo",
+      "videos_one": "{{count}} vidéo",
+      "videos_other": "{{count}} vidéos",
+      "watchVideo": "Voir la vidéo",
+      "viewsUnit": "vues",
+      "likesUnit": "likes"
     },
     "planning": {
       "title": "Planning",
@@ -497,6 +504,10 @@
       "disconnect": "Déconnecter",
       "disconnected": "LinkedIn déconnecté",
       "connectedToast": "LinkedIn connecté"
+    },
+    "youtube": {
+      "title": "YouTube",
+      "desc": "Aucun compte requis, dernières vidéos d'une chaîne et statistiques d'une vidéo."
     }
   },
   "admin": {
@@ -724,6 +735,21 @@
       "description": "Suis tes hashtags LinkedIn en un clic.",
       "params": {
         "hashtags": "Hashtags (séparés par des virgules)"
+      }
+    },
+    "channel_latest_videos": {
+      "name": "Dernières vidéos YouTube",
+      "description": "Les dernières vidéos publiées par une chaîne YouTube.",
+      "params": {
+        "channel": "Chaîne (@pseudo, ID ou URL)",
+        "number": "Nombre de vidéos"
+      }
+    },
+    "video_stats": {
+      "name": "Statistiques vidéo YouTube",
+      "description": "Vues, likes et commentaires d'une vidéo YouTube.",
+      "params": {
+        "video": "Lien ou ID de la vidéo"
       }
     }
   },

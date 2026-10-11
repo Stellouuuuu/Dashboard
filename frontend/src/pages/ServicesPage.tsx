@@ -197,6 +197,19 @@ export function ServicesPage() {
             <span className="badge badge-on">{t('services.active')}</span>
           </div>
         </div>
+        <div className="svc-row">
+          <span className="dash-svc-thumb" aria-hidden="true">
+            <img src={IMG.service.youtube} alt="" loading="lazy" />
+          </span>
+          <div className="svc-row-info">
+            <h3>{t('services.youtube.title')}</h3>
+            <p>{t('services.youtube.desc')}</p>
+          </div>
+          <div className="svc-row-actions">
+            <span className="badge badge-on">{t('services.active')}</span>
+          </div>
+        </div>
+
         {EXTRA_PROVIDERS.map((p) => (
           <div className="svc-row" key={p}>
             <span className="dash-svc-thumb" aria-hidden="true">

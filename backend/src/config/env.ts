@@ -60,6 +60,9 @@ const envSchema = z.object({
   SPOTIFY_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
   LINKEDIN_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
   LINKEDIN_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Widgets YouTube (channel_latest_videos, video_stats) — clé gratuite sans OAuth,
+  // console.cloud.google.com, quota 10 000 unités/jour. Widgets désactivés si absente.
+  YOUTUBE_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
 });
 
 function formatZodError(err: z.ZodError): string {

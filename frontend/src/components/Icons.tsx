@@ -197,6 +197,14 @@ export function IconLinkedin() {
   );
 }
 
+export function IconYoutube() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true" style={{ fill: '#FF0000', stroke: 'none' }}>
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.546 12 3.546 12 3.546s-7.505 0-9.377.504A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.504 9.376.504 9.376.504s7.505 0 9.377-.504a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.546 15.568V8.432L15.818 12l-6.272 3.568z" />
+    </svg>
+  );
+}
+
 export function ServiceIcon({ service }: { service: ServiceId }) {
   if (service === 'weather') return <IconWeather />;
   if (service === 'github') return <IconGithub />;
@@ -204,6 +212,7 @@ export function ServiceIcon({ service }: { service: ServiceId }) {
   if (service === 'finance') return <IconFinance />;
   if (service === 'spotify') return <IconSpotify />;
   if (service === 'linkedin') return <IconLinkedin />;
+  if (service === 'youtube') return <IconYoutube />;
   return <IconHackerNews />;
 }
 

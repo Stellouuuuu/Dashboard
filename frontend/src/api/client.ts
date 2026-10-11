@@ -14,7 +14,7 @@ export interface ApiWidgetParam {
 
 export interface ApiWidgetDefinition {
   name: string;
-  service: 'weather' | 'github' | 'rss' | 'finance' | 'hackernews' | 'spotify' | 'linkedin';
+  service: 'weather' | 'github' | 'rss' | 'finance' | 'hackernews' | 'spotify' | 'linkedin' | 'youtube';
   description: string;
   params: ApiWidgetParam[];
 }
