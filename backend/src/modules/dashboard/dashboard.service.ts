@@ -2,7 +2,8 @@ import { getWidgetDefinition } from "../../widgets/registry.js";
 import { CONSTANTS } from "../../config/constants.js";
 import { httpError, HttpError } from "../../lib/httpError.js";
 import { logAudit, AUDIT_ACTIONS } from "../../lib/audit.js";
-import { isLinked as isGithubLinked } from "../auth/github-oauth.service.js";
+import { isLinked } from "../auth/oauth-providers.service.js";
+import { OAUTH_REQUIRED, type ServiceName } from "../services/services.service.js";
 import * as repo from "./dashboard.repository.js";
 import type { WidgetInstanceRow } from "./dashboard.repository.js";
 
@@ -42,15 +43,15 @@ export async function addWidget(
   widgetName: string,
   rawConfig: unknown,
   refreshRate: number | undefined,
-  position: number,
+  position: number | undefined,
 ) {
   const widget = getWidgetDefinition(widgetName);
   if (!widget) throw httpError(404, "DASHBOARD_WIDGET_UNKNOWN", "Widget introuvable dans le registre");
 
-  // Un widget GitHub ne peut être ajouté qu'avec le compte GitHub lié (PLAN.md §5) —
-  // évite d'accepter un widget qui échouera systématiquement à chaque rafraîchissement.
-  if (widget.service === "github" && !(await isGithubLinked(userId))) {
-    throw httpError(400, "SERVICE_OAUTH_REQUIRED", "Lie ton compte GitHub avant d'ajouter ce widget");
+  // Un widget d'un service OAuth (GitHub, Spotify, LinkedIn) ne peut être ajouté qu'avec le compte lié
+  // (PLAN.md §5) — évite d'accepter un widget qui échouera systématiquement à chaque rafraîchissement.
+  if (OAUTH_REQUIRED.has(widget.service as ServiceName) && !(await isLinked(userId, widget.service))) {
+    throw httpError(400, "SERVICE_OAUTH_REQUIRED", `Lie ton compte ${widget.service} avant d'ajouter ce widget`);
   }
 
   const parsed = widget.schema.safeParse(rawConfig);
@@ -59,7 +60,15 @@ export async function addWidget(
   }
 
   const rate = Math.max(refreshRate ?? CONSTANTS.REFRESH_RATE_DEFAULT, CONSTANTS.REFRESH_RATE_MIN);
-  const instance = await repo.createInstance({ userId, widgetName, config: parsed.data, refreshRate: rate, position });
+  // Sans position explicite, on ajoute en tête de grille (sinon tous les nouveaux widgets seraient à 0).
+  const finalPosition = position ?? (await repo.nextPosition(userId));
+  const instance = await repo.createInstance({
+    userId,
+    widgetName,
+    config: parsed.data,
+    refreshRate: rate,
+    position: finalPosition,
+  });
   void logAudit(userId, AUDIT_ACTIONS.WIDGET_ADDED, { widgetName });
   return instance;
 }
@@ -139,6 +148,7 @@ export async function fetchWidgetData(
     // d'origine gardé pour les logs, mais code stable générique — le détail exact
     // varie trop pour être traduit un par un côté front.
     const message = err instanceof Error ? err.message : "Échec de récupération des données";
+    console.error(`[widget] fetch failed`, message);
     throw httpError(502, "DASHBOARD_FETCH_FAILED", message);
   }
 }

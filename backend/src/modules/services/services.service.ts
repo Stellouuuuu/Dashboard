@@ -1,13 +1,13 @@
-import { isLinked as isGithubLinked } from "../auth/github-oauth.service.js";
+import { isLinked } from "../auth/oauth-providers.service.js";
 import { httpError } from "../../lib/httpError.js";
 import * as repo from "./services.repository.js";
 
 // PLAN.md §5 : weather, rss, finance et hackernews sont disponibles par défaut (pas
 // d'abonnement requis, pas de clé/compte tiers), github exige une liaison OAuth avant
 // de pouvoir s'y abonner.
-const SERVICE_NAMES = ["weather", "github", "rss", "finance", "hackernews"] as const;
+const SERVICE_NAMES = ["weather", "github", "rss", "finance", "hackernews", "spotify", "linkedin"] as const;
 export type ServiceName = (typeof SERVICE_NAMES)[number];
-const OAUTH_REQUIRED = new Set<ServiceName>(["github"]);
+export const OAUTH_REQUIRED = new Set<ServiceName>(["github", "spotify", "linkedin"]);
 
 function assertKnownService(name: string): asserts name is ServiceName {
   if (!SERVICE_NAMES.includes(name as ServiceName)) {
@@ -34,9 +34,9 @@ export async function subscribe(userId: number, name: string): Promise<void> {
   assertKnownService(name);
   if (!OAUTH_REQUIRED.has(name)) return; // déjà disponible par défaut, no-op idempotent
 
-  const linked = await isGithubLinked(userId);
+  const linked = await isLinked(userId, name);
   if (!linked)
-    throw httpError(400, "SERVICE_OAUTH_REQUIRED", "Lie ton compte GitHub avant de t'abonner à ce service");
+    throw httpError(400, "SERVICE_OAUTH_REQUIRED", `Lie ton compte ${name} avant de t'abonner à ce service`);
   await repo.subscribe(userId, name);
 }
 

@@ -5,6 +5,15 @@ function sendError(res: Response, err: any) {
   res.status(err.status ?? 500).json({ error: err.message, code: err.code ?? "INTERNAL_ERROR" });
 }
 
+const badRequest = (res: Response, error: string) =>
+  res.status(400).json({ error, code: "VALIDATION_ERROR" });
+
+/** Id de route valide : entier positif dans la plage d'un integer Postgres (sinon 500 « invalid input syntax »). */
+function parseId(raw: string): number | null {
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 && n <= 2_147_483_647 ? n : null;
+}
+
 /** GET /api/v1/dashboard — liste les instances du user */
 export async function listInstances(req: Request, res: Response) {
   const userId = req.userId!;
@@ -16,13 +25,17 @@ export async function listInstances(req: Request, res: Response) {
 export async function addWidget(req: Request, res: Response) {
   const userId = req.userId!;
   const { widgetName, config, refreshRate, position } = req.body ?? {};
-  if (!widgetName || !config) {
-    return res
-      .status(400)
-      .json({ error: "widgetName et config sont requis", code: "VALIDATION_ERROR" });
+  if (!widgetName || typeof widgetName !== "string" || !config || typeof config !== "object") {
+    return badRequest(res, "widgetName et config sont requis");
+  }
+  if (refreshRate !== undefined && (!Number.isFinite(refreshRate) || refreshRate <= 0)) {
+    return badRequest(res, "refreshRate doit être un nombre positif");
+  }
+  if (position !== undefined && (!Number.isInteger(position) || position < 0 || position > 2_147_483_647)) {
+    return badRequest(res, "position doit être un entier positif ou nul");
   }
   try {
-    const instance = await service.addWidget(userId, widgetName, config, refreshRate, position ?? 0);
+    const instance = await service.addWidget(userId, widgetName, config, refreshRate, position);
     res.status(201).json(instance);
   } catch (err: any) {
     sendError(res, err);
@@ -32,9 +45,13 @@ export async function addWidget(req: Request, res: Response) {
 /** PATCH /api/v1/dashboard/widgets/:id — reconfigure une instance */
 export async function reconfigureWidget(req: Request, res: Response) {
   const userId = req.userId!;
-  const id = Number(req.params.id);
+  const id = parseId(req.params.id);
   const { config, refreshRate } = req.body ?? {};
-  if (!config) return res.status(400).json({ error: "config est requise", code: "VALIDATION_ERROR" });
+  if (id === null) return badRequest(res, "id invalide");
+  if (!config || typeof config !== "object") return badRequest(res, "config est requise");
+  if (refreshRate !== undefined && (!Number.isFinite(refreshRate) || refreshRate <= 0)) {
+    return badRequest(res, "refreshRate doit être un nombre positif");
+  }
   try {
     const updated = await service.reconfigureWidget(id, userId, config, refreshRate);
     res.json(updated);
@@ -46,12 +63,13 @@ export async function reconfigureWidget(req: Request, res: Response) {
 /** PATCH /api/v1/dashboard/widgets/:id/position — déplace une instance */
 export async function moveWidget(req: Request, res: Response) {
   const userId = req.userId!;
-  const id = Number(req.params.id);
+  const id = parseId(req.params.id);
   const { position } = req.body ?? {};
-  if (position === undefined)
-    return res.status(400).json({ error: "position est requise", code: "VALIDATION_ERROR" });
+  if (id === null) return badRequest(res, "id invalide");
+  if (!Number.isInteger(position) || position < 0 || position > 2_147_483_647)
+    return badRequest(res, "position doit être un entier positif ou nul");
   try {
-    const updated = await service.moveWidget(id, userId, Number(position));
+    const updated = await service.moveWidget(id, userId, position);
     res.json(updated);
   } catch (err: any) {
     sendError(res, err);
@@ -61,7 +79,8 @@ export async function moveWidget(req: Request, res: Response) {
 /** DELETE /api/v1/dashboard/widgets/:id — supprime une instance */
 export async function deleteWidget(req: Request, res: Response) {
   const userId = req.userId!;
-  const id = Number(req.params.id);
+  const id = parseId(req.params.id);
+  if (id === null) return badRequest(res, "id invalide");
   try {
     await service.removeWidget(id, userId);
     res.status(204).send();
@@ -77,7 +96,8 @@ export async function deleteWidget(req: Request, res: Response) {
  */
 export async function getWidgetData(req: Request, res: Response) {
   const userId = req.userId!;
-  const id = Number(req.params.id);
+  const id = parseId(req.params.id);
+  if (id === null) return badRequest(res, "id invalide");
   const force = req.query.force === "true";
   try {
     const result = await service.fetchWidgetData(id, userId, force);

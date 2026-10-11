@@ -1,6 +1,6 @@
 import { db } from "../../db/db.js";
 import { widgetInstances, widgetCache } from "../../db/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export type WidgetInstanceRow = typeof widgetInstances.$inferSelect;
 export type WidgetInstanceInsert = typeof widgetInstances.$inferInsert;
@@ -22,6 +22,15 @@ export async function findInstanceById(id: number, userId: number): Promise<Widg
     .from(widgetInstances)
     .where(and(eq(widgetInstances.id, id), eq(widgetInstances.userId, userId)));
   return row ?? null;
+}
+
+/** Position d'un nouveau widget : toujours en tête de grille (min - 1, ou 0 pour le premier widget). */
+export async function nextPosition(userId: number): Promise<number> {
+  const [row] = await db
+    .select({ min: sql<number | null>`min(${widgetInstances.position})` })
+    .from(widgetInstances)
+    .where(eq(widgetInstances.userId, userId));
+  return row?.min == null ? 0 : Number(row.min) - 1;
 }
 
 export async function createInstance(
