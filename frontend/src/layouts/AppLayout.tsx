@@ -13,6 +13,7 @@ import {
 } from '../components/Icons';
 import { SkipLink } from '../components/SkipLink';
 import { Toasts } from '../components/Toasts';
+import { GlobalPlayerBar } from '../components/GlobalPlayerBar';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { useAuth } from '../auth/AuthContext';
 import { useAppData } from '../context/AppDataContext';
@@ -209,6 +210,7 @@ export function AppLayout() {
       </div>
       <WizardModal />
       <OAuthModal />
+      <GlobalPlayerBar />
       <Toasts items={toasts} onDismiss={dismissToast} />
     </>
   );

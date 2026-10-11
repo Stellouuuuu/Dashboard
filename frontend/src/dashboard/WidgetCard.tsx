@@ -45,6 +45,9 @@ export function WidgetCard({
     setFlashUid,
     setAddedUid,
     openWizard,
+    activePlayer,
+    setActivePlayer,
+    setPlayerDockEl,
   } = useAppData();
   const refresh = useWidgetRefresh();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -52,6 +55,20 @@ export function WidgetCard({
   const [canDrag, setCanDrag] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
   const def = catalog.find((w) => w.name === inst.widgetId);
+  const data = summarizeData(inst.widgetId, inst.data);
+
+  // Lecteur Spotify (bonus) : la première tuile « player » dont les données arrivent
+  // devient le lecteur actif par défaut, pour garder le comportement actuel (lecteur
+  // visible dès le chargement, sans bouton "lecture" en plus) — voir AppDataContext.
+  useEffect(() => {
+    if (!data.embedUrl) return;
+    if (activePlayer === null) {
+      setActivePlayer({ uid: inst.uid, embedUrl: data.embedUrl, title: data.title });
+    } else if (activePlayer.uid === inst.uid && activePlayer.embedUrl !== data.embedUrl) {
+      setActivePlayer({ uid: inst.uid, embedUrl: data.embedUrl, title: data.title });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.embedUrl, inst.uid]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 900px), (hover: none)');
@@ -88,7 +105,6 @@ export function WidgetCard({
   }, [menuOpen]);
 
   if (!def) return null;
-  const data = summarizeData(inst.widgetId, inst.data);
 
   const move = (toStart: boolean) => {
     const idx = instances.findIndex((w) => w.uid === inst.uid);
@@ -118,6 +134,7 @@ export function WidgetCard({
         .then(() => {
           window.setTimeout(() => {
             setInstances((list) => list.filter((w) => w.uid !== inst.uid));
+            if (activePlayer?.uid === inst.uid) setActivePlayer(null);
             toast(t('dashboard.card.deleted'));
           }, 220);
         })
@@ -220,14 +237,22 @@ export function WidgetCard({
             aria-busy={inst.status === 'loading'}
           >
             {data.embedUrl ? (
-              <iframe
-                className="spotify-frame"
-                src={data.embedUrl}
-                height={152}
-                title={displayName}
-                loading="lazy"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              />
+              activePlayer?.uid === inst.uid ? (
+                // L'iframe réelle vit dans GlobalPlayerBar et se déplace ici par
+                // portail (voir AppDataContext) — ce <div> n'est qu'un point d'ancrage.
+                <div className="spotify-dock" ref={(el) => setPlayerDockEl(inst.uid, el)} />
+              ) : (
+                <button
+                  type="button"
+                  className="spotify-switch"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActivePlayer({ uid: inst.uid, embedUrl: data.embedUrl!, title: data.title });
+                  }}
+                >
+                  {t('dashboard.card.playHere')}
+                </button>
+              )
             ) : (
               <div className="wtile-main">
                 {data.image && (

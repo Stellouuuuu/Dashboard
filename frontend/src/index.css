@@ -1219,11 +1219,45 @@ tr:last-child td{border-bottom:none;}
 .app-bottom-add:active{transform:scale(.94);}
 .app-bottom-add svg{width:18px;height:18px;stroke:currentColor;}
 
+/* Barre de lecture Spotify persistante (bonus) — voir components/GlobalPlayerBar.tsx */
+.global-player{
+  display:none;
+  position:fixed;left:0;right:0;bottom:0;z-index:75;
+  align-items:center;gap:10px;
+  padding:8px 16px max(8px, env(safe-area-inset-bottom));
+  background:color-mix(in srgb, var(--panel) 92%, transparent);
+  border-top:1px solid var(--border);
+  backdrop-filter:blur(28px) saturate(1.55);
+  -webkit-backdrop-filter:blur(28px) saturate(1.55);
+}
+.global-player.open{display:flex;}
+.global-player-title{
+  flex-shrink:0;font-size:.78rem;font-weight:600;color:var(--text-dim);
+  max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.global-player-slot{flex:1;min-width:0;}
+/* Ancrée dans la tuile (Dashboard affiché) : la barre n'a rien à montrer elle-même. */
+.global-player-slot.collapsed{flex:0;min-height:0;}
+.global-player-close{
+  flex-shrink:0;width:32px;height:32px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--text-faint);
+}
+.global-player-close:hover{background:var(--bg-2);color:var(--text);}
+.global-player-close svg{width:16px;height:16px;}
+.spotify-dock{width:100%;}
+.spotify-switch{
+  width:100%;padding:28px 10px;text-align:center;border:1px dashed var(--border);border-radius:var(--r-sm);
+  color:var(--text-dim);font-size:.8rem;cursor:pointer;background:none;
+}
+.spotify-switch:hover{border-color:var(--accent);color:var(--text);}
+
 @media (max-width:900px){
   .app-bottom-nav{display:block;}
   .app-main{padding-bottom:calc(88px + env(safe-area-inset-bottom));}
   .toasts{bottom:calc(84px + env(safe-area-inset-bottom));}
   .nav-desktop-only{display:none !important;}
+  .global-player.open{bottom:calc(74px + env(safe-area-inset-bottom));}
 }
 @media (min-width:901px){
   .app-bottom-nav{display:none !important;}

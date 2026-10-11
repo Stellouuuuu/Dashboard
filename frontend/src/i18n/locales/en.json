@@ -299,6 +299,8 @@
       "backToDashboard": "Back to dashboard",
       "openLink": "Open",
       "detailEmpty": "No additional data",
+      "playHere": "▶ Play this one",
+      "stopPlayer": "Stop playback",
       "listen": "Listen",
       "hidePlayer": "Hide"
     },
