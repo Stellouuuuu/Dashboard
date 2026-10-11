@@ -37,4 +37,9 @@ router.get("/oauth/github", requireAuth, ctrl.oauthGithubStart);
 router.get("/oauth/github/callback", ctrl.oauthGithubCallback);
 router.delete("/oauth/github", requireAuth, ctrl.oauthGithubUnlink);
 
+// Spotify & LinkedIn : même flux OAuth générique (après les routes GitHub, plus spécifiques).
+router.get("/oauth/:provider", requireAuth, ctrl.oauthStart);
+router.get("/oauth/:provider/callback", ctrl.oauthCallback);
+router.delete("/oauth/:provider", requireAuth, ctrl.oauthUnlink);
+
 export default router;
