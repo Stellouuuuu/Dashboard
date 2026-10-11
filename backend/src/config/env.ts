@@ -55,6 +55,11 @@ const envSchema = z.object({
   // Brief quotidien généré par IA (bonus, voir docs/TECH_CHOICES.md) — clé gratuite
   // sans CB sur aistudio.google.com. Fonctionnalité désactivée si absente.
   GEMINI_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Spotify exige https ou une IP loopback (http://127.0.0.1:8080) comme redirect URI — pas « localhost ».
+  SPOTIFY_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
+  SPOTIFY_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
+  LINKEDIN_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
+  LINKEDIN_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
 });
 
 function formatZodError(err: z.ZodError): string {

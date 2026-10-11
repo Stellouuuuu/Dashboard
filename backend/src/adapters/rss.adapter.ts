@@ -1,4 +1,5 @@
 import { parseStringPromise } from "xml2js";
+import { assertPublicHttpUrl, FETCH_TIMEOUT_MS } from "../lib/safeUrl.js";
 
 interface FeedSummaryConfig {
   links: string;
@@ -14,8 +15,10 @@ export interface FeedItem {
 }
 
 async function parseFeed(link: string): Promise<FeedItem[]> {
+  await assertPublicHttpUrl(link);
   const res = await fetch(link, {
     headers: { Accept: "application/rss+xml, application/xml, text/xml" },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`Impossible de récupérer le flux RSS: ${res.status}`);
   const xml = await res.text();
@@ -84,8 +87,16 @@ export async function fetchFeedSummary(config: FeedSummaryConfig): Promise<FeedI
     .filter(Boolean);
   if (links.length === 0) throw new Error("Au moins un lien de flux est requis");
 
-  const results = await Promise.all(links.map((link) => parseFeed(link)));
-  const merged = results.flat();
+  if (links.length > 10) throw new Error("10 flux maximum");
+
+  // Un flux en panne ne doit pas faire échouer tout le widget : on échoue seulement si aucun ne répond.
+  const settled = await Promise.allSettled(links.map((link) => parseFeed(link)));
+  const ok = settled.filter((r): r is PromiseFulfilledResult<FeedItem[]> => r.status === "fulfilled");
+  if (ok.length === 0) {
+    const first = settled[0] as PromiseRejectedResult;
+    throw first.reason instanceof Error ? first.reason : new Error("Aucun flux n'a pu être récupéré");
+  }
+  const merged = ok.flatMap((r) => r.value);
   merged.sort((a, b) => {
     const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
     const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0;

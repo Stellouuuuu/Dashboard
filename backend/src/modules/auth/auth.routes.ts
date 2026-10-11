@@ -44,4 +44,11 @@ router.get("/oauth/google", ctrl.oauthGoogleStart);
 router.get("/oauth/google/callback", ctrl.oauthGoogleCallback);
 router.delete("/oauth/google", requireAuth, ctrl.oauthGoogleUnlink);
 
+// Spotify & LinkedIn : même flux OAuth générique. Doit rester APRÈS github/google
+// ci-dessus : Express matche la première route déclarée qui correspond, donc un
+// :provider générique placé avant intercepterait /oauth/google et /oauth/github.
+router.get("/oauth/:provider", requireAuth, ctrl.oauthStart);
+router.get("/oauth/:provider/callback", ctrl.oauthCallback);
+router.delete("/oauth/:provider", requireAuth, ctrl.oauthUnlink);
+
 export default router;

@@ -65,7 +65,16 @@ export async function fetchRecentCommits(
   const limit = Math.min(Math.max(config.limit, 1), 20);
   const token = await resolveGithubToken(ctx.userId);
   const url = `https://api.github.com/repos/${config.repository}/commits?per_page=${limit}`;
-  const res = await fetch(url, { headers: githubHeaders(token) });
+  let res = await fetch(url, { headers: githubHeaders(token), signal: AbortSignal.timeout(10_000) });
+
+  // Une organisation avec « OAuth App access restrictions » refuse le token même pour ses dépôts
+  // publics : on retente sans token (lecture publique, quota anonyme plus bas).
+  if (res.status === 403 && token) {
+    const body = (await res.clone().json().catch(() => ({}))) as { message?: string };
+    if (/OAuth App access restrictions/i.test(body.message ?? "")) {
+      res = await fetch(url, { headers: githubHeaders(), signal: AbortSignal.timeout(10_000) });
+    }
+  }
 
   if (res.status === 404) {
     throw new Error(
@@ -73,8 +82,14 @@ export async function fetchRecentCommits(
     );
   }
   if (res.status === 401 || res.status === 403) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    const detail = body.message ?? "";
+    console.error("[github] commits refused", res.status, detail, "remaining=", res.headers.get("x-ratelimit-remaining"));
+    if (res.headers.get("x-ratelimit-remaining") === "0" || /rate limit/i.test(detail)) {
+      throw new Error("Limite d'appels GitHub atteinte, réessaie dans quelques minutes.");
+    }
     throw new Error(
-      `Accès GitHub refusé (${res.status}). Déconnecte puis reconnecte GitHub dans Services pour mettre à jour les permissions.`,
+      `Accès GitHub refusé (${res.status}${detail ? `: ${detail}` : ""}). Déconnecte puis reconnecte GitHub dans Services pour mettre à jour les permissions.`,
     );
   }
   if (!res.ok) throw new Error(`GitHub API error ${res.status}: ${await res.text()}`);
@@ -118,7 +133,7 @@ export async function fetchSecurityAlerts(
 ): Promise<SecurityAlertSummary[]> {
   const token = await resolveGithubToken(ctx.userId);
   const url = `https://api.github.com/repos/${config.repository}/dependabot/alerts?state=open&per_page=30`;
-  const res = await fetch(url, { headers: githubHeaders(token) });
+  const res = await fetch(url, { headers: githubHeaders(token), signal: AbortSignal.timeout(10_000) });
 
   // 404 = repo not found ou pas d'accès
   if (res.status === 404) {

@@ -6,6 +6,9 @@ import { useAuth } from '../auth/AuthContext';
 import { ApiAuthError } from '../api/auth';
 import { IMG } from '../data/images';
 import { IconGoogle } from '../components/Icons';
+import type { ExtraProvider } from '../context/AppDataContext';
+
+const EXTRA_PROVIDERS: ExtraProvider[] = ['spotify', 'linkedin'];
 
 export function ServicesPage() {
   const { t } = useTranslation();
@@ -17,6 +20,13 @@ export function ServicesPage() {
     disconnectGithub,
     loadServices,
     completeGithubLink,
+    providerConnected,
+    providerError,
+    providerLoading,
+    connectProvider,
+    disconnectProvider,
+    completeProviderLink,
+    setProviderError,
   } = useAppData();
   const { user, connectGoogle, disconnectGoogle, refreshUser } = useAuth();
 
@@ -29,19 +39,25 @@ export function ServicesPage() {
   useEffect(() => {
     const github = searchParams.get('github');
     const google = searchParams.get('google');
+    const returned = EXTRA_PROVIDERS.find((p) => searchParams.get(p));
     if (github === 'linked') {
       void completeGithubLink();
+    } else if (returned && searchParams.get(returned) === 'linked') {
+      void completeProviderLink(returned);
     } else {
       void loadServices();
+      if (returned) setProviderError(returned, searchParams.get('reason') ?? 'OAUTH_EXCHANGE_FAILED');
     }
     if (google === 'linked') {
       void refreshUser();
     } else if (google === 'error') {
       setGoogleError(t('services.google.linkFailed'));
     }
-    if (github || google) {
+    if (github || google || returned) {
       searchParams.delete('github');
       searchParams.delete('google');
+      EXTRA_PROVIDERS.forEach((p) => searchParams.delete(p));
+      searchParams.delete('reason');
       setSearchParams(searchParams, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -181,6 +197,39 @@ export function ServicesPage() {
             <span className="badge badge-on">{t('services.active')}</span>
           </div>
         </div>
+        {EXTRA_PROVIDERS.map((p) => (
+          <div className="svc-row" key={p}>
+            <span className="dash-svc-thumb" aria-hidden="true">
+              <img src={IMG.service[p]} alt="" loading="lazy" />
+            </span>
+            <div className="svc-row-info">
+              <h3>{t(`services.${p}.title`)}</h3>
+              <p>{providerConnected[p] ? t(`services.${p}.connected`) : t(`services.${p}.notConnected`)}</p>
+              {providerError[p] && !providerConnected[p] && (
+                <p className="field-error-msg" role="alert">
+                  {providerError[p]}
+                </p>
+              )}
+            </div>
+            <div className="svc-row-actions">
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={providerLoading[p]}
+                onClick={() => {
+                  if (providerConnected[p]) void disconnectProvider(p);
+                  else connectProvider(p);
+                }}
+              >
+                {providerLoading[p]
+                  ? '…'
+                  : providerConnected[p]
+                    ? t(`services.${p}.disconnect`)
+                    : t(`services.${p}.connect`)}
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

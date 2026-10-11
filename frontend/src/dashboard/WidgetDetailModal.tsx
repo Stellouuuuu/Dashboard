@@ -17,9 +17,13 @@ import type {
   ExchangeRate,
   FeedItem,
   HnStory,
+  LinkedinHashtag,
+  LinkedinJobSearch,
   PrecipitationDay,
   SecurityAlertSummary,
+  SpotifyEmbed,
 } from './summary';
+import { safeLink, safeSpotifyEmbed } from './summary';
 
 interface WidgetDetailModalProps {
   open: boolean;
@@ -139,11 +143,24 @@ function Row({ title, meta, href }: { title: string; meta?: string; href?: strin
         {meta && <span>{meta}</span>}
       </div>
       {href && (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="link-btn">
+        <a href={href} className="link-btn">
           {t('dashboard.card.openLink')}
         </a>
       )}
     </div>
+  );
+}
+
+function SpotifyFrame({ src, height = 152 }: { src: string; height?: number }) {
+  return (
+    <iframe
+      className="spotify-frame"
+      src={src}
+      height={height}
+      title="Spotify"
+      loading="lazy"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+    />
   );
 }
 
@@ -207,6 +224,18 @@ export function WidgetDetailModal({ open, onClose, uid, widgetId, title, data }:
           <Row key={s.objectID} title={s.title} meta={`${s.points} pts — ${s.author}`} href={s.url} />
         ));
       }
+      case 'player': {
+        const src = safeSpotifyEmbed((data as SpotifyEmbed).embedUrl);
+        return src ? <SpotifyFrame src={src} height={352} /> : <p className="detail-empty">{t('dashboard.card.detailEmpty')}</p>;
+      }
+      case 'job_search': {
+        const d = data as LinkedinJobSearch;
+        return <Row title={d.keywords} meta={[d.location, t(`wizard.options.${d.jobType}`)].filter(Boolean).join(' · ')} href={safeLink(d.url, 'https://www.linkedin.com/jobs/search/')} />;
+      }
+      case 'hashtag_watch': {
+        const tags = data as LinkedinHashtag[];
+        return tags.map((x) => <Row key={x.tag} title={`#${x.tag}`} href={safeLink(x.url, 'https://www.linkedin.com/feed/hashtag/')} />);
+      }
       default:
         return <p className="detail-empty">{t('dashboard.card.detailEmpty')}</p>;
     }
@@ -216,6 +245,9 @@ export function WidgetDetailModal({ open, onClose, uid, widgetId, title, data }:
     <Modal open={open} onClose={onClose} title={title}>
       {open && TRACKABLE_WIDGETS.has(widgetId) && <TrackingSection uid={uid} />}
       <div className="detail-list">{renderBody()}</div>
+      <button type="button" className="btn btn-primary detail-back" onClick={onClose}>
+        {t('dashboard.card.backToDashboard')}
+      </button>
     </Modal>
   );
 }

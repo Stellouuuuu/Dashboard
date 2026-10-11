@@ -56,6 +56,8 @@ export function buildAuthorizeUrl(userId: number): string {
     redirect_uri: redirectUri(),
     scope: SCOPE,
     state,
+    // Force le choix du compte GitHub à chaque connexion (sinon la session du navigateur est réutilisée).
+    prompt: "select_account",
   });
   return `https://github.com/login/oauth/authorize?${params.toString()}`;
 }

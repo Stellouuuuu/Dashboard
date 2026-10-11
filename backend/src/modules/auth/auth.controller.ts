@@ -1,9 +1,11 @@
+import { HttpError } from "../../lib/httpError.js";
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env.js";
 import * as service from "./auth.service.js";
 import * as githubOAuth from "./github-oauth.service.js";
 import * as googleOAuth from "./google-oauth.service.js";
+import * as oauth from "./oauth-providers.service.js";
 
 function sendError(res: Response, err: any) {
   res.status(err.status ?? 500).json({ error: err.message, code: err.code ?? "INTERNAL_ERROR" });
@@ -257,4 +259,40 @@ export async function deleteAccount(req: Request, res: Response) {
   } catch (err: any) {
     sendError(res, err);
   }
+}
+
+/** GET /api/v1/auth/oauth/:provider (spotify | linkedin) — redirige vers le fournisseur avec un state signé. */
+export async function oauthStart(req: Request, res: Response) {
+  const provider = req.params.provider;
+  if (!oauth.isOAuthProvider(provider)) return res.status(404).json({ error: "Fournisseur inconnu", code: "SERVICE_UNKNOWN" });
+  try {
+    res.redirect(oauth.buildAuthorizeUrl(provider, req.userId!));
+  } catch (err: any) {
+    // Navigation pleine page : on renvoie vers /services avec un code d'erreur plutôt qu'un JSON brut.
+    res.redirect(`${env.APP_URL}/services?${provider}=error&reason=${encodeURIComponent(err.code ?? "INTERNAL_ERROR")}`);
+  }
+}
+
+/** Callback OAuth Spotify / LinkedIn : l'identité vient du `state` signé, comme pour GitHub. */
+export async function oauthCallback(req: Request, res: Response) {
+  const provider = req.params.provider;
+  if (!oauth.isOAuthProvider(provider)) return res.status(404).json({ error: "Fournisseur inconnu", code: "SERVICE_UNKNOWN" });
+  const { code, state } = req.query;
+  if (typeof code !== "string" || typeof state !== "string") {
+    return res.redirect(`${env.APP_URL}/services?${provider}=error`);
+  }
+  try {
+    await oauth.completeLink(provider, code, state);
+    res.redirect(`${env.APP_URL}/services?${provider}=linked`);
+  } catch (err) {
+    const reason = err instanceof HttpError ? `&reason=${err.code}` : "";
+    res.redirect(`${env.APP_URL}/services?${provider}=error${reason}`);
+  }
+}
+
+export async function oauthUnlink(req: Request, res: Response) {
+  const provider = req.params.provider;
+  if (!oauth.isOAuthProvider(provider)) return res.status(404).json({ error: "Fournisseur inconnu", code: "SERVICE_UNKNOWN" });
+  await oauth.unlink(req.userId!, provider);
+  res.status(204).send();
 }

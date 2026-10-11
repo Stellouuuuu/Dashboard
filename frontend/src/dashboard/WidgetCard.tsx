@@ -219,10 +219,33 @@ export function WidgetCard({
             className={`wtile-data${inst.status === 'loading' ? ' is-loading' : ''}`}
             aria-busy={inst.status === 'loading'}
           >
-            <b className="wtile-title">{data.title}</b>
-            {data.lines.slice(0, 2).map((l) => (
-              <span key={l}>{l}</span>
-            ))}
+            {data.embedUrl ? (
+              <iframe
+                className="spotify-frame"
+                src={data.embedUrl}
+                height={152}
+                title={displayName}
+                loading="lazy"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              />
+            ) : (
+              <div className="wtile-main">
+                {data.image && (
+                  <img className="wtile-thumb" src={data.image} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                )}
+                <div className="wtile-main-text">
+                  <b className="wtile-title">{data.title}</b>
+                  {data.lines.slice(0, 3).map((l) => (
+                    <span key={l}>{l}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {data.action && (
+              <a className="wtile-action" href={data.action.href}>
+                {data.action.label}
+              </a>
+            )}
             <button
               type="button"
               className="wtile-more"

@@ -1,10 +1,13 @@
 import { z } from "zod";
 
+// Email normalisé (trim + minuscules) : sinon « A@x.com » et « a@x.com » créent deux comptes.
+const emailField = z.string().trim().toLowerCase().email();
+
 // Politique de mot de passe PLAN.md §11 : 12 caractères minimum.
 export const registerSchema = z
   .object({
     name: z.string().trim().min(1, "Nom requis").max(80),
-    email: z.string().email(),
+    email: emailField,
     password: z.string().min(12, "12 caractères minimum"),
     confirmPassword: z.string().min(1, "Confirmation requise"),
     language: z.enum(["fr", "en"]).optional(),
@@ -15,7 +18,7 @@ export const registerSchema = z
   });
 
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: emailField,
   password: z.string().min(1),
 });
 
@@ -25,20 +28,20 @@ const otpCode = z
   .regex(/^\d{6}$/, "Code à 6 chiffres requis");
 
 export const confirmSchema = z.object({
-  email: z.string().email(),
+  email: emailField,
   code: otpCode,
 });
 
 export const resendConfirmSchema = z.object({
-  email: z.string().email(),
+  email: emailField,
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email(),
+  email: emailField,
 });
 
 export const resetPasswordSchema = z.object({
-  email: z.string().email(),
+  email: emailField,
   code: otpCode,
   newPassword: z.string().min(12, "12 caractères minimum"),
 });

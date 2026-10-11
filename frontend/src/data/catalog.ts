@@ -1,4 +1,6 @@
-export type ServiceId = 'weather' | 'github' | 'rss' | 'finance' | 'hackernews';
+export type ServiceId = 'weather' | 'github' | 'rss' | 'finance' | 'hackernews' | 'spotify' | 'linkedin';
+/** Services qui exigent un compte lié via OAuth. */
+export type OAuthServiceId = 'github' | 'spotify' | 'linkedin';
 export type Accent = 'cyan' | 'violet' | 'amber' | 'emerald' | 'coral';
 export type ParamType = 'string' | 'integer';
 
@@ -34,9 +36,11 @@ export const ACCENT: Record<ServiceId, Accent> = {
   rss: 'amber',
   finance: 'emerald',
   hackernews: 'coral',
+  spotify: 'emerald',
+  linkedin: 'cyan',
 };
 
-export const SERVICES: ServiceId[] = ['weather', 'github', 'rss', 'finance', 'hackernews'];
+export const SERVICES: ServiceId[] = ['weather', 'github', 'rss', 'finance', 'hackernews', 'spotify', 'linkedin'];
 
 /** Stable variant index so each widget id gets a distinct cover shade. */
 export function coverVariantFor(widgetId: string): number {

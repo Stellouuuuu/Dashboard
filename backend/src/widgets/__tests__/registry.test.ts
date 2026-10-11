@@ -12,7 +12,7 @@ describe('widgets/registry.ts', () => {
     });
 
     it('chaque widget a un service valide', () => {
-      const validServices = ['weather', 'github', 'rss', 'finance', 'hackernews'];
+      const validServices = ['weather', 'github', 'rss', 'finance', 'hackernews', 'spotify', 'linkedin'];
       for (const [name, def] of Object.entries(WIDGET_REGISTRY)) {
         expect(validServices, `Widget "${name}" a un service invalide`).toContain(def.service);
       }

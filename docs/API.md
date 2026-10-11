@@ -44,6 +44,9 @@ Base path: `/api/v1` (via nginx). JSON bodies. Auth uses httpOnly cookies unless
 | `GET` | `/api/v1/auth/oauth/google` | *(bonus)* Start Google sign-in/link (redirect) — no `requireAuth`, detects an existing session itself to decide login vs. link |
 | `GET` | `/api/v1/auth/oauth/google/callback` | *(bonus)* OAuth callback |
 | `DELETE` | `/api/v1/auth/oauth/google` | *(bonus)* Unlink Google (refused if the account has no password) |
+| `GET` | `/api/v1/auth/oauth/:provider` | Start Spotify / LinkedIn OAuth (`spotify` \| `linkedin`, redirect) |
+| `GET` | `/api/v1/auth/oauth/:provider/callback` | Spotify / LinkedIn OAuth callback → `/services?<provider>=linked\|error` |
+| `DELETE` | `/api/v1/auth/oauth/:provider` | Unlink Spotify / LinkedIn |
 | `GET` | `/api/v1/services` | List services + subscription state |
 | `POST` | `/api/v1/services/:name/subscribe` | Subscribe (GitHub requires OAuth) |
 | `DELETE` | `/api/v1/services/:name/subscribe` | Unsubscribe |
@@ -127,6 +130,9 @@ Chemin de base : `/api/v1` (via nginx). Corps JSON. L’auth utilise des cookies
 | `GET` | `/api/v1/auth/oauth/google` | *(bonus)* Démarrer connexion/liaison Google (redirect) — pas de `requireAuth`, détecte lui-même une session existante pour choisir connexion ou liaison |
 | `GET` | `/api/v1/auth/oauth/google/callback` | *(bonus)* Callback OAuth |
 | `DELETE` | `/api/v1/auth/oauth/google` | *(bonus)* Délier Google (refusé si le compte n’a pas de mot de passe) |
+| `GET` | `/api/v1/auth/oauth/:provider` | Démarrer l'OAuth Spotify / LinkedIn (`spotify` \| `linkedin`, redirect) |
+| `GET` | `/api/v1/auth/oauth/:provider/callback` | Callback OAuth Spotify / LinkedIn → `/services?<provider>=linked\|error` |
+| `DELETE` | `/api/v1/auth/oauth/:provider` | Délier Spotify / LinkedIn |
 | `GET` | `/api/v1/services` | Liste des services + état d’abonnement |
 | `POST` | `/api/v1/services/:name/subscribe` | S’abonner (GitHub exige OAuth) |
 | `DELETE` | `/api/v1/services/:name/subscribe` | Se désabonner |

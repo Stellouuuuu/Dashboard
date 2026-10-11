@@ -65,6 +65,14 @@ services:
       # Brief quotidien IA (bonus) — clé gratuite sans CB sur aistudio.google.com.
       - key: GEMINI_API_KEY
         sync: false
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
+      - key: LINKEDIN_CLIENT_ID
+        sync: false
+      - key: LINKEDIN_CLIENT_SECRET
+        sync: false
 
   - type: web
     name: threshold-frontend
