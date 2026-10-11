@@ -7,6 +7,10 @@ import { fetchTopStories, fetchStorySearch } from "../adapters/hackernews.adapte
 import { fetchPlayer, parseSpotifyEmbed } from "../adapters/spotify.adapter.js";
 import { fetchJobSearch, fetchHashtagWatch, parseHashtags, JOB_TYPES, JOB_PERIODS } from "../adapters/linkedin.adapter.js";
 import { fetchChannelLatestVideos, fetchVideoStats, parseYoutubeVideoId } from "../adapters/youtube.adapter.js";
+import { fetchMonitorStatus, UPTIME_PERIODS } from "../adapters/monitoring.adapter.js";
+import { fetchDirections, TRAVEL_MODES } from "../adapters/maps.adapter.js";
+import { fetchUnreadMessages as fetchGmailUnread } from "../adapters/gmail.adapter.js";
+import { fetchUnreadMessages as fetchOutlookUnread } from "../adapters/outlook.adapter.js";
 
 export interface WidgetParam {
   name: string;
@@ -21,7 +25,19 @@ export interface WidgetContext {
 }
 
 export interface WidgetDefinition<C = any> {
-  service: "weather" | "github" | "rss" | "finance" | "hackernews" | "spotify" | "linkedin" | "youtube";
+  service:
+    | "weather"
+    | "github"
+    | "rss"
+    | "finance"
+    | "hackernews"
+    | "spotify"
+    | "linkedin"
+    | "youtube"
+    | "uptimerobot"
+    | "maps"
+    | "gmail"
+    | "outlook";
   name: string;
   description: string;
   params: WidgetParam[];
@@ -250,6 +266,64 @@ export const WIDGET_REGISTRY = {
         .refine((v) => parseYoutubeVideoId(v) !== null, "Lien ou ID de vidéo YouTube invalide"),
     }),
     fetch: (config) => fetchVideoStats(config),
+  },
+  monitor_status: {
+    service: "uptimerobot",
+    name: "monitor_status",
+    description: "Display the status and uptime ratio of a monitored site",
+    params: [
+      { name: "search", type: "string", label: "Moniteur (nom ou URL)" },
+      { name: "period", type: "string", label: "Période (jours)", options: [...UPTIME_PERIODS] },
+    ],
+    schema: z.object({
+      search: z.string().trim().min(1),
+      period: z.enum(UPTIME_PERIODS),
+    }),
+    fetch: (config, ctx) => fetchMonitorStatus(config, ctx),
+  },
+  directions: {
+    service: "maps",
+    name: "directions",
+    description: "Display the distance and duration between two places",
+    params: [
+      { name: "from", type: "string", label: "Départ" },
+      { name: "to", type: "string", label: "Arrivée" },
+      { name: "mode", type: "string", label: "Mode de transport", options: [...TRAVEL_MODES] },
+    ],
+    schema: z.object({
+      from: z.string().trim().min(1),
+      to: z.string().trim().min(1),
+      mode: z.enum(TRAVEL_MODES),
+    }),
+    fetch: (config) => fetchDirections(config),
+  },
+  gmail_unread: {
+    service: "gmail",
+    name: "gmail_unread",
+    description: "Display unread Gmail messages matching a search query",
+    params: [
+      { name: "query", type: "string", label: "Recherche Gmail (ex. is:unread)" },
+      { name: "number", type: "integer", label: "Nombre de messages" },
+    ],
+    schema: z.object({
+      query: z.string().trim().min(1),
+      number: z.number().int().min(1).max(10),
+    }),
+    fetch: (config, ctx) => fetchGmailUnread(config, ctx),
+  },
+  outlook_unread: {
+    service: "outlook",
+    name: "outlook_unread",
+    description: "Display unread Outlook messages from a mail folder",
+    params: [
+      { name: "folder", type: "string", label: "Dossier (ex. inbox)" },
+      { name: "number", type: "integer", label: "Nombre de messages" },
+    ],
+    schema: z.object({
+      folder: z.string().trim().min(1),
+      number: z.number().int().min(1).max(10),
+    }),
+    fetch: (config, ctx) => fetchOutlookUnread(config, ctx),
   },
 } satisfies Record<string, WidgetDefinition<any>>;
 

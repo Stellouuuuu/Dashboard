@@ -21,10 +21,12 @@ import {
   type ApiWidgetInstance,
 } from '../api/client';
 import { apiListServices, apiSubscribeService, ServiceApiError } from '../api/services';
-import { apiUnlinkGithub, apiUnlinkProvider, apiRefresh, ApiAuthError } from '../api/auth';
+import { apiUnlinkGithub, apiUnlinkProvider, apiConnectCredential, apiRefresh, ApiAuthError } from '../api/auth';
 
 /** Services OAuth ajoutés après GitHub (état générique ; GitHub garde ses propres champs). */
-export type ExtraProvider = 'spotify' | 'linkedin';
+export type ExtraProvider = 'spotify' | 'linkedin' | 'gmail' | 'outlook' | 'uptimerobot';
+/** Parmi les ExtraProvider, celui qui se lie par clé API collée plutôt que par redirection OAuth. */
+export type CredentialProvider = 'uptimerobot';
 
 export type ModalId = 'oauth' | 'wizard' | null;
 
@@ -78,6 +80,7 @@ interface AppDataContextValue {
   providerError: Record<ExtraProvider, string | null>;
   providerLoading: Record<ExtraProvider, boolean>;
   connectProvider: (p: ExtraProvider) => void;
+  connectCredential: (p: CredentialProvider, apiKey: string) => Promise<void>;
   disconnectProvider: (p: ExtraProvider) => Promise<void>;
   completeProviderLink: (p: ExtraProvider) => Promise<void>;
   setProviderError: (p: ExtraProvider, code: string | null) => void;
@@ -120,9 +123,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [githubUsername, setGithubUsername] = useState<string | null>(null);
   const [githubError, setGithubError] = useState<string | null>(null);
   const [githubLoading, setGithubLoading] = useState(false);
-  const [providerConnected, setProviderConnected] = useState<Record<ExtraProvider, boolean>>({ spotify: false, linkedin: false });
-  const [providerError, setProviderErrorState] = useState<Record<ExtraProvider, string | null>>({ spotify: null, linkedin: null });
-  const [providerLoading, setProviderLoading] = useState<Record<ExtraProvider, boolean>>({ spotify: false, linkedin: false });
+  const [providerConnected, setProviderConnected] = useState<Record<ExtraProvider, boolean>>({
+    spotify: false,
+    linkedin: false,
+    gmail: false,
+    outlook: false,
+    uptimerobot: false,
+  });
+  const [providerError, setProviderErrorState] = useState<Record<ExtraProvider, string | null>>({
+    spotify: null,
+    linkedin: null,
+    gmail: null,
+    outlook: null,
+    uptimerobot: null,
+  });
+  const [providerLoading, setProviderLoading] = useState<Record<ExtraProvider, boolean>>({
+    spotify: false,
+    linkedin: false,
+    gmail: false,
+    outlook: false,
+    uptimerobot: false,
+  });
   const [wizardEditUid, setWizardEditUid] = useState<number | null>(null);
   const [wizardPresetId, setWizardPresetId] = useState<string | null>(null);
   const [flashUid, setFlashUid] = useState<number | null>(null);
@@ -228,6 +249,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setProviderConnected({
         spotify: Boolean(services.find((s) => s.name === 'spotify')?.subscribed),
         linkedin: Boolean(services.find((s) => s.name === 'linkedin')?.subscribed),
+        gmail: Boolean(services.find((s) => s.name === 'gmail')?.subscribed),
+        outlook: Boolean(services.find((s) => s.name === 'outlook')?.subscribed),
+        uptimerobot: Boolean(services.find((s) => s.name === 'uptimerobot')?.subscribed),
       });
     } catch {
       // API indisponible (dev sans Docker, ou pas encore connecté) : on garde l'état
@@ -345,12 +369,35 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [loadServices, toast, t, setProviderError],
   );
 
+  // UptimeRobot n'a pas de flux OAuth : clé API collée par l'utilisateur (Services),
+  // validée côté serveur puis stockée — même état (connected/loading/error) que les
+  // fournisseurs OAuth, juste une connexion différente (POST au lieu d'une redirection).
+  const connectCredential = useCallback(
+    async (p: CredentialProvider, apiKey: string) => {
+      setProviderLoading((s) => ({ ...s, [p]: true }));
+      setProviderError(p, null);
+      try {
+        await apiConnectCredential(p, apiKey);
+        await apiSubscribeService(p);
+        setProviderConnected((s) => ({ ...s, [p]: true }));
+        toast(t(`services.${p}.connectedToast`));
+      } catch (e) {
+        setProviderError(p, e instanceof ApiAuthError || e instanceof ServiceApiError ? e.code : 'INTERNAL_ERROR');
+      } finally {
+        setProviderLoading((s) => ({ ...s, [p]: false }));
+        await loadServices();
+      }
+    },
+    [loadServices, toast, t, setProviderError],
+  );
+
   // weather et rss sont disponibles par défaut, sans abonnement (PLAN.md §5) —
   // seul github exige une liaison OAuth avant de pouvoir s'y abonner.
   const isSubscribed = useCallback(
     (service: ServiceId) => {
       if (service === 'github') return githubConnected;
-      if (service === 'spotify' || service === 'linkedin') return providerConnected[service];
+      if (service === 'spotify' || service === 'linkedin' || service === 'gmail' || service === 'outlook' || service === 'uptimerobot')
+        return providerConnected[service];
       return true;
     },
     [githubConnected, providerConnected],
@@ -389,6 +436,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       providerError,
       providerLoading,
       connectProvider,
+      connectCredential,
       disconnectProvider,
       completeProviderLink,
       setProviderError,
@@ -435,6 +483,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       providerError,
       providerLoading,
       connectProvider,
+      connectCredential,
       disconnectProvider,
       completeProviderLink,
       setProviderError,

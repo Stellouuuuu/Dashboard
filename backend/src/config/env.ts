@@ -63,6 +63,12 @@ const envSchema = z.object({
   // Widgets YouTube (channel_latest_videos, video_stats) — clé gratuite sans OAuth,
   // console.cloud.google.com, quota 10 000 unités/jour. Widgets désactivés si absente.
   YOUTUBE_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Service Outlook (bonus) — App Azure AD dédiée (Microsoft Graph, scope Mail.Read).
+  OUTLOOK_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
+  OUTLOOK_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Widget Maps (directions) — clé gratuite OpenRouteService (openrouteservice.org),
+  // sans OAuth. Widget désactivé si absente.
+  ORS_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
 });
 
 function formatZodError(err: z.ZodError): string {

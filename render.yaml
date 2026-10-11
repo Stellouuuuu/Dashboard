@@ -73,6 +73,20 @@ services:
         sync: false
       - key: LINKEDIN_CLIENT_SECRET
         sync: false
+      # Widgets YouTube (bonus) — clé gratuite sans OAuth, console.cloud.google.com.
+      - key: YOUTUBE_API_KEY
+        sync: false
+      # Service Gmail (bonus) — même projet Google Cloud que GOOGLE_CLIENT_ID/SECRET
+      # ci-dessus : juste activer l'API Gmail et ajouter le redirect URI
+      # <APP_URL>/api/v1/auth/oauth/gmail/callback.
+      # Service Outlook (bonus) — nouvelle app Azure AD (Microsoft Graph, scope Mail.Read).
+      - key: OUTLOOK_CLIENT_ID
+        sync: false
+      - key: OUTLOOK_CLIENT_SECRET
+        sync: false
+      # Widget Maps/directions (bonus) — clé gratuite sans OAuth, openrouteservice.org.
+      - key: ORS_API_KEY
+        sync: false
 
   - type: web
     name: threshold-frontend

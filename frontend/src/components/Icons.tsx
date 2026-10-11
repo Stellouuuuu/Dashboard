@@ -205,6 +205,40 @@ export function IconYoutube() {
   );
 }
 
+export function IconUptimeRobot() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#22c55e" strokeWidth="1.8">
+      <path d="M3 12h4l2.5 6 4-14 2 8h5.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconMaps() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true" style={{ fill: '#8b5cf6', stroke: 'none' }}>
+      <path d="M12 2C8.1 2 5 5.1 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" />
+    </svg>
+  );
+}
+
+export function IconGmail() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="2" fill="#ea4335" />
+      <path d="M2 5l10 8 10-8" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconOutlook() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="2" fill="#0a66c2" />
+      <path d="M2 5l10 8 10-8" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function ServiceIcon({ service }: { service: ServiceId }) {
   if (service === 'weather') return <IconWeather />;
   if (service === 'github') return <IconGithub />;
@@ -213,6 +247,10 @@ export function ServiceIcon({ service }: { service: ServiceId }) {
   if (service === 'spotify') return <IconSpotify />;
   if (service === 'linkedin') return <IconLinkedin />;
   if (service === 'youtube') return <IconYoutube />;
+  if (service === 'uptimerobot') return <IconUptimeRobot />;
+  if (service === 'maps') return <IconMaps />;
+  if (service === 'gmail') return <IconGmail />;
+  if (service === 'outlook') return <IconOutlook />;
   return <IconHackerNews />;
 }
 

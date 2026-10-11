@@ -107,6 +107,18 @@ ul{list-style:none;}
 }
 @media (max-width:640px){.wrap{padding:0 18px;}}
 
+.legal-page{max-width:720px;margin:0 auto;padding:60px clamp(20px, 5vw, 40px) 80px;color:var(--text);}
+.legal-page h1{font-family:var(--font-d);font-size:clamp(1.8rem, 4vw, 2.4rem);margin:4px 0 6px;}
+.legal-updated{color:var(--text-faint);font-size:.82rem;margin-bottom:32px;}
+.legal-section{margin-bottom:26px;}
+.legal-section h2{font-family:var(--font-d);font-size:1.05rem;margin-bottom:8px;}
+.legal-section p{color:var(--text-dim);line-height:1.6;font-size:.92rem;}
+.lp-footer-links{display:flex;gap:16px;margin-top:10px;}
+.lp-footer-links a{color:var(--text-faint);font-size:.82rem;text-decoration:underline;}
+.lp-footer-links a:hover{color:var(--text-dim);}
+.auth-consent{font-size:.78rem;color:var(--text-faint);line-height:1.5;margin:4px 0 14px;}
+.auth-consent a{text-decoration:underline;color:inherit;}
+
 /* ambient mesh — soft glows (app-wide) */
 .mesh-bg{
   position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
@@ -928,6 +940,12 @@ ul{list-style:none;}
 .svc-row-info p,.svc-url{font-size:.82rem;color:var(--text-dim);overflow-wrap:anywhere;}
 .svc-row-actions{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .svc-rss-form{margin-top:12px;max-width:420px;width:100%;}
+.uptimerobot-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.uptimerobot-form input{min-width:200px;}
+@media (max-width:640px){
+  .uptimerobot-form{width:100%;}
+  .uptimerobot-form input{flex:1;min-width:0;}
+}
 @media (max-width:640px){
   .svc-row-actions{margin-left:0;width:100%;}
   .svc-row-actions .btn{width:100%;}

@@ -11,8 +11,8 @@ import * as repo from "./auth.repository.js";
  * { accessToken, refreshToken?, expiresAt? } dans oauth_accounts.access_token : pas de
  * migration de schéma, et Spotify (token d'1 h + refresh token) est supporté.
  */
-export type OAuthProvider = "spotify" | "linkedin";
-export const OAUTH_PROVIDERS: OAuthProvider[] = ["spotify", "linkedin"];
+export type OAuthProvider = "spotify" | "linkedin" | "gmail" | "outlook";
+export const OAUTH_PROVIDERS: OAuthProvider[] = ["spotify", "linkedin", "gmail", "outlook"];
 
 export function isOAuthProvider(name: string): name is OAuthProvider {
   return (OAUTH_PROVIDERS as string[]).includes(name);
@@ -75,6 +75,42 @@ const PROVIDERS: Record<OAuthProvider, ProviderConfig> = {
       return { id: me.sub, label: me.name ?? me.sub };
     },
   },
+  gmail: {
+    authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    // Même projet Google Cloud que "Se connecter avec Google" (GOOGLE_CLIENT_ID/SECRET) —
+    // juste une App "Threshold" avec l'API Gmail activée en plus, pas de nouvelle app.
+    scope: "https://www.googleapis.com/auth/gmail.readonly openid email",
+    clientId: () => env.GOOGLE_CLIENT_ID,
+    clientSecret: () => env.GOOGLE_CLIENT_SECRET,
+    basicAuthToken: false,
+    identity: async (token) => {
+      const res = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!res.ok) throw httpError(502, "OAUTH_EXCHANGE_FAILED", `Identité Google indisponible (${res.status})`);
+      const me = (await res.json()) as { id: string; email?: string };
+      return { id: me.id, label: me.email ?? me.id };
+    },
+  },
+  outlook: {
+    authorizeUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    scope: "openid email offline_access Mail.Read",
+    clientId: () => env.OUTLOOK_CLIENT_ID,
+    clientSecret: () => env.OUTLOOK_CLIENT_SECRET,
+    basicAuthToken: false,
+    identity: async (token) => {
+      const res = await fetch("https://graph.microsoft.com/v1.0/me", {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!res.ok) throw httpError(502, "OAUTH_EXCHANGE_FAILED", `Identité Microsoft indisponible (${res.status})`);
+      const me = (await res.json()) as { id: string; mail?: string; userPrincipalName?: string };
+      return { id: me.id, label: me.mail ?? me.userPrincipalName ?? me.id };
+    },
+  },
 };
 
 export interface StoredToken {
@@ -122,6 +158,14 @@ export function buildAuthorizeUrl(provider: OAuthProvider, userId: number): stri
   if (provider === "spotify") params.set("show_dialog", "true");
   // LinkedIn : redemande l'identification pour pouvoir choisir un autre compte.
   if (provider === "linkedin") params.set("prompt", "login");
+  // Gmail : Google ne renvoie un refresh_token qu'avec access_type=offline, et seulement
+  // à la première autorisation — prompt=consent force l'écran à chaque liaison.
+  if (provider === "gmail") {
+    params.set("access_type", "offline");
+    params.set("prompt", "consent");
+  }
+  // Outlook : laisse choisir un autre compte Microsoft à chaque liaison.
+  if (provider === "outlook") params.set("prompt", "select_account");
   return `${cfg.authorizeUrl}?${params.toString()}`;
 }
 
@@ -200,4 +244,62 @@ export async function getAccessToken(userId: number, provider: OAuthProvider): P
     await repo.upsertOAuthAccount(userId, provider, row.providerUserId, encrypt(JSON.stringify(stored)), row.scope ?? undefined);
   }
   return stored.accessToken;
+}
+
+/**
+ * Services liés par clé API collée par l'utilisateur plutôt que par redirection OAuth
+ * (UptimeRobot n'expose pas de flux OAuth) — "credentials" au sens du sujet ("fill in
+ * their username and password from their profile page"). Même table `oauth_accounts`
+ * que les vrais fournisseurs OAuth (colonne access_token générique, chiffrée) : pas de
+ * migration de schéma, `isLinked`/`unlink` déjà génériques fonctionnent tels quels.
+ */
+export type CredentialProvider = "uptimerobot";
+export const CREDENTIAL_PROVIDERS: CredentialProvider[] = ["uptimerobot"];
+
+export function isCredentialProvider(name: string): name is CredentialProvider {
+  return (CREDENTIAL_PROVIDERS as string[]).includes(name);
+}
+
+export function isKnownProvider(name: string): boolean {
+  return isOAuthProvider(name) || isCredentialProvider(name);
+}
+
+interface CredentialConfig {
+  /** Valide la clé auprès du fournisseur et renvoie une identité à journaliser. */
+  validate: (apiKey: string) => Promise<{ id: string; label: string }>;
+}
+
+const CREDENTIALS: Record<CredentialProvider, CredentialConfig> = {
+  uptimerobot: {
+    validate: async (apiKey) => {
+      const res = await fetch("https://api.uptimerobot.com/v2/getAccountDetails", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+        body: new URLSearchParams({ api_key: apiKey, format: "json" }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      const data = (await res.json().catch(() => ({}))) as { stat?: string; account?: { email?: string } };
+      if (data.stat !== "ok") throw httpError(400, "OAUTH_EXCHANGE_FAILED", "Clé API UptimeRobot invalide");
+      const label = data.account?.email ?? "UptimeRobot";
+      return { id: label, label };
+    },
+  },
+};
+
+export async function connectCredential(userId: number, provider: CredentialProvider, apiKey: string): Promise<void> {
+  const identity = await CREDENTIALS[provider].validate(apiKey);
+  await repo.upsertOAuthAccount(userId, provider, identity.id, encrypt(JSON.stringify({ accessToken: apiKey })), undefined);
+  void logAudit(userId, AUDIT_ACTIONS.OAUTH_LINKED, { provider, account: identity.label });
+}
+
+/** Lit une clé API stockée — pas de notion d'expiration/refresh, contrairement à `getAccessToken`. */
+export async function getStoredCredential(userId: number, provider: string): Promise<string> {
+  const row = await repo.findOAuthAccount(userId, provider);
+  if (!row) throw httpError(400, "SERVICE_OAUTH_REQUIRED", `Connecte ton compte ${provider} pour utiliser ce widget`);
+  try {
+    const stored = JSON.parse(decrypt(row.accessToken)) as { accessToken: string };
+    return stored.accessToken;
+  } catch {
+    throw httpError(400, "SERVICE_OAUTH_REQUIRED", `Reconnecte ton compte ${provider}`);
+  }
 }

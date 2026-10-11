@@ -91,6 +91,10 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <footer className="lp-footer">
         <Brand size={22} fontSize=".95rem" />
         <p>{t('landing.footer')}</p>
+        <nav className="lp-footer-links" aria-label={t('legal.footerLink')}>
+          <Link to="/legal">{t('legal.footerLink')}</Link>
+          <Link to="/privacy">{t('legal.privacyFooterLink')}</Link>
+        </nav>
       </footer>
     </div>
   );

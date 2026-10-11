@@ -16,7 +16,11 @@
       "hackernews": "Hacker News",
       "spotify": "Spotify",
       "linkedin": "LinkedIn",
-      "youtube": "YouTube"
+      "youtube": "YouTube",
+      "uptimerobot": "UptimeRobot",
+      "maps": "Maps",
+      "gmail": "Gmail",
+      "outlook": "Outlook"
     }
   },
   "language": {
@@ -358,7 +362,23 @@
       "videos_other": "{{count}} videos",
       "watchVideo": "Watch video",
       "viewsUnit": "views",
-      "likesUnit": "likes"
+      "likesUnit": "likes",
+      "monitorStatus": {
+        "up": "Up",
+        "down": "Down",
+        "seems_down": "Seems down",
+        "paused": "Paused",
+        "not_checked_yet": "Not checked yet",
+        "unknown": "Unknown"
+      },
+      "uptimeRatio": "{{ratio}}% uptime over {{days}}d",
+      "seeMonitor": "See site",
+      "durationMin_one": "{{count}} min",
+      "durationMin_other": "{{count}} min",
+      "distanceKm": "{{km}} km",
+      "noMail": "No messages",
+      "unreadCount_one": "{{count}} unread message",
+      "unreadCount_other": "{{count}} unread messages"
     },
     "planning": {
       "title": "Planning",
@@ -439,7 +459,13 @@
       "internship": "Internship",
       "day": "Last 24 hours",
       "week": "Last week",
-      "month": "Last month"
+      "month": "Last month",
+      "1": "1 day",
+      "7": "7 days",
+      "30": "30 days",
+      "driving": "Driving",
+      "cycling": "Cycling",
+      "walking": "Walking"
     }
   },
   "oauthModal": {
@@ -508,6 +534,38 @@
     "youtube": {
       "title": "YouTube",
       "desc": "No account needed, a channel's latest videos and a video's stats."
+    },
+    "maps": {
+      "title": "Maps",
+      "desc": "No account needed, distance and duration of a route between two places."
+    },
+    "gmail": {
+      "title": "Gmail",
+      "connected": "Gmail account connected.",
+      "notConnected": "Connect your account to show your unread messages.",
+      "connect": "Connect Gmail",
+      "disconnect": "Disconnect",
+      "disconnected": "Gmail disconnected",
+      "connectedToast": "Gmail connected"
+    },
+    "outlook": {
+      "title": "Outlook",
+      "connected": "Outlook account connected.",
+      "notConnected": "Connect your account to show your unread messages.",
+      "connect": "Connect Outlook",
+      "disconnect": "Disconnect",
+      "disconnected": "Outlook disconnected",
+      "connectedToast": "Outlook connected"
+    },
+    "uptimerobot": {
+      "title": "UptimeRobot",
+      "connected": "UptimeRobot account connected.",
+      "notConnected": "Paste your API key to track your monitors.",
+      "placeholder": "API key (Main or read-only)",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "disconnected": "UptimeRobot disconnected",
+      "connectedToast": "UptimeRobot connected"
     }
   },
   "admin": {
@@ -751,6 +809,39 @@
       "params": {
         "video": "Video link or ID"
       }
+    },
+    "monitor_status": {
+      "name": "Monitor status",
+      "description": "Status and uptime ratio of a monitored site (UptimeRobot).",
+      "params": {
+        "search": "Monitor (name or URL)",
+        "period": "Period (days)"
+      }
+    },
+    "directions": {
+      "name": "Directions",
+      "description": "Distance and duration between two places.",
+      "params": {
+        "from": "From",
+        "to": "To",
+        "mode": "Travel mode"
+      }
+    },
+    "gmail_unread": {
+      "name": "Unread Gmail messages",
+      "description": "Gmail messages matching a search query.",
+      "params": {
+        "query": "Gmail search (e.g. is:unread)",
+        "number": "Number of messages"
+      }
+    },
+    "outlook_unread": {
+      "name": "Unread Outlook messages",
+      "description": "Unread messages from an Outlook folder.",
+      "params": {
+        "folder": "Folder (e.g. inbox)",
+        "number": "Number of messages"
+      }
     }
   },
   "modal": {
@@ -805,5 +896,76 @@
     "VALIDATION_ERROR": "Some information is invalid.",
     "RATE_LIMITED": "Too many attempts, try again shortly.",
     "INTERNAL_ERROR": "Something went wrong. Try again."
+  },
+  "legal": {
+    "footerLink": "Legal notice",
+    "privacyFooterLink": "Privacy",
+    "registerConsent": "By creating an account, you accept our <legal>legal notice</legal> and <privacy>privacy policy</privacy>.",
+    "notice": {
+      "kicker": "Legal notice",
+      "title": "Legal notice",
+      "updated": "Last updated: 2026-10-16",
+      "sections": {
+        "editor": {
+          "title": "Site publisher",
+          "body": "Threshold is a student project built as part of the Epitech curriculum (module G-WEB-500, \"Dashboard\"). It is not a commercial service. Publisher: [to fill in — team member name(s) and contact email]."
+        },
+        "hosting": {
+          "title": "Hosting",
+          "body": "The application is hosted by Render Services, Inc. (San Francisco, USA) — render.com. The PostgreSQL database is hosted by the same provider."
+        },
+        "ip": {
+          "title": "Intellectual property",
+          "body": "This project's source code is provided for educational purposes. The third-party trademarks, logos and service names mentioned (GitHub, Spotify, LinkedIn, Google, Microsoft/Outlook, YouTube, UptimeRobot, OpenRouteService…) belong to their respective owners; Threshold is not affiliated with any of them."
+        },
+        "liability": {
+          "title": "Liability",
+          "body": "This project is an academic demo, provided \"as is\", without warranty of any kind. It should not be used to store sensitive or critical data."
+        },
+        "contact": {
+          "title": "Contact",
+          "body": "For any question about this site: [to fill in — contact email]."
+        }
+      }
+    },
+    "privacy": {
+      "kicker": "Privacy",
+      "title": "Privacy policy",
+      "updated": "Last updated: 2026-10-16",
+      "sections": {
+        "intro": {
+          "title": "Why this page",
+          "body": "Threshold manages a user account and, if you choose to connect them, access to third-party services (GitHub, Spotify, LinkedIn, Google, Microsoft/Outlook). This page explains what data is collected, why, and how to delete it."
+        },
+        "collected": {
+          "title": "Data collected",
+          "body": "Account: email, password (hashed, never stored in plain text), display name, preferred language. Third-party services: if you link an account (GitHub, Spotify, LinkedIn, Google, Outlook) or paste an API key (UptimeRobot), the corresponding access token is stored encrypted (AES-256-GCM). Usage: your widget configuration (e.g. a city name, a GitHub repository) and an audit log of sensitive actions (login, linking/unlinking a third-party account, admin actions)."
+        },
+        "purpose": {
+          "title": "Why this data",
+          "body": "Only to run the dashboard: authenticating you, displaying the widgets you configure, and accessing the third-party services you explicitly connect on your behalf. No data is used for advertising or sold to a third party."
+        },
+        "thirdParties": {
+          "title": "Third-party services",
+          "body": "Data is only sent to a third-party service if you connected it yourself (e.g. your GitHub token is only used to call the GitHub API on your behalf). Account-free widgets (weather, RSS, finance, Hacker News, YouTube, Maps) send no personal data — just the widget's own parameters (e.g. a city name)."
+        },
+        "security": {
+          "title": "Security",
+          "body": "Passwords are hashed (bcrypt). Third-party tokens and API keys are encrypted at rest (AES-256-GCM). Sessions use httpOnly cookies (inaccessible from JavaScript). The site is served over HTTPS."
+        },
+        "retention": {
+          "title": "Retention",
+          "body": "Your data is kept for as long as your account exists. Deleting your account (Profile page) immediately and permanently erases the account and all associated data (widgets, linked third-party accounts, history)."
+        },
+        "rights": {
+          "title": "Your rights",
+          "body": "At any time, you can: view and edit your profile, unlink a third-party account (Services page), or fully delete your account (Profile page). For any other request: [to fill in — contact email]."
+        },
+        "cookies": {
+          "title": "Cookies",
+          "body": "Only technical httpOnly cookies are used, to keep you signed in. No tracking, advertising or analytics cookies are used."
+        }
+      }
+    }
   }
 }

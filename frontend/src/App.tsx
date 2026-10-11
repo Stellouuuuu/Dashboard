@@ -14,6 +14,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { AdminPage, AdminUserPage } from './pages/AdminPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { LegalPage } from './pages/LegalPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
             <Route path="/confirm" element={<ConfirmPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/legal" element={<LegalPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
             {/* Ancien lien email → formulaire code */}
             <Route path="/confirm/:token" element={<ConfirmPage />} />
 

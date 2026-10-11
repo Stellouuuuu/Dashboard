@@ -16,7 +16,11 @@
       "hackernews": "Hacker News",
       "spotify": "Spotify",
       "linkedin": "LinkedIn",
-      "youtube": "YouTube"
+      "youtube": "YouTube",
+      "uptimerobot": "UptimeRobot",
+      "maps": "Maps",
+      "gmail": "Gmail",
+      "outlook": "Outlook"
     }
   },
   "language": {
@@ -358,7 +362,23 @@
       "videos_other": "{{count}} vidéos",
       "watchVideo": "Voir la vidéo",
       "viewsUnit": "vues",
-      "likesUnit": "likes"
+      "likesUnit": "likes",
+      "monitorStatus": {
+        "up": "En ligne",
+        "down": "En panne",
+        "seems_down": "Semble en panne",
+        "paused": "En pause",
+        "not_checked_yet": "Pas encore vérifié",
+        "unknown": "Inconnu"
+      },
+      "uptimeRatio": "{{ratio}} % de disponibilité sur {{days}} j",
+      "seeMonitor": "Voir le site",
+      "durationMin_one": "{{count}} min",
+      "durationMin_other": "{{count}} min",
+      "distanceKm": "{{km}} km",
+      "noMail": "Aucun message",
+      "unreadCount_one": "{{count}} message non lu",
+      "unreadCount_other": "{{count}} messages non lus"
     },
     "planning": {
       "title": "Planning",
@@ -439,7 +459,13 @@
       "internship": "Stage",
       "day": "Dernières 24 h",
       "week": "Dernière semaine",
-      "month": "Dernier mois"
+      "month": "Dernier mois",
+      "1": "1 jour",
+      "7": "7 jours",
+      "30": "30 jours",
+      "driving": "Voiture",
+      "cycling": "Vélo",
+      "walking": "À pied"
     }
   },
   "oauthModal": {
@@ -508,6 +534,38 @@
     "youtube": {
       "title": "YouTube",
       "desc": "Aucun compte requis, dernières vidéos d'une chaîne et statistiques d'une vidéo."
+    },
+    "maps": {
+      "title": "Maps",
+      "desc": "Aucun compte requis, distance et durée d'un itinéraire entre deux lieux."
+    },
+    "gmail": {
+      "title": "Gmail",
+      "connected": "Compte Gmail connecté.",
+      "notConnected": "Connecte ton compte pour afficher tes messages non lus.",
+      "connect": "Connecter Gmail",
+      "disconnect": "Déconnecter",
+      "disconnected": "Gmail déconnecté",
+      "connectedToast": "Gmail connecté"
+    },
+    "outlook": {
+      "title": "Outlook",
+      "connected": "Compte Outlook connecté.",
+      "notConnected": "Connecte ton compte pour afficher tes messages non lus.",
+      "connect": "Connecter Outlook",
+      "disconnect": "Déconnecter",
+      "disconnected": "Outlook déconnecté",
+      "connectedToast": "Outlook connecté"
+    },
+    "uptimerobot": {
+      "title": "UptimeRobot",
+      "connected": "Compte UptimeRobot connecté.",
+      "notConnected": "Colle ta clé API pour suivre tes moniteurs.",
+      "placeholder": "Clé API (Main ou read-only)",
+      "connect": "Connecter",
+      "disconnect": "Déconnecter",
+      "disconnected": "UptimeRobot déconnecté",
+      "connectedToast": "UptimeRobot connecté"
     }
   },
   "admin": {
@@ -751,6 +809,39 @@
       "params": {
         "video": "Lien ou ID de la vidéo"
       }
+    },
+    "monitor_status": {
+      "name": "Statut d'un moniteur",
+      "description": "Statut et taux de disponibilité d'un site surveillé (UptimeRobot).",
+      "params": {
+        "search": "Moniteur (nom ou URL)",
+        "period": "Période (jours)"
+      }
+    },
+    "directions": {
+      "name": "Itinéraire",
+      "description": "Distance et durée entre deux lieux.",
+      "params": {
+        "from": "Départ",
+        "to": "Arrivée",
+        "mode": "Mode de transport"
+      }
+    },
+    "gmail_unread": {
+      "name": "Messages Gmail non lus",
+      "description": "Messages Gmail correspondant à une recherche.",
+      "params": {
+        "query": "Recherche Gmail (ex. is:unread)",
+        "number": "Nombre de messages"
+      }
+    },
+    "outlook_unread": {
+      "name": "Messages Outlook non lus",
+      "description": "Messages non lus d'un dossier Outlook.",
+      "params": {
+        "folder": "Dossier (ex. inbox)",
+        "number": "Nombre de messages"
+      }
     }
   },
   "modal": {
@@ -805,5 +896,76 @@
     "VALIDATION_ERROR": "Certaines informations sont invalides.",
     "RATE_LIMITED": "Trop de tentatives, réessaie dans un instant.",
     "INTERNAL_ERROR": "Une erreur est survenue. Réessaie."
+  },
+  "legal": {
+    "footerLink": "Mentions légales",
+    "privacyFooterLink": "Confidentialité",
+    "registerConsent": "En créant un compte, tu acceptes nos <legal>mentions légales</legal> et notre <privacy>politique de confidentialité</privacy>.",
+    "notice": {
+      "kicker": "Mentions légales",
+      "title": "Mentions légales",
+      "updated": "Dernière mise à jour : 16/10/2026",
+      "sections": {
+        "editor": {
+          "title": "Éditeur du site",
+          "body": "Threshold est un projet étudiant réalisé dans le cadre du cursus Epitech (module G-WEB-500, \"Dashboard\"). Ce n'est pas un service commercial. Éditeur : [à compléter — nom(s) des membres de l'équipe et email de contact]."
+        },
+        "hosting": {
+          "title": "Hébergement",
+          "body": "L'application est hébergée par Render Services, Inc. (San Francisco, États-Unis) — render.com. La base de données PostgreSQL est hébergée par le même fournisseur."
+        },
+        "ip": {
+          "title": "Propriété intellectuelle",
+          "body": "Le code source de ce projet est fourni à des fins pédagogiques. Les marques, logos et noms de services tiers mentionnés (GitHub, Spotify, LinkedIn, Google, Microsoft/Outlook, YouTube, UptimeRobot, OpenRouteService…) appartiennent à leurs propriétaires respectifs ; Threshold n'est affilié à aucun d'entre eux."
+        },
+        "liability": {
+          "title": "Responsabilité",
+          "body": "Ce projet est une démonstration académique, fournie « en l'état », sans garantie d'aucune sorte. Il ne doit pas être utilisé pour stocker des données sensibles ou critiques."
+        },
+        "contact": {
+          "title": "Contact",
+          "body": "Pour toute question relative à ce site : [à compléter — email de contact]."
+        }
+      }
+    },
+    "privacy": {
+      "kicker": "Confidentialité",
+      "title": "Politique de confidentialité",
+      "updated": "Dernière mise à jour : 16/10/2026",
+      "sections": {
+        "intro": {
+          "title": "Pourquoi cette page",
+          "body": "Threshold gère un compte utilisateur et, si tu choisis de les connecter, des accès à des services tiers (GitHub, Spotify, LinkedIn, Google, Microsoft/Outlook). Cette page explique quelles données sont collectées, pourquoi, et comment les supprimer."
+        },
+        "collected": {
+          "title": "Données collectées",
+          "body": "Compte : email, mot de passe (haché, jamais stocké en clair), nom affiché, langue préférée. Services tiers : si tu lies un compte (GitHub, Spotify, LinkedIn, Google, Outlook) ou colles une clé API (UptimeRobot), le jeton d'accès correspondant est stocké chiffré (AES-256-GCM). Usage : la configuration de tes widgets (ex. nom d'une ville, d'un dépôt GitHub) et un journal d'audit des actions sensibles (connexion, liaison/déliaison d'un compte tiers, actions admin)."
+        },
+        "purpose": {
+          "title": "Pourquoi ces données",
+          "body": "Uniquement pour faire fonctionner le dashboard : t'authentifier, afficher les widgets que tu configures, et accéder en ton nom aux services tiers que tu connectes explicitement. Aucune donnée n'est utilisée à des fins publicitaires ou revendue à un tiers."
+        },
+        "thirdParties": {
+          "title": "Services tiers",
+          "body": "Les données ne sont envoyées à un service tiers que si tu l'as toi-même connecté (ex. ton jeton GitHub n'est utilisé que pour appeler l'API GitHub en ton nom). Les widgets sans compte (météo, RSS, finance, Hacker News, YouTube, Maps) n'envoient aucune donnée personnelle — juste les paramètres du widget (ex. le nom d'une ville)."
+        },
+        "security": {
+          "title": "Sécurité",
+          "body": "Mots de passe hachés (bcrypt). Jetons et clés API tiers chiffrés en base (AES-256-GCM). Sessions via cookies httpOnly (inaccessibles en JavaScript). Connexion au site en HTTPS."
+        },
+        "retention": {
+          "title": "Durée de conservation",
+          "body": "Tes données sont conservées tant que ton compte existe. La suppression du compte (page Profil) efface immédiatement et définitivement le compte et toutes les données associées (widgets, comptes tiers liés, historique)."
+        },
+        "rights": {
+          "title": "Tes droits",
+          "body": "Tu peux à tout moment : voir et modifier ton profil, délier un compte tiers (page Services), ou supprimer entièrement ton compte (page Profil). Pour toute autre demande : [à compléter — email de contact]."
+        },
+        "cookies": {
+          "title": "Cookies",
+          "body": "Seuls des cookies techniques httpOnly servent à maintenir ta session (connexion). Aucun cookie de suivi, de publicité ou de mesure d'audience n'est utilisé."
+        }
+      }
+    }
   }
 }

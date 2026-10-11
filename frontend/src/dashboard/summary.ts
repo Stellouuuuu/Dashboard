@@ -133,6 +133,31 @@ export interface YoutubeVideoStats {
   publishedAt: string;
   url: string;
 }
+export interface MonitorStatus {
+  name: string;
+  url: string;
+  status: string;
+  uptimeRatio: number;
+  period: string;
+}
+export interface DirectionsResult {
+  from: string;
+  to: string;
+  mode: string;
+  distanceKm: number;
+  durationMin: number;
+}
+export interface MailMessage {
+  id: string;
+  subject: string;
+  from: string;
+  snippet?: string;
+  receivedAt?: string;
+}
+export interface MailUnreadSummary {
+  count: number;
+  messages: MailMessage[];
+}
 
 const EMPTY: WidgetSummary = { kicker: '', title: '—', lines: [] };
 
@@ -267,6 +292,34 @@ export function summarizeData(widgetId: string, data: unknown): WidgetSummary {
         ].filter(Boolean),
         image: safeImage(d.thumbnail) ?? undefined,
         action: href ? { label: i18n.t('dashboard.summary.watchVideo'), href } : undefined,
+      };
+    }
+    case 'monitor_status': {
+      const d = data as MonitorStatus;
+      const href = /^https?:\/\//i.test(d.url) ? d.url : null;
+      return {
+        kicker: d.name,
+        title: i18n.t(`dashboard.summary.monitorStatus.${d.status}`, { defaultValue: d.status }),
+        lines: [i18n.t('dashboard.summary.uptimeRatio', { ratio: d.uptimeRatio, days: d.period })],
+        action: href ? { label: i18n.t('dashboard.summary.seeMonitor'), href } : undefined,
+      };
+    }
+    case 'directions': {
+      const d = data as DirectionsResult;
+      return {
+        kicker: `${d.from} → ${d.to}`,
+        title: i18n.t('dashboard.summary.durationMin', { count: d.durationMin }),
+        lines: [i18n.t('dashboard.summary.distanceKm', { km: d.distanceKm })],
+      };
+    }
+    case 'gmail_unread':
+    case 'outlook_unread': {
+      const d = data as MailUnreadSummary;
+      if (!d.messages.length) return { kicker: '', title: i18n.t('dashboard.summary.noMail'), lines: [] };
+      return {
+        kicker: i18n.t('dashboard.summary.unreadCount', { count: d.count }),
+        title: d.messages[0].subject,
+        lines: d.messages.slice(1, 3).map((m) => m.subject),
       };
     }
     default:

@@ -89,8 +89,13 @@ export function apiRefresh(): Promise<{ ok: boolean }> {
   return request('/auth/refresh', { method: 'POST' });
 }
 
-export function apiUnlinkProvider(provider: 'spotify' | 'linkedin'): Promise<void> {
+export function apiUnlinkProvider(provider: 'spotify' | 'linkedin' | 'gmail' | 'outlook' | 'uptimerobot'): Promise<void> {
   return request(`/auth/oauth/${provider}`, { method: 'DELETE' });
+}
+
+/** UptimeRobot n'a pas de flux OAuth : clé API personnelle collée par l'utilisateur, validée côté serveur. */
+export function apiConnectCredential(provider: 'uptimerobot', apiKey: string): Promise<void> {
+  return request(`/auth/credentials/${provider}`, { method: 'POST', body: JSON.stringify({ apiKey }) });
 }
 
 export function apiUnlinkGithub(): Promise<void> {

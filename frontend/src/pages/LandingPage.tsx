@@ -3,7 +3,21 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { useAuth } from '../auth/AuthContext';
-import { IconChevron, IconFinance, IconGithub, IconHackerNews, IconLinkedin, IconRss, IconSpotify, IconWeather, IconYoutube } from '../components/Icons';
+import {
+  IconChevron,
+  IconFinance,
+  IconGithub,
+  IconHackerNews,
+  IconLinkedin,
+  IconRss,
+  IconSpotify,
+  IconWeather,
+  IconYoutube,
+  IconUptimeRobot,
+  IconMaps,
+  IconGmail,
+  IconOutlook,
+} from '../components/Icons';
 import type { ServiceId } from '../data/catalog';
 import { IMG } from '../data/images';
 import { widgetName } from '../i18n/widgets';
@@ -26,6 +40,10 @@ const WIDGETS_PREVIEW: { id: string; service: ServiceId; params: string[] }[] = 
   { id: 'hashtag_watch', service: 'linkedin', params: ['hashtags'] },
   { id: 'channel_latest_videos', service: 'youtube', params: ['channel', 'number'] },
   { id: 'video_stats', service: 'youtube', params: ['video'] },
+  { id: 'monitor_status', service: 'uptimerobot', params: ['search', 'period'] },
+  { id: 'directions', service: 'maps', params: ['from', 'to', 'mode'] },
+  { id: 'gmail_unread', service: 'gmail', params: ['query', 'number'] },
+  { id: 'outlook_unread', service: 'outlook', params: ['folder', 'number'] },
 ];
 
 const SERVICE_ICON: Record<ServiceId, ReactNode> = {
@@ -37,6 +55,10 @@ const SERVICE_ICON: Record<ServiceId, ReactNode> = {
   spotify: <IconSpotify />,
   linkedin: <IconLinkedin />,
   youtube: <IconYoutube />,
+  uptimerobot: <IconUptimeRobot />,
+  maps: <IconMaps />,
+  gmail: <IconGmail />,
+  outlook: <IconOutlook />,
 };
 
 export function LandingPage() {

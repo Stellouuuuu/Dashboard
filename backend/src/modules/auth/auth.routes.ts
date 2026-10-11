@@ -14,6 +14,7 @@ import {
   deleteAccountSchema,
   setLanguageSchema,
   updateProfileSchema,
+  connectCredentialSchema,
 } from "./auth.schemas.js";
 
 const router = Router();
@@ -50,5 +51,9 @@ router.delete("/oauth/google", requireAuth, ctrl.oauthGoogleUnlink);
 router.get("/oauth/:provider", requireAuth, ctrl.oauthStart);
 router.get("/oauth/:provider/callback", ctrl.oauthCallback);
 router.delete("/oauth/:provider", requireAuth, ctrl.oauthUnlink);
+
+// UptimeRobot : pas de flux OAuth (clé API collée par l'utilisateur) — même table de
+// liaison que ci-dessus, mais connexion par POST plutôt que par redirection.
+router.post("/credentials/:provider", requireAuth, validate(connectCredentialSchema), ctrl.connectCredential);
 
 export default router;

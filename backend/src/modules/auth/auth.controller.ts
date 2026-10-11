@@ -290,9 +290,22 @@ export async function oauthCallback(req: Request, res: Response) {
   }
 }
 
+/** DELETE /api/v1/auth/oauth/:provider — couvre aussi les fournisseurs "credential" (UptimeRobot) : même table, même suppression. */
 export async function oauthUnlink(req: Request, res: Response) {
   const provider = req.params.provider;
-  if (!oauth.isOAuthProvider(provider)) return res.status(404).json({ error: "Fournisseur inconnu", code: "SERVICE_UNKNOWN" });
+  if (!oauth.isKnownProvider(provider)) return res.status(404).json({ error: "Fournisseur inconnu", code: "SERVICE_UNKNOWN" });
   await oauth.unlink(req.userId!, provider);
   res.status(204).send();
+}
+
+/** POST /api/v1/auth/credentials/:provider — liaison par clé API collée (UptimeRobot), alternative à OAuth (sujet : "fill in their credentials"). */
+export async function connectCredential(req: Request, res: Response) {
+  const provider = req.params.provider;
+  if (!oauth.isCredentialProvider(provider)) return res.status(404).json({ error: "Fournisseur inconnu", code: "SERVICE_UNKNOWN" });
+  try {
+    await oauth.connectCredential(req.userId!, provider, req.body.apiKey);
+    res.status(204).send();
+  } catch (err) {
+    sendError(res, err);
+  }
 }

@@ -8,7 +8,7 @@ import { IMG } from '../data/images';
 import { IconGoogle } from '../components/Icons';
 import type { ExtraProvider } from '../context/AppDataContext';
 
-const EXTRA_PROVIDERS: ExtraProvider[] = ['spotify', 'linkedin'];
+const EXTRA_PROVIDERS: ExtraProvider[] = ['spotify', 'linkedin', 'gmail', 'outlook'];
 
 export function ServicesPage() {
   const { t } = useTranslation();
@@ -210,6 +210,19 @@ export function ServicesPage() {
           </div>
         </div>
 
+        <div className="svc-row">
+          <span className="dash-svc-thumb" aria-hidden="true">
+            <img src={IMG.service.maps} alt="" loading="lazy" />
+          </span>
+          <div className="svc-row-info">
+            <h3>{t('services.maps.title')}</h3>
+            <p>{t('services.maps.desc')}</p>
+          </div>
+          <div className="svc-row-actions">
+            <span className="badge badge-on">{t('services.active')}</span>
+          </div>
+        </div>
+
         {EXTRA_PROVIDERS.map((p) => (
           <div className="svc-row" key={p}>
             <span className="dash-svc-thumb" aria-hidden="true">
@@ -243,6 +256,65 @@ export function ServicesPage() {
             </div>
           </div>
         ))}
+
+        <UptimeRobotRow />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * UptimeRobot n'a pas de flux OAuth : l'utilisateur colle sa clé API (Main API Key ou
+ * une clé read-only) depuis son tableau de bord UptimeRobot. Le backend la valide
+ * (appel réel à l'API) avant de la stocker chiffrée — voir connectCredential.
+ */
+function UptimeRobotRow() {
+  const { t } = useTranslation();
+  const { providerConnected, providerLoading, providerError, connectCredential, disconnectProvider } = useAppData();
+  const [apiKey, setApiKey] = useState('');
+  const connected = providerConnected.uptimerobot;
+  const loading = providerLoading.uptimerobot;
+
+  return (
+    <div className="svc-row">
+      <span className="dash-svc-thumb" aria-hidden="true">
+        <img src={IMG.service.uptimerobot} alt="" loading="lazy" />
+      </span>
+      <div className="svc-row-info">
+        <h3>{t('services.uptimerobot.title')}</h3>
+        <p>{connected ? t('services.uptimerobot.connected') : t('services.uptimerobot.notConnected')}</p>
+        {providerError.uptimerobot && !connected && (
+          <p className="field-error-msg" role="alert">
+            {providerError.uptimerobot}
+          </p>
+        )}
+      </div>
+      <div className="svc-row-actions">
+        {connected ? (
+          <button type="button" className="btn btn-ghost btn-sm" disabled={loading} onClick={() => void disconnectProvider('uptimerobot')}>
+            {loading ? '…' : t('services.uptimerobot.disconnect')}
+          </button>
+        ) : (
+          <form
+            className="uptimerobot-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!apiKey.trim()) return;
+              void connectCredential('uptimerobot', apiKey.trim()).then(() => setApiKey(''));
+            }}
+          >
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder={t('services.uptimerobot.placeholder')}
+              aria-label={t('services.uptimerobot.title')}
+            />
+            <button type="submit" className="btn btn-ghost btn-sm" disabled={loading || !apiKey.trim()}>
+              {loading ? '…' : t('services.uptimerobot.connect')}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

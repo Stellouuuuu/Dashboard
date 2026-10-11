@@ -109,6 +109,12 @@ export function RegisterPage() {
                   placeholder="••••••••"
                 />
               </FormField>
+              <p className="auth-consent">
+                <Trans
+                  i18nKey="legal.registerConsent"
+                  components={{ legal: <Link to="/legal" />, privacy: <Link to="/privacy" /> }}
+                />
+              </p>
               <button
                 className="btn btn-primary auth-submit"
                 type="submit"

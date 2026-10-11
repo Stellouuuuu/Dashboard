@@ -39,6 +39,10 @@
 | | | `hashtag_watch` | `hashtags` *(string, comma-separated)* |
 | **YouTube** | None | `channel_latest_videos` | `channel` *(string, @handle/ID/URL)*, `number` *(integer)* |
 | | | `video_stats` | `video` *(string, link or ID)* |
+| **UptimeRobot** | API key (required) | `monitor_status` | `search` *(string, monitor name/URL)*, `period` *(string, dropdown)* |
+| **Maps** | None | `directions` | `from`, `to` *(string)*, `mode` *(string, dropdown)* |
+| **Gmail** | OAuth 2.0 (required) | `gmail_unread` | `query` *(string, Gmail search)*, `number` *(integer)* |
+| **Outlook** | OAuth 2.0 (required) | `outlook_unread` | `folder` *(string)*, `number` *(integer)* |
 
 Parameter types in `/about.json` are only `string` and `integer` (subject requirement).
 
@@ -92,8 +96,11 @@ Copy `.env.example` to `.env` only if you need overrides. Everything has a safe 
 | `GITHUB_TOKEN` | empty | Optional server token for rate limits |
 | `BREVO_API_KEY` | empty | *(bonus)* Sends transactional email via Brevo's HTTP API instead of SMTP — needed on hosts that block outbound SMTP (e.g. Render's free tier); falls back to `SMTP_*` when unset |
 | `WEATHERAPI_KEY` | empty | *(bonus)* Switches the weather widgets to WeatherAPI.com (quota per key, not per IP); falls back to Open-Meteo (no key) when unset |
-| `GOOGLE_CLIENT_ID` / `SECRET` | empty | *(bonus)* Enables "Sign in with Google" — disabled when omitted |
+| `GOOGLE_CLIENT_ID` / `SECRET` | empty | *(bonus)* Enables "Sign in with Google" **and** the Gmail service (same client, extra scope) — disabled when omitted |
 | `GEMINI_API_KEY` | empty | *(bonus)* Enables the AI daily brief (Gemini, free tier) — disabled when omitted |
+| `YOUTUBE_API_KEY` | empty | *(bonus)* Enables the YouTube widgets — disabled when omitted |
+| `OUTLOOK_CLIENT_ID` / `SECRET` | empty | *(bonus)* Enables the Outlook service — disabled when omitted |
+| `ORS_API_KEY` | empty | *(bonus)* Enables the Maps/directions widget (OpenRouteService) — disabled when omitted |
 
 Invalid config produces a clear Zod error at API startup instead of a cryptic crash.
 
@@ -119,6 +126,32 @@ Without these variables, GitHub widgets stay locked behind `SERVICE_OAUTH_REQUIR
 #### Gemini API key (optional, bonus — daily AI brief)
 
 Free key, no credit card: [aistudio.google.com](https://aistudio.google.com) → **Get API key** → copy into `.env` as `GEMINI_API_KEY`.
+
+#### YouTube API key (optional, bonus)
+
+Same Google Cloud project as "Sign in with Google" above (or a new one): **APIs & Services → Library** → enable **YouTube Data API v3** → **Credentials → Create Credentials → API key** → copy into `.env` as `YOUTUBE_API_KEY`.
+
+#### Gmail service (optional, bonus)
+
+Reuses the same Google Cloud project/client as `GOOGLE_CLIENT_ID` / `SECRET` above — no new app needed:
+
+1. **APIs & Services → Library** → enable **Gmail API**
+2. Add this redirect URI to the existing OAuth client: `http://localhost:8080/api/v1/auth/oauth/gmail/callback`
+
+#### Outlook OAuth app (optional, bonus)
+
+1. [entra.microsoft.com](https://entra.microsoft.com) → **App registrations → New registration**
+2. **Redirect URI (Web):** `http://localhost:8080/api/v1/auth/oauth/outlook/callback`
+3. **API permissions → Add a permission → Microsoft Graph → Delegated → Mail.Read** (+ `offline_access`, `openid`, `email`)
+4. **Certificates & secrets → New client secret** — copy the Application (client) ID and the secret value into `.env` as `OUTLOOK_CLIENT_ID` / `OUTLOOK_CLIENT_SECRET`
+
+#### Maps / directions API key (optional, bonus)
+
+Free key: [openrouteservice.org](https://openrouteservice.org) → sign up → **Request a token** → copy into `.env` as `ORS_API_KEY`.
+
+#### UptimeRobot (optional, bonus)
+
+No app to register — each user pastes their own API key (Main or a read-only key, from their UptimeRobot dashboard **My Settings → API Keys**) directly on the Services page. Stored encrypted per account, nothing to put in `.env`.
 
 ### Useful URLs
 
@@ -266,7 +299,7 @@ Styled HTML (open in the browser when the stack is running):
 | [/docs/delivery-plan.html](http://localhost:8080/docs/delivery-plan.html) | Short plan summary |
 | [/docs/bonus.html](http://localhost:8080/docs/bonus.html) | Out-of-scope extras |
 
-Markdown sources (same content, for GitHub): [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Tech choices](docs/TECH_CHOICES.md) · [Accessibility](docs/ACCESSIBILITY.md) · [Credits](docs/CREDITS.md) · [Plan](docs/PLAN.md) · [Proof of concept](poc/README.md)
+Markdown sources (same content, for GitHub): [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Tech choices](docs/TECH_CHOICES.md) · [Accessibility](docs/ACCESSIBILITY.md) · [Credits](docs/CREDITS.md) · [Plan](docs/PLAN.md) · [Proof of concept](poc/README.md) · [Business model](docs/BUSINESS_MODEL.md)
 
 ### License
 
@@ -309,6 +342,10 @@ Student project — Epitech module **G-WEB-500**.
 | | | `hashtag_watch` | `hashtags` *(string, séparés par des virgules)* |
 | **YouTube** | Aucune | `channel_latest_videos` | `channel` *(string, @pseudo/ID/URL)*, `number` *(integer)* |
 | | | `video_stats` | `video` *(string, lien ou ID)* |
+| **UptimeRobot** | Clé API (requise) | `monitor_status` | `search` *(string, nom/URL du moniteur)*, `period` *(string, liste)* |
+| **Maps** | Aucune | `directions` | `from`, `to` *(string)*, `mode` *(string, liste)* |
+| **Gmail** | OAuth 2.0 (requis) | `gmail_unread` | `query` *(string, recherche Gmail)*, `number` *(integer)* |
+| **Outlook** | OAuth 2.0 (requis) | `outlook_unread` | `folder` *(string)*, `number` *(integer)* |
 
 Les types de paramètres dans `/about.json` sont uniquement `string` et `integer` (exigence du sujet).
 
@@ -362,8 +399,11 @@ Copie `.env.example` vers `.env` seulement si tu as besoin de surcharges. Tout a
 | `GITHUB_TOKEN` | vide | Token serveur optionnel (rate limits) |
 | `BREVO_API_KEY` | vide | *(bonus)* Envoie les emails transactionnels via l'API HTTP de Brevo au lieu de SMTP — nécessaire sur les hébergeurs qui bloquent le SMTP sortant (ex: le tier gratuit de Render) ; repli sur `SMTP_*` si absent |
 | `WEATHERAPI_KEY` | vide | *(bonus)* Bascule les widgets météo vers WeatherAPI.com (quota par clé, pas par IP) ; repli sur Open-Meteo (sans clé) si absent |
-| `GOOGLE_CLIENT_ID` / `SECRET` | vide | *(bonus)* Active « Se connecter avec Google » — désactivé si omis |
+| `GOOGLE_CLIENT_ID` / `SECRET` | vide | *(bonus)* Active « Se connecter avec Google » **et** le service Gmail (même app, scope en plus) — désactivé si omis |
 | `GEMINI_API_KEY` | vide | *(bonus)* Active le brief quotidien IA (Gemini, tier gratuit) — désactivé si omis |
+| `YOUTUBE_API_KEY` | vide | *(bonus)* Active les widgets YouTube — désactivé si omis |
+| `OUTLOOK_CLIENT_ID` / `SECRET` | vide | *(bonus)* Active le service Outlook — désactivé si omis |
+| `ORS_API_KEY` | vide | *(bonus)* Active le widget Maps/itinéraires (OpenRouteService) — désactivé si omis |
 
 Une config invalide produit une erreur Zod claire au démarrage de l’API.
 
@@ -389,6 +429,32 @@ Sans ces variables, les widgets GitHub restent bloqués (`SERVICE_OAUTH_REQUIRED
 #### Clé API Gemini (optionnel, bonus — brief quotidien IA)
 
 Clé gratuite, sans carte bancaire : [aistudio.google.com](https://aistudio.google.com) → **Get API key** → copier dans `.env` (`GEMINI_API_KEY`).
+
+#### Clé API YouTube (optionnel, bonus)
+
+Même projet Google Cloud que "Se connecter avec Google" ci-dessus (ou un nouveau) : **APIs & Services → Library** → activer **YouTube Data API v3** → **Credentials → Create Credentials → API key** → copier dans `.env` (`YOUTUBE_API_KEY`).
+
+#### Service Gmail (optionnel, bonus)
+
+Réutilise le même projet/app Google Cloud que `GOOGLE_CLIENT_ID` / `SECRET` ci-dessus — pas de nouvelle app :
+
+1. **APIs & Services → Library** → activer **Gmail API**
+2. Ajouter ce redirect URI à l'app OAuth existante : `http://localhost:8080/api/v1/auth/oauth/gmail/callback`
+
+#### App OAuth Outlook (optionnel, bonus)
+
+1. [entra.microsoft.com](https://entra.microsoft.com) → **App registrations → New registration**
+2. **Redirect URI (Web) :** `http://localhost:8080/api/v1/auth/oauth/outlook/callback`
+3. **API permissions → Add a permission → Microsoft Graph → Delegated → Mail.Read** (+ `offline_access`, `openid`, `email`)
+4. **Certificates & secrets → New client secret** — copier l'Application (client) ID et la valeur du secret dans `.env` (`OUTLOOK_CLIENT_ID` / `OUTLOOK_CLIENT_SECRET`)
+
+#### Clé API Maps / itinéraires (optionnel, bonus)
+
+Clé gratuite : [openrouteservice.org](https://openrouteservice.org) → inscription → **Request a token** → copier dans `.env` (`ORS_API_KEY`).
+
+#### UptimeRobot (optionnel, bonus)
+
+Aucune app à créer — chaque utilisateur colle sa propre clé API (Main ou une clé read-only, depuis son tableau de bord UptimeRobot **My Settings → API Keys**) directement sur la page Services. Stockée chiffrée par compte, rien à mettre dans `.env`.
 
 ### URLs utiles
 
@@ -480,7 +546,7 @@ Docs HTML stylées (navigateur, stack démarrée) :
 | [/docs/delivery-plan.html](http://localhost:8080/docs/delivery-plan.html) | Résumé court du plan |
 | [/docs/bonus.html](http://localhost:8080/docs/bonus.html) | Extras hors périmètre |
 
-Sources Markdown (même contenu, pour GitHub) : [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Choix tech](docs/TECH_CHOICES.md) · [Accessibilité](docs/ACCESSIBILITY.md) · [Crédits](docs/CREDITS.md) · [Plan](docs/PLAN.md) · [Preuve de concept](poc/README.md)
+Sources Markdown (même contenu, pour GitHub) : [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Choix tech](docs/TECH_CHOICES.md) · [Accessibilité](docs/ACCESSIBILITY.md) · [Crédits](docs/CREDITS.md) · [Plan](docs/PLAN.md) · [Preuve de concept](poc/README.md) · [Modèle économique](docs/BUSINESS_MODEL.md)
 
 ### Licence
 

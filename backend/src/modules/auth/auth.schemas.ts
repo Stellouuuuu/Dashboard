@@ -62,3 +62,7 @@ export const setLanguageSchema = z.object({
 export const updateProfileSchema = z.object({
   name: z.string().trim().min(1).max(80),
 });
+
+export const connectCredentialSchema = z.object({
+  apiKey: z.string().trim().min(1, "Clé API requise"),
+});
