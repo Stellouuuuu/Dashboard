@@ -4,11 +4,15 @@ import { fetchRecentCommits, fetchSecurityAlerts } from "../adapters/github.adap
 import { fetchArticleList, fetchFeedSummary } from "../adapters/rss.adapter.js";
 import { fetchExchangeRate, fetchCryptoPrice } from "../adapters/finance.adapter.js";
 import { fetchTopStories, fetchStorySearch } from "../adapters/hackernews.adapter.js";
+import { fetchPlayer, parseSpotifyEmbed } from "../adapters/spotify.adapter.js";
+import { fetchJobSearch, fetchHashtagWatch, parseHashtags, JOB_TYPES, JOB_PERIODS } from "../adapters/linkedin.adapter.js";
 
 export interface WidgetParam {
   name: string;
   type: "string" | "integer";
   label: string;
+  /** Valeurs possibles (le front affiche alors une liste déroulante). */
+  options?: string[];
 }
 
 export interface WidgetContext {
@@ -16,7 +20,7 @@ export interface WidgetContext {
 }
 
 export interface WidgetDefinition<C = any> {
-  service: "weather" | "github" | "rss" | "finance" | "hackernews";
+  service: "weather" | "github" | "rss" | "finance" | "hackernews" | "spotify" | "linkedin";
   name: string;
   description: string;
   params: WidgetParam[];
@@ -180,6 +184,44 @@ export const WIDGET_REGISTRY = {
       number: z.number().int().min(1).max(30),
     }),
     fetch: (config) => fetchStorySearch(config),
+  },
+  player: {
+    service: "spotify",
+    name: "player",
+    description: "Listen to a Spotify playlist, album, track or artist",
+    params: [{ name: "uri", type: "string", label: "Lien Spotify (playlist, album, titre, artiste)" }],
+    schema: z.object({
+      uri: z.string().trim().refine((v) => parseSpotifyEmbed(v) !== null, "Lien open.spotify.com ou URI spotify: invalide"),
+    }),
+    fetch: (config) => fetchPlayer(config),
+  },
+  job_search: {
+    service: "linkedin",
+    name: "job_search",
+    description: "Open a LinkedIn job search (keywords, location, contract type)",
+    params: [
+      { name: "keywords", type: "string", label: "Mots-clés (ex. développeur React)" },
+      { name: "location", type: "string", label: "Lieu (ex. Paris, France)" },
+      { name: "job_type", type: "string", label: "Type de contrat", options: [...JOB_TYPES] },
+      { name: "period", type: "string", label: "Publiées depuis", options: [...JOB_PERIODS] },
+    ],
+    schema: z.object({
+      keywords: z.string().trim().min(1).max(100),
+      location: z.string().trim().max(100),
+      job_type: z.enum(JOB_TYPES),
+      period: z.enum(JOB_PERIODS),
+    }),
+    fetch: (config) => fetchJobSearch(config),
+  },
+  hashtag_watch: {
+    service: "linkedin",
+    name: "hashtag_watch",
+    description: "Follow LinkedIn hashtags in one click",
+    params: [{ name: "hashtags", type: "string", label: "Hashtags (séparés par des virgules)" }],
+    schema: z.object({
+      hashtags: z.string().trim().max(300).refine((v) => parseHashtags(v).length > 0, "Au moins un hashtag valide requis"),
+    }),
+    fetch: (config) => fetchHashtagWatch(config),
   },
 } satisfies Record<string, WidgetDefinition<any>>;
 
