@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { FormField } from '../components/FormField';
 import { ApiAuthError } from '../api/auth';
 import { formatDate } from '../i18n/format';
+import { IconLock, IconClock, IconLogout, IconTrash } from '../components/Icons';
 
 type ProfileTab = 'general' | 'security';
 
@@ -313,7 +314,10 @@ export function ProfilePage() {
                           setSecurityView('password');
                         }}
                       >
-                        <span>
+                        <span className="profile-menu-icon">
+                          <IconLock />
+                        </span>
+                        <span className="profile-menu-text">
                           <b>{t('profile.security.changePassword')}</b>
                           <small>{t('profile.security.changePasswordHint')}</small>
                         </span>
@@ -324,9 +328,16 @@ export function ProfilePage() {
                     </li>
                     <li>
                       <div className="profile-menu-item static">
-                        <span>
+                        <span className="profile-menu-icon">
+                          <IconClock />
+                        </span>
+                        <span className="profile-menu-text">
                           <b>{t('profile.security.activeSession')}</b>
                           <small>{t('profile.security.sessionExpires', { count: mins })}</small>
+                        </span>
+                        <span className="profile-status-pill" aria-hidden="true">
+                          <i />
+                          {t('profile.security.active')}
                         </span>
                       </div>
                     </li>
@@ -339,7 +350,10 @@ export function ProfilePage() {
                           navigate('/');
                         }}
                       >
-                        <span>
+                        <span className="profile-menu-icon">
+                          <IconLogout />
+                        </span>
+                        <span className="profile-menu-text">
                           <b>{t('profile.security.logout')}</b>
                           <small>{t('profile.security.logoutHint')}</small>
                         </span>
@@ -357,7 +371,10 @@ export function ProfilePage() {
                           navigate('/login');
                         }}
                       >
-                        <span>
+                        <span className="profile-menu-icon">
+                          <IconLogout />
+                        </span>
+                        <span className="profile-menu-text">
                           <b>{t('profile.security.logoutAll')}</b>
                           <small>{t('profile.security.logoutAllHint')}</small>
                         </span>
@@ -366,6 +383,10 @@ export function ProfilePage() {
                         </span>
                       </button>
                     </li>
+                  </ul>
+
+                  <p className="profile-menu-group-label">{t('profile.security.dangerZone')}</p>
+                  <ul className="profile-menu profile-menu-danger">
                     <li>
                       <button
                         type="button"
@@ -376,7 +397,10 @@ export function ProfilePage() {
                           setSecurityView('delete');
                         }}
                       >
-                        <span>
+                        <span className="profile-menu-icon danger">
+                          <IconTrash />
+                        </span>
+                        <span className="profile-menu-text">
                           <b>{t('profile.security.deleteAccount')}</b>
                           <small>{t('profile.security.deleteAccountHint')}</small>
                         </span>

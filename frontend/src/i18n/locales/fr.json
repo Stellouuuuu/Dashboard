@@ -659,10 +659,12 @@
       "changePasswordHint": "Mettre à jour le mot de passe de ton compte",
       "activeSession": "Session active",
       "sessionExpires": "Expire dans {{count}} min · navigateur actuel",
+      "active": "Active",
       "logout": "Se déconnecter",
       "logoutHint": "Fermer la session sur cet appareil",
       "logoutAll": "Se déconnecter de tous les appareils",
       "logoutAllHint": "Invalider la session en cours (démo)",
+      "dangerZone": "Zone sensible",
       "deleteAccount": "Supprimer le compte",
       "deleteAccountHint": "Action définitive — données locales effacées"
     },

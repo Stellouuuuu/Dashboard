@@ -301,6 +301,36 @@ export function IconLogout() {
   );
 }
 
+export function IconLock() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4.5" y="10.5" width="15" height="10" rx="2.2" />
+      <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5" />
+      <path d="M12 14.5v2.6" />
+    </svg>
+  );
+}
+
+export function IconClock() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3.2 2" />
+    </svg>
+  );
+}
+
+export function IconTrash() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.5 7h15" />
+      <path d="M9 7V4.8c0-.44.36-.8.8-.8h4.4c.44 0 .8.36.8.8V7" />
+      <path d="M6.5 7l.8 12.1a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9L17.5 7" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
 export function IconBook() {
   return (
     <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">

@@ -659,10 +659,12 @@
       "changePasswordHint": "Update your account password",
       "activeSession": "Active session",
       "sessionExpires": "Expires in {{count}} min · current browser",
+      "active": "Active",
       "logout": "Log out",
       "logoutHint": "Close the session on this device",
       "logoutAll": "Log out of all devices",
       "logoutAllHint": "Invalidate the current session (demo)",
+      "dangerZone": "Danger zone",
       "deleteAccount": "Delete account",
       "deleteAccountHint": "Permanent action — local data erased"
     },
