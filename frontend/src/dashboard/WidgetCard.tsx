@@ -47,7 +47,6 @@ export function WidgetCard({
     openWizard,
     activePlayer,
     setActivePlayer,
-    setPlayerDockEl,
   } = useAppData();
   const refresh = useWidgetRefresh();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -237,22 +236,29 @@ export function WidgetCard({
             aria-busy={inst.status === 'loading'}
           >
             {data.embedUrl ? (
-              activePlayer?.uid === inst.uid ? (
-                // L'iframe réelle vit dans GlobalPlayerBar et se déplace ici par
-                // portail (voir AppDataContext) — ce <div> n'est qu'un point d'ancrage.
-                <div className="spotify-dock" ref={(el) => setPlayerDockEl(inst.uid, el)} />
-              ) : (
+              // La lecture réelle vit uniquement dans GlobalPlayerBar (barre persistante,
+              // jamais démontée) : déplacer un iframe d'un parent DOM à un autre force le
+              // navigateur à le recharger, donc la tuile n'affiche qu'un aperçu statique.
+              <div className="spotify-preview">
+                <span className="spotify-preview-icon" aria-hidden="true">
+                  ♪
+                </span>
+                <div className="spotify-preview-text">
+                  <b className="wtile-title">{data.title}</b>
+                  <span>{data.kicker}</span>
+                </div>
                 <button
                   type="button"
-                  className="spotify-switch"
+                  className={`spotify-switch${activePlayer?.uid === inst.uid ? ' active' : ''}`}
+                  disabled={activePlayer?.uid === inst.uid}
                   onClick={(e) => {
                     e.stopPropagation();
                     setActivePlayer({ uid: inst.uid, embedUrl: data.embedUrl!, title: data.title });
                   }}
                 >
-                  {t('dashboard.card.playHere')}
+                  {activePlayer?.uid === inst.uid ? t('dashboard.card.playingHere') : t('dashboard.card.playHere')}
                 </button>
-              )
+              </div>
             ) : (
               <div className="wtile-main">
                 {data.image && (

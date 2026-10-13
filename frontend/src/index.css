@@ -1236,8 +1236,6 @@ tr:last-child td{border-bottom:none;}
   max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .global-player-slot{flex:1;min-width:0;}
-/* Ancrée dans la tuile (Dashboard affiché) : la barre n'a rien à montrer elle-même. */
-.global-player-slot.collapsed{flex:0;min-height:0;}
 .global-player-close{
   flex-shrink:0;width:32px;height:32px;border-radius:50%;
   display:inline-flex;align-items:center;justify-content:center;
@@ -1245,12 +1243,25 @@ tr:last-child td{border-bottom:none;}
 }
 .global-player-close:hover{background:var(--bg-2);color:var(--text);}
 .global-player-close svg{width:16px;height:16px;}
-.spotify-dock{width:100%;}
-.spotify-switch{
-  width:100%;padding:28px 10px;text-align:center;border:1px dashed var(--border);border-radius:var(--r-sm);
-  color:var(--text-dim);font-size:.8rem;cursor:pointer;background:none;
+
+/* Aperçu statique d'un widget "player" dans sa tuile — la vraie lecture vit
+   uniquement dans .global-player (voir GlobalPlayerBar.tsx : un iframe déplacé
+   entre deux parents DOM est rechargé par le navigateur). */
+.spotify-preview{display:flex;align-items:center;gap:10px;}
+.spotify-preview-icon{
+  flex-shrink:0;width:36px;height:36px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--accent-soft);color:var(--accent);font-size:1.1rem;
 }
-.spotify-switch:hover{border-color:var(--accent);color:var(--text);}
+.spotify-preview-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+.spotify-preview-text span{font-size:.72rem;color:var(--text-dim);}
+.spotify-switch{
+  flex-shrink:0;padding:7px 12px;border:1px solid var(--border);border-radius:999px;
+  color:var(--text-dim);font-size:.72rem;font-weight:600;cursor:pointer;background:none;
+  white-space:nowrap;
+}
+.spotify-switch:hover:not(:disabled){border-color:var(--accent);color:var(--text);}
+.spotify-switch.active{border-color:var(--accent);color:var(--accent);cursor:default;}
 
 @media (max-width:900px){
   .app-bottom-nav{display:block;}

@@ -93,15 +93,15 @@ interface AppDataContextValue {
   setAddedUid: (uid: number | null) => void;
   /**
    * Lecteur Spotify actif (bonus) : un seul à la fois, dans toute l'app. L'iframe
-   * réelle vit dans GlobalPlayerBar (layouts/AppLayout.tsx, jamais démonté tant que
-   * la session dure) et se déplace par portail vers la tuile du widget quand elle
-   * est affichée, ou vers la barre persistante sinon — la musique continue donc en
-   * changeant de page, et ne s'arrête qu'en fermant l'onglet (demande explicite).
+   * réelle ne vit qu'à un seul endroit fixe du DOM (GlobalPlayerBar, montée une
+   * fois dans AppLayout et jamais démontée tant que la session dure) — jamais dans
+   * la tuile du widget. Déplacer un iframe d'un parent DOM à un autre force le
+   * navigateur à le recharger (perte de la lecture en cours), donc on ne le fait
+   * jamais : la tuile n'affiche qu'un aperçu statique, la vraie lecture ne bouge pas
+   * en changeant de page, et ne s'arrête qu'en fermant l'onglet (demande explicite).
    */
   activePlayer: { uid: number; embedUrl: string; title: string } | null;
   setActivePlayer: (p: { uid: number; embedUrl: string; title: string } | null) => void;
-  playerDockEl: HTMLDivElement | null;
-  setPlayerDockEl: (uid: number, el: HTMLDivElement | null) => void;
 }
 
 const AppDataContext = createContext<AppDataContextValue | null>(null);
@@ -128,25 +128,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [flashUid, setFlashUid] = useState<number | null>(null);
   const [addedUid, setAddedUid] = useState<number | null>(null);
   const [activePlayer, setActivePlayer] = useState<{ uid: number; embedUrl: string; title: string } | null>(null);
-  const [playerDockEl, setPlayerDockElState] = useState<HTMLDivElement | null>(null);
-  const activePlayerRef = useRef(activePlayer);
-  activePlayerRef.current = activePlayer;
-  // Ignore un dock qui n'est plus celui du lecteur actif (ex: ancienne tuile en
-  // cours de démontage après un changement de lecteur) pour éviter une course.
-  const setPlayerDockEl = useCallback((uid: number, el: HTMLDivElement | null) => {
-    if (activePlayerRef.current?.uid !== uid) return;
-    setPlayerDockElState(el);
-  }, []);
-  // En changeant de lecteur actif, l'ancien dock (tuile précédente) ne correspond
-  // plus à rien : on le réinitialise, GlobalPlayerBar sert de repli le temps que
-  // la nouvelle tuile (si affichée) s'enregistre.
-  const switchActivePlayer = useCallback(
-    (p: { uid: number; embedUrl: string; title: string } | null) => {
-      setPlayerDockElState(null);
-      setActivePlayer(p);
-    },
-    [],
-  );
   const uidSeq = useRef(100);
   const toastSeq = useRef(0);
 
@@ -421,9 +402,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       addedUid,
       setAddedUid,
       activePlayer,
-      setActivePlayer: switchActivePlayer,
-      playerDockEl,
-      setPlayerDockEl,
+      setActivePlayer,
     }),
     [
       modal,
@@ -467,9 +446,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       flashUid,
       addedUid,
       activePlayer,
-      switchActivePlayer,
-      playerDockEl,
-      setPlayerDockEl,
     ],
   );
 
